@@ -45,7 +45,7 @@ const SpotifyCard: NextComponentType = () => {
               </p>
             </Link>
           ) : (
-            <p>No listening to anything</p>
+            <p>Not listening to anything</p>
           )}
         </div>
       </div>

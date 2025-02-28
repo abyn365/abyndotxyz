@@ -18,52 +18,32 @@ module.exports = {
     return [
       {
         source: '/profile',
-        destination: 'https://lrmn.is-a.fun/',
-        permanent: true,
-      },
-      {
-        source: '/virtualphotography',
-        destination: 'https://vp.lrmn.fun/',
-        permanent: true,
-      },
-      {
-        source: '/airdrop',
-        destination: 'https://lrmn-airdrop.vercel.app/',
-        permanent: true,
-      },
-      {
-        source: '/mybot',
-        destination: 'https://mewwme.is-a.fun/',
+        destination: 'https://profile.abyn.xyz',
         permanent: true,
       },
       {
         source: '/instagram',
-        destination: 'https://instagram.com/romanroman.nya',
+        destination: 'https://instagram.com/abyb.1',
         permanent: true,
       },
       {
         source: '/github',
-        destination: 'https://github.com/lrmn7',
+        destination: 'https://github.com/abyn365',
         permanent: true,
       },
       {
         source: '/spotify',
-        destination: 'https://open.spotify.com/user/31urnjrljaimmmf52sealktmdz3i/',
+        destination: 'https://open.spotify.com/user/31nytpd33uqzjhemiwj4cd2o3x5u?si=47776eedc9ad4a30',
         permanent: true,
       },
       {
         source: '/pinterest',
-        destination: 'https://id.pinterest.com/romanromannya',
+        destination: 'https://id.pinterest.com/abynabb',
         permanent: true,
       },
       {
-        source: '/patreon',
-        destination: 'https://www.patreon.com/mewwme',
-        permanent: true,
-      },
-      {
-        source: '/madebytragic',
-        destination: 'https://discord.gg/6EXgrmtkPX',
+        source: '/discord',
+        destination: 'http://discord.com/users/abynab',
         permanent: true,
       },
     ];

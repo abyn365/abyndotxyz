@@ -12,11 +12,10 @@ function Banner({ icon, label }) {
   function Banners() {
     return (
       <div className="mx-auto flex flex-wrap items-center justify-center gap-1">
-        <Banner icon="💻" label="Coder" />
-        <Banner icon="🎮" label="Game" />
-        <Banner icon="🎐" label="Anime" />
-        <Banner icon="🎵" label="Music" />
-        <Banner icon="📸" label="Photography" />
+        <Banner icon="🎮" label="Gamer" />
+        <Banner icon="🎵" label="Music Enjoyer" />
+        <Banner icon="🏍" label="Vroom Vroom" />
+        <Banner icon="🏆" label="Achievement Hunter" />
       </div>
     );
   }

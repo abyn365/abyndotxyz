@@ -2,11 +2,10 @@ import { NowPlaying } from "../components";
 import Image from "next/image";
 import Banners from "../components/Banner";
 
-const name = "L RMN";
-const belowLink = "いつか、私がヒトじゃなくなっても";
-/*const bio = "Blogger | Dreamer | Observer 🗿";*/
+const name = "abyn";
+const belowLink = "Когда огонь погаснет, останется ли тепло?";
 
-const servername = "Made by tragic";
+const servername = "abynab";
 
 export default function Home() {
   return (
@@ -53,6 +52,7 @@ export default function Home() {
                       // rel="noopener noreferrer nofollow"
                       // target="_blank"
                       // href=""
+                      className="italic"
                       >
                         {belowLink}
                       </a>
@@ -137,27 +137,6 @@ export default function Home() {
                           <title>Pinterest</title>
                         </svg>
                       </a>
-                      <a
-                        rel="noopener noreferrer nofollow"
-                        target="_blank"
-                        href="/patreon"
-                        className="h-6 fill-current text-primary transition-all dark:text-gray-200"
-                      >
-                        <svg
-                          width="800"
-                          height="800"
-                          viewBox="0 -4.5 256 256"
-                          fill="#ffffff"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6"
-                        >
-                          <path
-                            d="M45.1355837,0 L45.1355837,246.35001 L0,246.35001 L0,0 L45.1355837,0 Z M163.657111,0 C214.65668,0 256,41.3433196 256,92.3428889 C256,143.342458 214.65668,184.685778 163.657111,184.685778 C112.657542,184.685778 71.3142222,143.342458 71.3142222,92.3428889 C71.3142222,41.3433196 112.657542,0 163.657111,0 Z"
-                            fill="#FF424D"
-                          ></path>
-                          <title>Patreon</title>
-                        </svg>
-                      </a>
                       <div className="flex items-center">
                         <div className="mx-auto inline-block">
                           <div className="flex cursor-pointer items-center justify-center space-x-2 rounded-full border-white border-opacity-10 px-2 py-2 hover:bg-white hover:bg-opacity-5">
@@ -173,7 +152,9 @@ export default function Home() {
                             </svg>
                             <p className="text-sm font-medium text-indigo-100">
                               <a
-                                href="/madebytragic"
+                                 rel="noopener noreferrer nofollow"
+                                target="_blank"
+                                href="/discord"
                                 className="text-sm font-medium text-indigo-100"
                               >
                                 {servername}
@@ -185,7 +166,7 @@ export default function Home() {
                       <div className="max-w-s mt-1 w-full space-y-2">
                         <div className="bg-animate group mb-1 w-full cursor-pointer rounded bg-gradient-to-r from-zinc-900 via-zinc-600 to-zinc-900 text-sm text-zinc-400 shadow transition-all">
                           <a
-                            href="/profile"
+                            href="https://profile.abyn.xyz"
                             target="_blank"
                             rel="noopener noreferrer nofollow"
                             className="w-full transition-all sm:hover:opacity-70"
@@ -194,152 +175,20 @@ export default function Home() {
                               <span className="relative mt-2 flex w-full flex-row items-center justify-between rounded bg-zinc-900 text-sm leading-tight">
                                 <div className="flex items-center justify-center">
                                   <div className="flex h-16 w-16 items-center justify-center rounded bg-zinc-800 bg-opacity-50">
-                                    <span className="">🌐</span>
+                                    <span className="">🏆</span>
                                   </div>
                                   <div className="mx-4 flex flex-col">
                                     <span
                                       title="Nothing"
                                       className="text-ellipsis text-[16px] text-zinc-400"
                                     >
-                                      Personal Website
+                                      Achievement list
                                     </span>
                                     <span
                                       title="Nothing"
                                       className="xs:w-[220px] mt-1 w-[175px] truncate text-ellipsis whitespace-nowrap text-[14px] text-zinc-700 sm:w-[275px] md:w-[340px] lg:w-[400px]"
                                     >
-                                      Explore my biography, projects, and more
-                                    </span>
-                                  </div>
-                                </div>
-                                <span className="absolute right-2 text-zinc-600 transition-all">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                    aria-hidden="true"
-                                    className="h-4 w-8"
-                                  >
-                                    <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"></path>
-                                  </svg>
-                                </span>
-                              </span>
-                            </div>
-                          </a>
-                        </div>
-
-                        <div className="bg-animate group mb-1 w-full cursor-pointer rounded bg-gradient-to-r from-zinc-900 via-zinc-600 to-zinc-900 text-sm text-zinc-400 shadow transition-all">
-                          <a
-                            href="/virtualphotography"
-                            target="_blank"
-                            rel="noopener noreferrer nofollow"
-                            className="w-full transition-all sm:hover:opacity-70"
-                          >
-                            <div>
-                              <span className="relative mt-2 flex w-full flex-row items-center justify-between rounded bg-zinc-900 text-sm leading-tight">
-                                <div className="flex items-center justify-center">
-                                  <div className="flex h-16 w-16 items-center justify-center rounded bg-zinc-800 bg-opacity-50">
-                                    <span className=""> 📸 </span>
-                                  </div>
-                                  <div className="mx-4 flex flex-col">
-                                    <span
-                                      title="Nothing"
-                                      className="text-ellipsis text-[16px] text-zinc-400"
-                                    >
-                                      Virtual Photography
-                                    </span>
-                                    <span
-                                      title="Web toolbox"
-                                      className="xs:w-[220px] mt-1 w-[175px] truncate text-ellipsis whitespace-nowrap text-[14px] text-zinc-700 sm:w-[275px] md:w-[340px] lg:w-[400px]"
-                                    >
-                                      A collection of my in-game photography
-                                    </span>
-                                  </div>
-                                </div>
-                                <span className="absolute right-2 text-zinc-600 transition-all">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                    aria-hidden="true"
-                                    className="h-4 w-8"
-                                  >
-                                    <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"></path>
-                                  </svg>
-                                </span>
-                              </span>
-                            </div>
-                          </a>
-                        </div>
-
-                        <div className="bg-animate group mb-1 w-full cursor-pointer rounded bg-gradient-to-r from-zinc-900 via-zinc-600 to-zinc-900 text-sm text-zinc-400 shadow transition-all">
-                          <a
-                            href="/mybot"
-                            target="_blank"
-                            rel="noopener noreferrer nofollow"
-                            className="w-full transition-all sm:hover:opacity-70"
-                          >
-                            <div>
-                              <span className="relative mt-2 flex w-full flex-row items-center justify-between rounded bg-zinc-900 text-sm leading-tight">
-                                <div className="flex items-center justify-center">
-                                  <div className="flex h-16 w-16 items-center justify-center rounded bg-zinc-800 bg-opacity-50">
-                                    <span className=""> 🤖 </span>
-                                  </div>
-                                  <div className="mx-4 flex flex-col">
-                                    <span
-                                      title="Nothing"
-                                      className="text-ellipsis text-[16px] text-zinc-400"
-                                    >
-                                      Mewwme&apos;s
-                                    </span>
-                                    <span
-                                      title=""
-                                      className="xs:w-[220px] mt-1 w-[175px] truncate text-ellipsis whitespace-nowrap text-[14px] text-zinc-700 sm:w-[275px] md:w-[340px] lg:w-[400px]"
-                                    >
-                                      The music bot that fills your server with endless melodies
-                                    </span>
-                                  </div>
-                                </div>
-                                <span className="absolute right-2 text-zinc-600 transition-all">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                    aria-hidden="true"
-                                    className="h-4 w-8"
-                                  >
-                                    <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"></path>
-                                  </svg>
-                                </span>
-                              </span>
-                            </div>
-                          </a>
-                        </div>
-
-                        <div className="bg-animate group mb-1 w-full cursor-pointer rounded bg-gradient-to-r from-zinc-900 via-zinc-600 to-zinc-900 text-sm text-zinc-400 shadow transition-all">
-                          <a
-                            href="/airdrop"
-                            target="_blank"
-                            rel="noopener noreferrer nofollow"
-                            className="w-full transition-all sm:hover:opacity-70"
-                          >
-                            <div>
-                              <span className="relative mt-2 flex w-full flex-row items-center justify-between rounded bg-zinc-900 text-sm leading-tight">
-                                <div className="flex items-center justify-center">
-                                  <div className="flex h-16 w-16 items-center justify-center rounded bg-zinc-800 bg-opacity-50">
-                                    <span className=""> 💸 </span>
-                                  </div>
-                                  <div className="mx-4 flex flex-col">
-                                    <span
-                                      title="Nothing"
-                                      className="text-ellipsis text-[16px] text-zinc-400"
-                                    >
-                                      Potential Airdrop
-                                    </span>
-                                    <span
-                                      title=""
-                                      className="xs:w-[220px] mt-1 w-[175px] truncate text-ellipsis whitespace-nowrap text-[14px] text-zinc-700 sm:w-[275px] md:w-[340px] lg:w-[400px]"
-                                    >
-                                      Looking for a way to earn passive income effortlessly?
+                                      See all my achievement
                                     </span>
                                   </div>
                                 </div>
@@ -372,9 +221,9 @@ export default function Home() {
             <div className="flex items-center justify-center rounded-full bg-primary bg-opacity-90 text-xs font-medium text-banner">
               <footer>
                 <div className="container mx-auto text-center">
-                  Made by TRAGIC in BOGOR
+                © 2025 abyn.xyz All rights reserved.
                   <p className="text-gray text-s">
-                    © 2023 L RMN. All rights reserved.
+                  Made by TRAGIC in BOGOR (modified by abyn)
                   </p>
                 </div>
               </footer>

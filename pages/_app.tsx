@@ -20,7 +20,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     const script = document.createElement("script");
     script.async = true;
-    script.src = "https://analytics.eu.umami.is/script.js";
+    script.src = "https://cloud.umami.is/script.js";
     script.dataset.websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID; // Mengambil nilai dari variabel lingkungan
     document.head.appendChild(script);
   }, []);
@@ -46,34 +46,22 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Analytics />
 
       <NextSeo
-        title="L RMN  | いつか、私がヒトじゃなくなっても"
-        titleTemplate="L RMN - Mostly Sleepless"
-        defaultTitle="L RMN  | Mostly Sleepless"
-        description="Hey! I'm L RMN , I love exploring everything related to technology. Aside from that, I have a great interest in the world of photography, especially virtual photography in video games!"
+        title="abyn | biolink"
+        titleTemplate="abyn | biolink"
+        defaultTitle="abyn  | biolink"
+        description="Hey! I'm abyn, I love playing video games, watching anime, and listening to music, thanks for visiting!"
         openGraph={{
-          url: "https://hi-lrmn.is-a.dev/",
-          title: "L RMN | いつか、私がヒトじゃなくなっても",
+          url: "https://abyn.xyz",
+          title: "abyn | biolink",
           description:
-            "Hey! I'm L RMN , I love exploring everything related to technology. Aside from that, I have a great interest in the world of photography, especially virtual photography in video games!",
+            "Hey! I'm abyn, I love playing video games, watching anime, and listening to music, thanks for visiting!",
           images: [
             {
-              url: "https://hi-lrmn.is-a.dev/og-image.png",
-              alt: "L RMN  | いつか、私がヒトじゃなくなっても",
+              url: "https://abyn.xyz/public/banner.gif",
+              alt: "abyn | biolink",
             },
           ],
         }}
-        twitter={{
-          handle: "@romanromannya",
-          site: "@romanromannya",
-          cardType: "summary_large_image",
-        }}
-        additionalMetaTags={[
-          {
-            property: "keywords",
-            content:
-              "Virtual Photography, Blogger, Discord Bot Developer, Web Developer, Mewwme's, Web Developer, Discord Music Bot, tech enthusiast, open source",
-          },
-        ]}
       />
 
       <Head>
