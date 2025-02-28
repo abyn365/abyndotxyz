@@ -47,7 +47,7 @@ export default function Home() {
                         </svg>
                       </div>
                     </div>
-                    <p className="text-center text-sm text-gray-400 dark:text-gray-500">
+                    <p className="text-center text-sm text-gray-400 dark:text-gray-500 typing-animation">
                       <a
                       // rel="noopener noreferrer nofollow"
                       // target="_blank"
