@@ -32,7 +32,13 @@ export default function Home() {
                 <div className="relative flex flex-row items-center justify-center">
                   <div className="mb-1 flex flex-col">
                     <div className="mt-1 flex flex-row items-center justify-center">
-                      <span className="flex text-center text-2xl font-bold leading-tight text-zinc-300 typing-animation">
+                      <span className="flex text-center text-2xl font-bold leading-tight text-zinc-300 typing-animation"
+                        style={{
+                          "--typing-speed": "2s", // Adjust typing speed
+                          "--steps": "30", // Adjust steps for smoothness
+                          "--caret-speed": "1s" // Adjust caret blinking speed
+                        }}
+                        >
                         {name}
                       </span>
                       <div>
