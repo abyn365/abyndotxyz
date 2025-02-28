@@ -96,6 +96,46 @@ body::-webkit-scrollbar {
   border-radius: 4px; /* Atur radius sudut scrollbar */
 }
 
+/* Hover Animation for Links */
+a:hover {
+  color: #ff6347; /* Change color on hover */
+  transition: color 0.3s ease-in-out;
+}
+
+/* Typing Animation for Title */
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: black; }
+}
+
+.typing-animation {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 0.15em solid black;
+  animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+/* Hover Animation for Buttons */
+button:hover {
+  transform: scale(1.1);
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Fade-in Animation for Elements */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 2s ease-in-out;
+}
+
 /* Untuk browser yang tidak mendukung scrollbar-width */
 /* Membuat scrollbar lebih tipis */
 scrollbar-width: thin;
