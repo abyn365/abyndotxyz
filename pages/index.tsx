@@ -32,7 +32,7 @@ export default function Home() {
                 <div className="relative flex flex-row items-center justify-center">
                   <div className="mb-1 flex flex-col">
                     <div className="mt-1 flex flex-row items-center justify-center">
-                      <span className="flex text-center text-2xl font-bold leading-tight text-zinc-300">
+                      <span className="flex text-center text-2xl font-bold leading-tight text-zinc-300 typing-animation">
                         {name}
                       </span>
                       <div>
