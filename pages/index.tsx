@@ -14,7 +14,7 @@ export default function Home() {
         <div className="flex min-h-screen flex-col bg-primary">
           <div
             style={{ backgroundSize: "cover", backgroundPosition: "center" }}
-            className="h-60 w-full bg-banner"
+            className="h-60 w-full bg-banner fade-in"
           />
           <div className="mx-auto -mt-20 flex w-full max-w-2xl flex-1 flex-col items-center px-0 sm:px-10">
             <div className="relative mb-6 flex w-full flex-col justify-center bg-opacity-90 px-2 sm:min-h-full sm:rounded-lg sm:px-6">
