@@ -37,8 +37,7 @@ export default function Home() {
                           "--typing-speed": "2s", // Adjust typing speed
                           "--steps": "30", // Adjust steps for smoothness
                           "--caret-speed": "1s" // Adjust caret blinking speed
-                        }}
-                        >
+                        }} >
                         {name}
                       </span>
                       <div>
