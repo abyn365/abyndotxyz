@@ -218,11 +218,11 @@ export default function Home() {
             </div>
           </div>
           <div className="mb-4 flex justify-center">
-            <div className="flex items-center justify-center rounded-full bg-primary bg-opacity-90 text-xs font-medium text-banner typing-animation">
+            <div className="flex items-center justify-center rounded-full bg-primary bg-opacity-90 text-xs font-medium text-banner">
               <footer>
-                <div className="container mx-auto text-center">
+                <div className="container mx-auto text-center typing-animation">
                 © 2025 abyn.xyz All rights reserved.
-                  <p className="text-gray text-s">
+                  <p className="text-gray text-s faded-in">
                   Made by TRAGIC in BOGOR (modified by abyn)
                   </p>
                 </div>
