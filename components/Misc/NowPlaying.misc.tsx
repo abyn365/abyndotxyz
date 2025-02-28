@@ -29,7 +29,7 @@ const SpotifyCard: NextComponentType = () => {
 
   return (
     <>
-      <div className="font-sen mb-8 flex flex-col items-center gap-2 text-center text-sm text-gray-300">
+      <div className="font-sen mb-8 flex flex-col items-center gap-2 text-center text-sm text-gray-300 fade-in">
         <p className="text-white">See what I&apos;m currently listening on Spotify</p>
         <div className="flex flex-row items-center gap-x-2">
           <Image

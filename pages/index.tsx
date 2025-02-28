@@ -22,7 +22,7 @@ export default function Home() {
                 <div className="relative">
                   <Image
                     style={{ width: "130px", height: "130px" }}
-                    className="rounded-full border-4 border-solid border-primary bg-primary object-cover"
+                    className="rounded-full border-4 border-solid border-primary bg-primary object-cover fade-in"
                     src="/profile.png"
                     alt="profile"
                     width={100}
@@ -32,12 +32,7 @@ export default function Home() {
                 <div className="relative flex flex-row items-center justify-center">
                   <div className="mb-1 flex flex-col">
                     <div className="mt-1 flex flex-row items-center justify-center">
-                      <span className="flex text-center text-2xl font-bold leading-tight text-zinc-300 typing-animation"
-                        style={{
-                          "--typing-speed": "2s", // Adjust typing speed
-                          "--steps": "30", // Adjust steps for smoothness
-                          "--caret-speed": "1s" // Adjust caret blinking speed
-                        }} >
+                      <span className="flex text-center text-2xl font-bold leading-tight text-zinc-300 fade-in">
                         {name}
                       </span>
                       <div>
@@ -69,12 +64,12 @@ export default function Home() {
                     </div>*/}
                   </div>
                 </div>
-                <div className="mt-3">
+                <div className="mt-3 typing-animation">
                   <Banners />
                 </div>
                 <div className="mt-1 rounded pt-2">
                   <div>
-                    <div className="flex flex-row flex-wrap  items-center justify-center">
+                    <div className="flex flex-row flex-wrap  items-center justify-center fade-in">
                       <a
                         rel="noopener noreferrer nofollow"
                         target="_blank"
@@ -185,7 +180,7 @@ export default function Home() {
                                   <div className="mx-4 flex flex-col">
                                     <span
                                       title="Nothing"
-                                      className="text-ellipsis text-[16px] text-zinc-400"
+                                      className="text-ellipsis text-[16px] text-zinc-400 typing-animation"
                                     >
                                       Achievement list
                                     </span>
@@ -223,7 +218,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mb-4 flex justify-center">
-            <div className="flex items-center justify-center rounded-full bg-primary bg-opacity-90 text-xs font-medium text-banner">
+            <div className="flex items-center justify-center rounded-full bg-primary bg-opacity-90 text-xs font-medium text-banner typing-animation">
               <footer>
                 <div className="container mx-auto text-center">
                 © 2025 abyn.xyz All rights reserved.

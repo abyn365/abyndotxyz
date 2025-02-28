@@ -11,7 +11,7 @@ function Banner({ icon, label }) {
   
   function Banners() {
     return (
-      <div className="mx-auto flex flex-wrap items-center justify-center gap-1">
+      <div className="mx-auto flex flex-wrap items-center justify-center gap-1 fade-in">
         <Banner icon="🎮" label="Gamer" />
         <Banner icon="🎵" label="Music Enjoyer" />
         <Banner icon="🏍" label="Vroom Vroom" />
