@@ -49,6 +49,7 @@ export default function Home() {
                         </svg>
                       </div>
                     </div>
+                    <div className="fade-in">
                     <p className="text-center text-sm text-gray-400 dark:text-gray-500 no-caret-typing-animation truncate">
                       <a
                       // rel="noopener noreferrer nofollow"
@@ -59,6 +60,7 @@ export default function Home() {
                         {belowLink}
                       </a>
                     </p>
+                    </div>
                     <div className="mt-3 flex flex-col">
                       <p className="inline-block whitespace-pre-wrap text-center text-sm text-gray-500 dark:text-gray-400 fade-in"> 
                         {bio}
@@ -182,7 +184,7 @@ export default function Home() {
                                   <div className="mx-4 flex flex-col">
                                     <span
                                       title="Nothing"
-                                      className="text-ellipsis text-[16px] text-zinc-400 no-caret-typing-animation hover:text-[#ff6347] transition-colors"
+                                      className="text-ellipsis text-[16px] text-zinc-400 no-caret-typing-animation truncate hover:text-[#ff6347] transition-colors"
                                     >
                                       Achievement list
                                     </span>
