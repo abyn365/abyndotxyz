@@ -4,7 +4,7 @@ import Banners from "../components/Banner";
 
 const name = "abyn";
 const belowLink = "Когда огонь погаснет, останется ли тепло?";
-const bio = "The biolink of a dumbass guy. 🗿";
+const bio = "The biolink of a dumbass 🗿";
 
 
 const servername = "abynab";
