@@ -4,6 +4,8 @@ import Banners from "../components/Banner";
 
 const name = "abyn";
 const belowLink = "Когда огонь погаснет, останется ли тепло?";
+/*const bio = "Blogger | Dreamer | Observer 🗿";*/
+
 
 const servername = "abynab";
 
@@ -64,7 +66,7 @@ export default function Home() {
                     </div>*/}
                   </div>
                 </div>
-                <div className="mt-3 typing-animation">
+                <div className="mt-3 no-caret-typing-animation">
                   <Banners />
                 </div>
                 <div className="mt-1 rounded pt-2">
@@ -220,7 +222,7 @@ export default function Home() {
           <div className="mb-4 flex justify-center">
             <div className="flex items-center justify-center rounded-full bg-primary bg-opacity-90 text-xs font-medium text-banner fade-in">
               <footer>
-                <div className="container mx-auto text-center typing-animation">
+                <div className="container mx-auto text-center fade-in">
                 © 2025 abyn.xyz All rights reserved.
                   <p className="text-gray text-s faded-in">
                   Made by TRAGIC in BOGOR (modified by abyn)

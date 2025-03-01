@@ -40,12 +40,12 @@ const SpotifyCard: NextComponentType = () => {
           />
           {data?.isPlaying ? (
             <Link href={data?.songUrl} passHref>
-              <p className="cursor-pointer truncate typing-animation">
+              <p className="cursor-pointer truncate no-caret-typing-animation">
               <span className="text-white hover:text-[#ff6347] transition-colors">{truncatedTitle}</span>
               </p>
             </Link>
           ) : (
-            <p>Not listening to anything</p>
+            <span className="truncate no-caret-typing-animation">Not listening to anything</span>
           )}
         </div>
       </div>

@@ -126,6 +126,12 @@ a:hover {
   }
 }
 
+/* Special class for banner without caret */
+.no-caret-typing-animation {
+  border-right: none;
+  animation: typing 3.5s steps(40, end);
+}
+
 /* Hover Animation for Buttons */
 button:hover {
   transform: scale(1.1);
