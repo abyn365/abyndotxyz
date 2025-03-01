@@ -180,13 +180,13 @@ export default function Home() {
                                   <div className="mx-4 flex flex-col">
                                     <span
                                       title="Nothing"
-                                      className="text-ellipsis text-[16px] text-zinc-400 typing-animation"
+                                      className="text-ellipsis text-[16px] text-zinc-400 typing-animation hover:text-[#ff6347] transition-colors"
                                     >
                                       Achievement list
                                     </span>
                                     <span
                                       title="Nothing"
-                                      className="xs:w-[220px] mt-1 w-[175px] truncate text-ellipsis whitespace-nowrap text-[14px] text-zinc-700 sm:w-[275px] md:w-[340px] lg:w-[400px]"
+                                      className="xs:w-[220px] mt-1 w-[175px] truncate text-ellipsis whitespace-nowrap text-[14px] text-zinc-700 sm:w-[275px] md:w-[340px] lg:w-[400px] typing-animation hover:text-[#ff6347] transition-colors"
                                     >
                                       See all my achievement
                                     </span>
@@ -218,7 +218,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mb-4 flex justify-center">
-            <div className="flex items-center justify-center rounded-full bg-primary bg-opacity-90 text-xs font-medium text-banner">
+            <div className="flex items-center justify-center rounded-full bg-primary bg-opacity-90 text-xs font-medium text-banner fade-in">
               <footer>
                 <div className="container mx-auto text-center typing-animation">
                 © 2025 abyn.xyz All rights reserved.
