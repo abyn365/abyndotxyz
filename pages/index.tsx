@@ -4,7 +4,7 @@ import Banners from "../components/Banner";
 
 const name = "abyn";
 const belowLink = "Когда огонь погаснет, останется ли тепло?";
-/*const bio = "Blogger | Dreamer | Observer 🗿";*/
+const bio = "The biolink of a dumbass person. 🗿";
 
 
 const servername = "abynab";
@@ -49,7 +49,7 @@ export default function Home() {
                         </svg>
                       </div>
                     </div>
-                    <p className="text-center text-sm text-gray-400 dark:text-gray-500 typing-animation">
+                    <p className="text-center text-sm text-gray-400 dark:text-gray-500 no-caret-typing-animation truncate">
                       <a
                       // rel="noopener noreferrer nofollow"
                       // target="_blank"
@@ -59,11 +59,11 @@ export default function Home() {
                         {belowLink}
                       </a>
                     </p>
-                    {/*<div className="mt-3 flex flex-col">
-                      <p className="inline-block whitespace-pre-wrap text-center text-sm text-gray-500 dark:text-gray-400">
+                    <div className="mt-3 flex flex-col">
+                      <p className="inline-block whitespace-pre-wrap text-center text-sm text-gray-500 dark:text-gray-400 fade-in"> 
                         {bio}
                       </p>
-                    </div>*/}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-3 no-caret-typing-animation">
@@ -182,13 +182,13 @@ export default function Home() {
                                   <div className="mx-4 flex flex-col">
                                     <span
                                       title="Nothing"
-                                      className="text-ellipsis text-[16px] text-zinc-400 typing-animation hover:text-[#ff6347] transition-colors"
+                                      className="text-ellipsis text-[16px] text-zinc-400 no-caret-typing-animation hover:text-[#ff6347] transition-colors"
                                     >
                                       Achievement list
                                     </span>
                                     <span
                                       title="Nothing"
-                                      className="xs:w-[220px] mt-1 w-[175px] truncate text-ellipsis whitespace-nowrap text-[14px] text-zinc-700 sm:w-[275px] md:w-[340px] lg:w-[400px] typing-animation hover:text-[#ff6347] transition-colors"
+                                      className="xs:w-[220px] mt-1 w-[175px] truncate text-ellipsis whitespace-nowrap text-[14px] text-zinc-700 sm:w-[275px] md:w-[340px] lg:w-[400px] no-caret-typing-animation hover:text-[#ff6347] transition-colors"
                                     >
                                       See all my achievement
                                     </span>
