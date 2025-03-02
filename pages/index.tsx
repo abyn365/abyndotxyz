@@ -1,5 +1,4 @@
-import { NowPlaying } from "../components";
-import Image from "next/image";
+import { NowPlaying, TopTracks } from "../components";import Image from "next/image";
 import Banners from "../components/Banner";
 
 const name = "abyn";
@@ -61,10 +60,10 @@ export default function Home() {
                       </a>
                     </p>
                     </div>
-                    <div className="mt-3 flex flex-col">
-                      <p className="inline-block whitespace-pre-wrap text-center text-sm text-gray-500 dark:text-gray-400 fade-in"> 
-                        {bio}
-                      </p>
+                    <div className="mt-3 bio-fade-in text-center">
+                        <a className="text-center text-sm text-gray-500 dark:text-gray-400">
+                          {bio}
+                        </a>
                     </div>
                   </div>
                 </div>
@@ -81,7 +80,7 @@ export default function Home() {
                         className="flex cursor-pointer items-center justify-center rounded-full border-white border-opacity-10 bg-opacity-10 p-1.5 transition-all"
                       >
                         <svg
-                          className="h-6 fill-current text-pink-400 transition-all"
+                          className="h-6 fill-current text-pink-400 transition-all hover:text-[#ff6347] transition-colors"
                           role="img"
                           viewBox="0 0 24 24"
                           xmlns="http://www.w3.org/2000/svg"
@@ -97,14 +96,13 @@ export default function Home() {
                         className="flex cursor-pointer items-center justify-center rounded-full border-white border-opacity-10 bg-opacity-10 p-1.5 transition-all"
                       >
                         <svg
-                          className="h-6 fill-current text-primary transition-all dark:text-gray-100"
+                          className="h-6 fill-current text-primary transition-all dark:text-gray-100 hover:text-[#ff6347] transition-colors"
                           role="img"
                           viewBox="0 0 24 24"
                           xmlns="http://www.w3.org/2000/svg"
                         >
                           <title>GitHub</title>
                           <path
-                            fill="#3E75C3"
                             d="M12 0C5.4 0 0 5.4 0 12c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.3-1.3-1.6-1.3-1.6-1.1-.7.1-.7.1-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.9 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.5-.3-5-1.3-5-5.8 0-1.3.5-2.4 1.3-3.2-.1-.3-.6-1.5.1-3.1 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.2-1.5 3.2-1.2 3.2-1.2.7 1.6.2 2.8.1 3.1.8.8 1.3 1.9 1.3 3.2 0 4.6-2.5 5.5-4.9 5.8.4.4.7 1.1.7 2.2v3.3c0 .4.2.7.8.6 4.7-1.6 8.1-6.1 8.1-11.4C24 5.4 18.6 0 12 0z"
                           />
                         </svg>
@@ -116,7 +114,7 @@ export default function Home() {
                         className="flex cursor-pointer items-center justify-center rounded-full border-white border-opacity-10 bg-opacity-10 p-1.5 transition-all"
                       >
                         <svg
-                          className="h-6 fill-current text-green-400"
+                          className="h-6 fill-current text-green-400 hover:text-[#ff6347] transition-colors"
                           role="img"
                           viewBox="0 0 64 64"
                           xmlns="http://www.w3.org/2000/svg"
@@ -129,15 +127,17 @@ export default function Home() {
                         rel="noopener noreferrer nofollow"
                         target="_blank"
                         href="/pinterest"
-                        className="flex cursor-pointer items-center justify-center rounded-full border-white border-opacity-10 bg-opacity-10 p-1.5 transition-all"
+                        className="flex cursor-pointer items-center justify-center rounded-full border-white border-opacity-10 bg-opacity-10 p-1.5 transition-all group"
                       >
                         <svg
-                          className="text-red h-6 transition-all"
+                          className="h-6 transition-all"
                           viewBox="0 0 32 32"
-                          fill="#E60023"
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path d="M16.132 0a16 16 0 0 0-5.771 30.952c-.13-1.312-.262-3.148 0-4.6l1.836-8a5.771 5.771 0 0 1-.525-2.361c0-2.23 1.312-3.935 2.885-3.935s1.967 1.05 1.967 2.23-.918 3.4-1.312 5.377.787 2.885 2.36 2.885 4.984-3.016 4.984-7.344-2.754-6.558-6.69-6.558-7.082 3.54-7.082 7.082c0 1.312.525 2.885 1.18 3.672a.525.525 0 0 1 .131.393l-.393 1.836c-.13.262-.262.393-.525.262-1.967-.918-3.28-3.803-3.28-6.164 0-4.984 3.672-9.705 10.623-9.705s9.836 3.935 9.836 9.18-3.54 9.968-8.263 9.968c-1.574 0-3.148-.787-3.672-1.836l-1.05 3.803c-.393 1.443-1.312 3.148-1.967 4.197A16 16 0 1 0 16.132 0z"></path>
+                          <path 
+                            d="M16.132 0a16 16 0 0 0-5.771 30.952c-.13-1.312-.262-3.148 0-4.6l1.836-8a5.771 5.771 0 0 1-.525-2.361c0-2.23 1.312-3.935 2.885-3.935s1.967 1.05 1.967 2.23-.918 3.4-1.312 5.377.787 2.885 2.36 2.885 4.984-3.016 4.984-7.344-2.754-6.558-6.69-6.558-7.082 3.54-7.082 7.082c0 1.312.525 2.885 1.18 3.672a.525.525 0 0 1 .131.393l-.393 1.836c-.13.262-.262.393-.525.262-1.967-.918-3.28-3.803-3.28-6.164 0-4.984 3.672-9.705 10.623-9.705s9.836 3.935 9.836 9.18-3.54 9.968-8.263 9.968c-1.574 0-3.148-.787-3.672-1.836l-1.05 3.803c-.393 1.443-1.312 3.148-1.967 4.197A16 16 0 1 0 16.132 0z"
+                            className="fill-[#E60023] group-hover:fill-[#ff6347] transition-colors pointer-events-none"
+                          />
                           <title>Pinterest</title>
                         </svg>
                       </a>
@@ -145,10 +145,9 @@ export default function Home() {
                         <div className="mx-auto inline-block">
                           <div className="flex cursor-pointer items-center justify-center space-x-2 rounded-full border-white border-opacity-10 px-2 py-2 hover:bg-white hover:bg-opacity-5">
                             <svg
-                              className="h-5 fill-current text-indigo-500"
+                              className="h-5 fill-current text-indigo-500 hover:text-[#ff6347] transition-colors"
                               role="img"
                               viewBox="0 0 24 24"
-                              fill="#7289DA"
                               xmlns="http://www.w3.org/2000/svg"
                             >
                               <title>Discord</title>
@@ -218,16 +217,25 @@ export default function Home() {
                   </div>
                 </div>
                 <NowPlaying />
+                <TopTracks />
               </div>
             </div>
           </div>
           <div className="mb-4 flex justify-center">
             <div className="flex items-center justify-center rounded-full bg-primary bg-opacity-90 text-xs font-medium text-banner fade-in">
               <footer>
-                <div className="container mx-auto text-center fade-in">
-                © 2025 abyn.xyz All rights reserved.
+                <div className="container mx-auto text-center">
+                  Copyright © 2025 <a href="https://abyn.xyz"
+                  className="hover:text-[#ff6347] transition-colors"> abyn.xyz </a> | <a 
+                    href="https://github.com/lrmn7/personal-bio"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#ff6347] transition-colors"
+                  >
+                    L RMN
+                  </a>
                   <p className="text-gray text-s faded-in">
-                  Made by TRAGIC in BOGOR (modified by abyn)
+                    Made by TRAGIC modified by abyn
                   </p>
                 </div>
               </footer>

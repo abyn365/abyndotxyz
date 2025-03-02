@@ -148,6 +148,16 @@ button:hover {
   animation: fadeIn 4s ease-in-out;
 }
 
+.bio-fade-in {
+  animation: fadeIn 5s ease-in-out;
+}
+
+.transition-transform {
+  transition: transform 0.2s ease-in-out;
+}
+
 /* Untuk browser yang tidak mendukung scrollbar-width */
 /* Membuat scrollbar lebih tipis */
-scrollbar-width: thin;
+body {
+  scrollbar-width: thin;
+}
