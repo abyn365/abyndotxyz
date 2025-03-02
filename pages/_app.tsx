@@ -82,6 +82,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           handle: "@abyb_1",
           site: "@abyb_1",
           cardType: "summary_large_image",
+          image: "https://abyn.xyz/public/banner.gif",
         }}
         additionalMetaTags={[
           {
