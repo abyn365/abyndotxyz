@@ -90,6 +90,18 @@ function MyApp({ Component, pageProps }: AppProps) {
               "abyn, biolink, portfolio, anime, music, video games, web development, software development, programming, coding, achievements, projects, contact",
           },
         ]}
+        twitter={{
+          handle: "@abyn_1",
+          site: "@abyb_1",
+          cardType: "summary_large_image",
+        }}
+        additionalMetaTags={[
+          {
+            property: "keywords",
+            content:
+              "Biolink, abyn, portfolio, anime, music, video games, web development, software development, programming, coding, achievements, projects, contact",
+          },
+        ]}
       />
 
       <Head>
