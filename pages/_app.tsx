@@ -73,7 +73,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             "Hey! I'm abyn, I love playing video games, watching anime, and listening to music, thanks for visiting!",
           images: [
             {
-              url: "https://abyn.xyz/public/banner.gif",
+              url: "https://abyn.xyz/banner.gif",
               alt: "abyn | biolink",
             },
           ],
@@ -82,7 +82,6 @@ function MyApp({ Component, pageProps }: AppProps) {
           handle: "@abyb_1",
           site: "@abyb_1",
           cardType: "summary_large_image",
-          image: "https://abyn.xyz/public/banner.gif",
         }}
         additionalMetaTags={[
           {
