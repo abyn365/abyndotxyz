@@ -24,7 +24,7 @@ const TopTracks: NextComponentType = () => {
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between w-full px-4 py-2 bg-zinc-900/50 rounded-lg hover:bg-zinc-900/70 transition-all"
       >
-        <span className="text-white hover:text-[#ff6347] transition-colors">My Top Tracks</span>
+        <span className="text-white hover:text-[#ff6347] transition-colors no-caret-typing-animation truncate">My Top Tracks</span>
         <svg 
           className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
           fill="none" 
@@ -51,13 +51,13 @@ const TopTracks: NextComponentType = () => {
                 width={40}
                 height={40}
                 alt={track.title}
-                className="rounded"
+                className="rounded top-fade-in"
               />
               <div className="flex flex-col overflow-hidden">
-                <p className="text-white truncate hover:text-[#ff6347] transition-colors">
+                <p className="text-white truncate hover:text-[#ff6347] transition-colors top-no-caret-typing-animation">
                   {track.title}
                 </p>
-                <p className="text-gray-400 text-xs truncate">
+                <p className="text-gray-400 text-xs truncate top-no-caret-typing-animation">
                   {track.artist}
                 </p>
               </div>
