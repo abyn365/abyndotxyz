@@ -10,6 +10,17 @@ type Track = {
   title: string;
   songUrl: string;
   cover: string;
+  albumYear: string;
+  popularity: number;
+  genre: string[];
+  isArtistGenre: boolean;
+  duration: number;
+};
+
+const formatDuration = (ms: number) => {
+  const minutes = Math.floor(ms / 60000);
+  const seconds = ((ms % 60000) / 1000).toFixed(0);
+  return `${minutes}:${parseInt(seconds) < 10 ? '0' : ''}${seconds}`;
 };
 
 const TopTracks: NextComponentType = () => {
@@ -38,13 +49,13 @@ const TopTracks: NextComponentType = () => {
       {isExpanded && (
         <div className="flex flex-col gap-y-3 mt-2">
           {data.tracks.map((track, index) => (
-            <Link 
-              key={track.songUrl}
-              href={track.songUrl}
-              className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <div key={track.songUrl} className="flex flex-col">
+              <Link 
+                href={track.songUrl}
+                className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
               <span className="text-gray-400 w-4">{index + 1}</span>
               <Image
                 src={track.cover}
@@ -62,6 +73,43 @@ const TopTracks: NextComponentType = () => {
                 </p>
               </div>
             </Link>
+              
+              {/* Add stats section */}
+              <div className="ml-11 mt-1 grid grid-cols-3 gap-2 text-xs text-gray-400">
+                <div className="flex items-center gap-1">
+                  <span className="opacity-50">Year:</span>
+                  <span className="top1-no-caret-typing-animation">{track.albumYear || 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="opacity-50">Duration:</span>
+                  <span className="top1-no-caret-typing-animation">{formatDuration(track.duration)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="opacity-50">Popularity:</span>
+                  <div className="w-16 h-1.5 bg-gray-700 rounded-full">
+                    <div 
+                      className="h-full bg-[#ff6347] rounded-full top-fade-in" 
+                      style={{ width: `${track.popularity || 0}%` }}
+                    />
+                  </div>
+                </div>
+                {track.genre && track.genre.length > 0 ? (
+                  <div className="col-span-3 flex flex-wrap gap-1">
+                    <span className="opacity-50 mr-1 top1-no-caret-typing-animation">
+                      {track.isArtistGenre ? 'Artist Genre:' : 'Track Genre:'}
+                    </span>
+                    {track.genre.slice(0, 3).map((genre) => (
+                      <span 
+                        key={genre}
+                        className="px-1.5 py-0.5 bg-white/5 rounded-full text-[10px] top1-no-caret-typing-animation"
+                      >
+                        {genre}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           ))}
         </div>
       )}

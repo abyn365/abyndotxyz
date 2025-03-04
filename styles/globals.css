@@ -104,8 +104,12 @@ a:hover {
 
 /* Typing Animation for Title */
 @keyframes typing {
-  from { width: 0; }
-  to { width: 100%; }
+  from { 
+    width: 0%;
+  }
+  to { 
+    width: 100%;
+  }
 }
 
 @keyframes blink-caret {
@@ -133,8 +137,25 @@ a:hover {
 }
 
 .top-no-caret-typing-animation {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
   border-right: none;
   animation: typing 2s steps(40, end);
+  max-width: fit-content;
+  width: 0%; /* Start with 0 width */
+  animation-fill-mode: forwards; /* Keep the final state */
+}
+
+.top1-no-caret-typing-animation {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: none;
+  animation: typing 3.6s steps(40, end);
+  max-width: fit-content;
+  width: 0%; /* Start with 0 width */
+  animation-fill-mode: forwards; /* Keep the final state */
 }
 
 /* Hover Animation for Buttons */

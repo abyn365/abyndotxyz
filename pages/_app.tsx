@@ -65,12 +65,12 @@ function MyApp({ Component, pageProps }: AppProps) {
         title="abyn | biolink"
         titleTemplate={`${title}`}
         defaultTitle="abyn  | biolink"
-        description="Hey! I'm abyn, I love playing video games, watching anime, and listening to music, thanks for visiting!"
+        description="Hey! I'm abyn and welcome to my biolink!"
         openGraph={{
           url: "https://abyn.xyz",
           title: "abyn | biolink",
           description:
-            "Hey! I'm abyn, I love playing video games, watching anime, and listening to music, thanks for visiting!",
+            "Hey! I'm abyn and welcome to my biolink!",
           images: [
             {
               url: "https://abyn.xyz/banner.gif",

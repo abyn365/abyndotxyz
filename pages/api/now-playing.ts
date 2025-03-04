@@ -1,23 +1,22 @@
-import { getNowPlaying } from "../../lib/spotify";
+import { NextApiRequest, NextApiResponse } from 'next'
+import { getNowPlaying, getAccessToken } from "../../lib/spotify";
 
-export const runtime = 'edge';
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-export default async function handler(req: Request) {
+  try {
     const response = await getNowPlaying();
+    const { access_token } = await getAccessToken();
 
     if (response.status === 204 || response.status > 400) {
-      return new Response(JSON.stringify({ isPlaying: false }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(200).json({ isPlaying: false });
     }
 
     const song = await response.json();
     if (song.item === null) {
-      return new Response(JSON.stringify({ isPlaying: false }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(200).json({ isPlaying: false });
     }
 
     const isPlaying = song.is_playing;
@@ -27,18 +26,51 @@ export default async function handler(req: Request) {
     const albumImageUrl = song.item.album.images[0].url;
     const songUrl = song.item.external_urls.spotify;
 
-    const headers = new Headers({
-      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30",
-      "Content-Type": "application/json"
-    });
+    const artistId = song.item.artists[0].id;
+    
+    const artistResponse = await fetch(
+      `https://api.spotify.com/v1/artists/${artistId}?market=US&locale=en-US`, 
+      {
+        headers: {
+          'Authorization': `Bearer ${access_token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        cache: 'no-store'
+      }
+    );
+    
+    let artistGenres = [];
+    let isArtistGenre = false;
 
-    return new Response(JSON.stringify({
+    if (artistResponse.ok) {
+      const artistDetails = await artistResponse.json();
+      if (!artistDetails.error && artistDetails.genres) {
+        artistGenres = artistDetails.genres;
+        isArtistGenre = artistGenres.length > 0;
+      }
+    }
+
+    res.setHeader(
+      'Cache-Control',
+      'no-cache, no-store, must-revalidate'
+    );
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    return res.status(200).json({
       album,
       albumImageUrl,
       artist,
       isPlaying,
       songUrl,
       title,
-    }), { headers });
-}
+      popularity: song.item.popularity,
+      genre: artistGenres,
+      isArtistGenre
+    });
 
+  } catch (error) {
+    return res.status(500).json({ isPlaying: false, error: 'Failed to fetch now playing' });
+  }
+}

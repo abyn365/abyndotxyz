@@ -12,29 +12,36 @@ const TOP_TRACKS_DEFAULT_PARAMS = {
 };
 const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
 
-const getAccessToken = async () => {
+// Update the TOKEN_ENDPOINT params to include the new scopes
+const params = new URLSearchParams({
+  grant_type: 'refresh_token',
+  refresh_token: refresh_token,
+  scope: 'user-top-read user-read-private user-read-email user-read-currently-playing',
+});
+
+export const getAccessToken = async () => {
   const response = await fetch(TOKEN_ENDPOINT, {
     method: "POST",
     headers: {
       Authorization: `Basic ${basic}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token,
-    }),
+    body: params,
   });
+  
   return response.json();
 };
 
 export const getNowPlaying = async () => {
   const { access_token } = await getAccessToken();
 
-  return fetch(NOW_PLAYING_ENDPOINT, {
+  const response = await fetch(NOW_PLAYING_ENDPOINT, {
     headers: {
       Authorization: `Bearer ${access_token}`,
     },
   });
+
+  return response;
 };
 
 export const getTopTracks = async () => {
