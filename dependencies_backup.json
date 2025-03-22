@@ -1,0 +1,146 @@
+{
+  "version": "2.0.0",
+  "name": "lrmn-personal-bio",
+  "dependencies": {
+    "@commitlint/cli": {
+      "version": "16.3.0",
+      "resolved": "https://registry.npmjs.org/@commitlint/cli/-/cli-16.3.0.tgz",
+      "overridden": false
+    },
+    "@commitlint/config-conventional": {
+      "version": "16.2.4",
+      "resolved": "https://registry.npmjs.org/@commitlint/config-conventional/-/config-conventional-16.2.4.tgz",
+      "overridden": false
+    },
+    "@fontsource/jost": {
+      "version": "4.5.13",
+      "resolved": "https://registry.npmjs.org/@fontsource/jost/-/jost-4.5.13.tgz",
+      "overridden": false
+    },
+    "@fontsource/sen": {
+      "version": "4.5.9",
+      "resolved": "https://registry.npmjs.org/@fontsource/sen/-/sen-4.5.9.tgz",
+      "overridden": false
+    },
+    "@types/node": {
+      "version": "17.0.45",
+      "resolved": "https://registry.npmjs.org/@types/node/-/node-17.0.45.tgz",
+      "overridden": false
+    },
+    "@types/react": {
+      "version": "17.0.80",
+      "resolved": "https://registry.npmjs.org/@types/react/-/react-17.0.80.tgz",
+      "overridden": false
+    },
+    "@vercel/analytics": {
+      "version": "1.3.1",
+      "resolved": "https://registry.npmjs.org/@vercel/analytics/-/analytics-1.3.1.tgz",
+      "overridden": false
+    },
+    "aos": {
+      "version": "2.3.4",
+      "resolved": "https://registry.npmjs.org/aos/-/aos-2.3.4.tgz",
+      "overridden": false
+    },
+    "autoprefixer": {
+      "version": "10.4.19",
+      "resolved": "https://registry.npmjs.org/autoprefixer/-/autoprefixer-10.4.19.tgz",
+      "overridden": false
+    },
+    "axios": {
+      "version": "0.26.1",
+      "resolved": "https://registry.npmjs.org/axios/-/axios-0.26.1.tgz",
+      "overridden": false
+    },
+    "commitlint-config-gitmoji": {
+      "version": "2.3.1",
+      "resolved": "https://registry.npmjs.org/commitlint-config-gitmoji/-/commitlint-config-gitmoji-2.3.1.tgz",
+      "overridden": false
+    },
+    "commitlint": {
+      "version": "16.3.0",
+      "resolved": "https://registry.npmjs.org/commitlint/-/commitlint-16.3.0.tgz",
+      "overridden": false
+    },
+    "eslint-config-next": {
+      "version": "12.0.7",
+      "resolved": "https://registry.npmjs.org/eslint-config-next/-/eslint-config-next-12.0.7.tgz",
+      "overridden": false
+    },
+    "eslint": {
+      "version": "8.4.1",
+      "resolved": "https://registry.npmjs.org/eslint/-/eslint-8.4.1.tgz",
+      "overridden": false
+    },
+    "husky": {
+      "version": "7.0.4",
+      "resolved": "https://registry.npmjs.org/husky/-/husky-7.0.4.tgz",
+      "overridden": false
+    },
+    "next-seo": {
+      "version": "4.29.0",
+      "resolved": "https://registry.npmjs.org/next-seo/-/next-seo-4.29.0.tgz",
+      "overridden": false
+    },
+    "next": {
+      "version": "14.2.4",
+      "resolved": "https://registry.npmjs.org/next/-/next-14.2.4.tgz",
+      "overridden": false
+    },
+    "postcss": {
+      "version": "8.5.3",
+      "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.5.3.tgz",
+      "overridden": false
+    },
+    "prettier-plugin-tailwindcss": {
+      "version": "0.1.13",
+      "resolved": "https://registry.npmjs.org/prettier-plugin-tailwindcss/-/prettier-plugin-tailwindcss-0.1.13.tgz",
+      "overridden": false
+    },
+    "prettier": {
+      "version": "2.8.8",
+      "resolved": "https://registry.npmjs.org/prettier/-/prettier-2.8.8.tgz",
+      "overridden": false
+    },
+    "react-dom": {
+      "version": "18.3.1",
+      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-18.3.1.tgz",
+      "overridden": false
+    },
+    "react-icons": {
+      "version": "4.12.0",
+      "resolved": "https://registry.npmjs.org/react-icons/-/react-icons-4.12.0.tgz",
+      "overridden": false
+    },
+    "react-tippy": {
+      "version": "1.4.0",
+      "resolved": "https://registry.npmjs.org/react-tippy/-/react-tippy-1.4.0.tgz",
+      "overridden": false
+    },
+    "react": {
+      "version": "18.3.1",
+      "resolved": "https://registry.npmjs.org/react/-/react-18.3.1.tgz",
+      "overridden": false
+    },
+    "sass": {
+      "version": "1.77.6",
+      "resolved": "https://registry.npmjs.org/sass/-/sass-1.77.6.tgz",
+      "overridden": false
+    },
+    "swr": {
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/swr/-/swr-1.3.0.tgz",
+      "overridden": false
+    },
+    "tailwindcss": {
+      "version": "3.4.17",
+      "resolved": "https://registry.npmjs.org/tailwindcss/-/tailwindcss-3.4.17.tgz",
+      "overridden": false
+    },
+    "typescript": {
+      "version": "4.9.5",
+      "resolved": "https://registry.npmjs.org/typescript/-/typescript-4.9.5.tgz",
+      "overridden": false
+    }
+  }
+}
