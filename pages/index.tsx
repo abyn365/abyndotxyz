@@ -122,27 +122,27 @@ export default function Home() {
                   <div className="relative w-32 h-32 sm:w-40 sm:h-40">
                     <Image
                       className="rounded-full border-2 border-zinc-800/50 object-cover transition-transform hover:scale-105"
-                      src={avatarUrl || '/profile.png'} // Fallback to static image
+                      src={avatarUrl || '/profile.png'}
                       alt="profile"
                       fill
                       sizes="(max-width: 640px) 128px, 160px"
                       priority
                     />
-                    {/* Discord Status Indicator */}
-                    <div className="absolute -top-1 -right-1 z-10">
-                      <Image
-                        src={getStatusImage(discordStatus)}
-                        alt={discordStatus}
-                        width={20}
-                        height={20}
-                        className="rounded-full"
-                        unoptimized
-                      />
-                    </div>
-                    {/* Custom Status */}
-                    {customStatus && (customStatus.emoji || customStatus.state) && (
-                      <div className="absolute -bottom-2 -right-2 flex items-center gap-1 rounded-full bg-zinc-900/90 px-2 py-1 border border-zinc-800/50">
-                        {customStatus.emoji && (
+                                        {/* Status Group - Bottom Right */}
+                    <div className="absolute -bottom-2 -right-2 flex items-center gap-1">
+                      {/* Custom Status Text - Show first if exists */}
+                      {customStatus?.state && (
+                        <div className="order-1 flex-shrink rounded-full bg-zinc-900/90 px-2 py-1 border border-zinc-800/50">
+                          <div className="max-w-[120px] sm:max-w-[150px]">
+                            <span className="text-xs text-zinc-300 block truncate">
+                              {customStatus.state}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      {/* Custom Status Emoji - Show second with fixed width */}
+                      {customStatus?.emoji && (
+                        <div className="order-2 flex-shrink-0 bg-zinc-900 rounded-full p-1 border border-zinc-800/50">
                           <Image
                             src={`https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${
                               customStatus.emoji.animated ? 'gif' : 'png'
@@ -152,14 +152,20 @@ export default function Home() {
                             height={16}
                             className="w-4 h-4"
                           />
-                        )}
-                        {customStatus.state && (
-                          <span className="text-xs text-zinc-300 max-w-[150px] truncate">
-                            {customStatus.state}
-                          </span>
-                        )}
+                        </div>
+                      )}
+                      {/* Discord Status Indicator - Show last with fixed width */}
+                      <div className="order-3 flex-shrink-0 bg-zinc-900 rounded-full p-0.5 border border-zinc-800/50">
+                        <Image
+                          src={getStatusImage(discordStatus)}
+                          alt={discordStatus}
+                          width={16}
+                          height={16}
+                          className="rounded-full"
+                          unoptimized
+                        />
                       </div>
-                    )}
+                    </div>
                   </div>
                   <div className="mt-6 text-center">
                     <h1 className="text-2xl font-bold text-zinc-100">{username || 'Loading...'}</h1>
