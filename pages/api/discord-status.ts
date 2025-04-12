@@ -5,24 +5,23 @@ const DISCORD_ID = "877018055815868426";
 const getImageUrl = (activity: any) => {
   if (!activity) return null;
   
-  // Handle Spotify activity
-  if (activity.name === 'Spotify' && activity.assets?.large_image) {
-    // Extract Spotify image ID from "spotify:ab67616d0000b27300830d09f77f976a7c3516d2"
-    const spotifyImageId = activity.assets.large_image.replace('spotify:', '');
-    return `https://i.scdn.co/image/${spotifyImageId}`;
-  }
-  
   // Handle PreMiD format
   if (activity.assets?.large_image?.startsWith('mp:external/')) {
     try {
-      const match = activity.assets.large_image.match(/PreMiD\/websites\/([^/]+\/[^/]+)/);
-      if (match) {
-        const servicePath = decodeURIComponent(match[1]);
-        return `https://cdn.rcd.gg/PreMiD/websites/${servicePath}/assets/logo.png`;
+      // Extract image URL from PreMiD format
+      const imageUrl = activity.assets.large_image.split('/https/')[1];
+      if (imageUrl) {
+        return `https://${imageUrl.replace(/%2F/g, '/')}`;
       }
     } catch (error) {
       console.error('Error processing PreMiD image:', error);
     }
+  }
+  
+  // Handle Spotify
+  if (activity.name === 'Spotify' && activity.assets?.large_image) {
+    const spotifyImageId = activity.assets.large_image.replace('spotify:', '');
+    return `https://i.scdn.co/image/${spotifyImageId}`;
   }
   
   return null;
@@ -41,7 +40,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Failed to fetch Discord status' });
     }
 
-    const activity = data.data.activities?.find((a: any) => a.type === 0 || a.type === 2);
+    // Look for any activity (type 0 for game, 2 for Spotify, 3 for streaming)
+    const activity = data.data.activities?.find((a: any) => 
+      a.type === 0 || a.type === 2 || a.type === 3
+    );
     
     if (!activity) {
       return res.status(200).json({

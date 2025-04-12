@@ -95,8 +95,8 @@ const DiscordStatus: NextComponentType = () => {
   }
 
   return (
-    <div className="w-full sm:w-64 mx-auto font-sen mb-4 flex flex-col items-center gap-1.5 text-xs text-gray-300">
-      <p className="text-white text-xs">
+    <div className="w-full sm:w-80 mx-auto font-sen mb-4 flex flex-col items-center gap-2 text-sm text-gray-300">
+      <p className="text-white text-sm">
         See what I&apos;m currently doing
       </p>
       {status?.isActive ? (
@@ -111,24 +111,24 @@ const DiscordStatus: NextComponentType = () => {
           } : undefined}
         >
           <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-zinc-700 via-zinc-600 to-zinc-800 opacity-75 blur-sm" />
-          <div className="relative flex items-center gap-2 p-2 rounded-lg bg-zinc-900 shadow-md">
+          <div className="relative flex items-center gap-3 p-3 rounded-lg bg-zinc-900 shadow-md">
             {status.activity?.image && (
-              <div className="relative flex-shrink-0 w-10 h-10">
+              <div className="relative flex-shrink-0 w-16 h-16">
                 <Image
                   src={status.activity.image}
-                  width={40}
-                  height={40}
+                  fill
+                  sizes="64px"
                   alt={status.activity.name || 'Activity'}
-                  className="rounded-md"
+                  className="rounded-md object-cover"
                   unoptimized
                 />
               </div>
             )}
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <p className="text-white text-xs font-medium truncate">
+            <div className="flex-1 flex flex-col overflow-hidden py-1">
+              <p className="text-white text-sm font-medium truncate">
                 {status.activity?.name}
               </p>
-              <p className="text-gray-400 text-[10px] truncate">
+              <p className="text-gray-400 text-xs truncate mt-0.5">
                 {status.activity?.details || status.activity?.state}
               </p>
             </div>

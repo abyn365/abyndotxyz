@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { TopTracks } from "../components";
 import Image from "next/image";
 import Banners from "../components/Banner";
@@ -7,13 +7,30 @@ import Squares from "../components/Squares";
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
+type CustomStatus = {
+  emoji?: {
+    id: string;
+    name: string;
+    animated: boolean;
+  };
+};
+
 const name = "abyn";
 const belowLink = "Когда огонь погаснет, останется ли тепло?";
 const bio = "The biolink of a dumbass 🗿";
 
 const servername = "abynab";
 
+const getDiscordAvatar = (userId: string, avatarId: string) => {
+  const isAnimated = avatarId.startsWith('a_');
+  const extension = isAnimated ? 'gif' : 'png';
+  return `https://cdn.discordapp.com/avatars/${userId}/${avatarId}.${extension}?size=256`;
+};
+
 export default function Home() {
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [customStatus, setCustomStatus] = useState<CustomStatus | null>(null);
+
   useEffect(() => {
     AOS.init({
       duration: 600, // Reduced animation duration
@@ -21,6 +38,29 @@ export default function Home() {
       easing: 'ease-out',
       disable: 'mobile' // Disable AOS on mobile for better performance
     });
+
+    const fetchDiscordUser = async () => {
+      try {
+        const response = await fetch('https://api.lanyard.rest/v1/users/877018055815868426');
+        const data = await response.json();
+        if (data.success) {
+          const { id, avatar } = data.data.discord_user;
+          setAvatarUrl(getDiscordAvatar(id, avatar));
+          
+          // Get custom status
+          const customStatusActivity = data.data.activities.find(
+            (activity: any) => activity.type === 4
+          );
+          if (customStatusActivity?.emoji) {
+            setCustomStatus(customStatusActivity);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch Discord user:', error);
+      }
+    };
+
+    fetchDiscordUser();
   }, []);
 
   return (
@@ -44,13 +84,29 @@ export default function Home() {
               {/* Profile Section */}
               <div className="elegant-card glow-effect p-6 w-full">
                 <div className="relative flex flex-col items-center">
-                  <Image
-                    className="rounded-full border-2 border-zinc-800/50 object-cover transition-transform hover:scale-105"
-                    src="/profile.png"
-                    alt="profile"
-                    width={130}
-                    height={130}
-                  />
+                  <div className="relative w-32 h-32 sm:w-40 sm:h-40">
+                    <Image
+                      className="rounded-full border-2 border-zinc-800/50 object-cover transition-transform hover:scale-105"
+                      src={avatarUrl || '/profile.png'} // Fallback to static image
+                      alt="profile"
+                      fill
+                      sizes="(max-width: 640px) 128px, 160px"
+                      priority
+                    />
+                    {customStatus?.emoji && (
+                      <div className="absolute bottom-0 right-0 rounded-full bg-zinc-900/90 p-1.5 border border-zinc-800/50">
+                        <Image
+                          src={`https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${
+                            customStatus.emoji.animated ? 'gif' : 'png'
+                          }`}
+                          alt={customStatus.emoji.name}
+                          width={20}
+                          height={20}
+                          className="w-5 h-5"
+                        />
+                      </div>
+                    )}
+                  </div>
                   <div className="mt-6 text-center">
                     <h1 className="text-2xl font-bold text-zinc-100">{name}</h1>
                     <p className="mt-3 text-sm text-zinc-400 italic">{belowLink}</p>
