@@ -16,18 +16,19 @@ const servername = "abynab";
 export default function Home() {
   useEffect(() => {
     AOS.init({
-      duration: 800,
+      duration: 600, // Reduced animation duration
       once: true,
       easing: 'ease-out',
+      disable: 'mobile' // Disable AOS on mobile for better performance
     });
   }, []);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Squares background */}
-      <div className="fixed inset-0 z-0">
+      {/* Squares background - hide on mobile for better performance */}
+      <div className="fixed inset-0 z-0 hidden sm:block">
         <Squares 
-          speed={0.3}
+          speed={0.2} // Reduced speed
           squareSize={40}
           direction='diagonal'
           borderColor='rgba(255,255,255,0.1)'
@@ -37,8 +38,8 @@ export default function Home() {
 
       {/* Content with glassmorphism */}
       <div className="relative z-10 flex min-h-screen flex-col">
-        <div className="mx-auto mt-20 flex w-full max-w-2xl flex-1 flex-col items-center px-4 sm:px-10">
-          <div className="w-full backdrop-blur-sm bg-zinc-900/30 rounded-2xl p-8 shadow-xl">
+        <div className="mx-auto mt-10 sm:mt-20 flex w-full max-w-2xl flex-1 flex-col items-center px-3 sm:px-10">
+          <div className="w-full backdrop-blur-sm bg-zinc-900/30 rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl">
             <div className="flex flex-col items-center justify-center gap-8">
               {/* Profile Section */}
               <div className="elegant-card glow-effect p-6 w-full">

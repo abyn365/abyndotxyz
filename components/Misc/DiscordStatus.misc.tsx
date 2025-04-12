@@ -36,6 +36,9 @@ const DiscordStatus: NextComponentType = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [rotate, setRotate] = useState({ x: 0, y: 0 });
 
+  // Only enable tilt effect on non-touch devices
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window);
+
   // Handle mouse movement for tilt effect
   const onMouseMove = useCallback(
     throttle((e: MouseEvent<HTMLDivElement>) => {
@@ -55,6 +58,12 @@ const DiscordStatus: NextComponentType = () => {
 
   const onMouseLeave = () => {
     setRotate({ x: 0, y: 0 });
+  };
+
+  // Conditionally apply mouse events
+  const mouseEvents = isTouchDevice ? {} : {
+    onMouseMove,
+    onMouseLeave
   };
 
   useEffect(() => {
@@ -86,21 +95,20 @@ const DiscordStatus: NextComponentType = () => {
   }
 
   return (
-    <div className="w-64 mx-auto font-sen mb-4 flex flex-col items-center gap-1.5 text-xs text-gray-300">
+    <div className="w-full sm:w-64 mx-auto font-sen mb-4 flex flex-col items-center gap-1.5 text-xs text-gray-300">
       <p className="text-white text-xs">
         See what I&apos;m currently doing
       </p>
       {status?.isActive ? (
         <div 
+          {...mouseEvents}
           className={`w-full transform transition-all duration-300 ease-out ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
-          onMouseMove={onMouseMove}
-          onMouseLeave={onMouseLeave}
-          style={{
+          style={!isTouchDevice ? {
             transform: `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) scale3d(1, 1, 1)`,
             transition: "all 400ms cubic-bezier(0.03, 0.98, 0.52, 0.99) 0s",
-          }}
+          } : undefined}
         >
           <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-zinc-700 via-zinc-600 to-zinc-800 opacity-75 blur-sm" />
           <div className="relative flex items-center gap-2 p-2 rounded-lg bg-zinc-900 shadow-md">
@@ -128,15 +136,14 @@ const DiscordStatus: NextComponentType = () => {
         </div>
       ) : (
         <div 
+          {...mouseEvents}
           className={`w-full transition-all duration-300 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
-          onMouseMove={onMouseMove}
-          onMouseLeave={onMouseLeave}
-          style={{
+          style={!isTouchDevice ? {
             transform: `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) scale3d(1, 1, 1)`,
             transition: "all 400ms cubic-bezier(0.03, 0.98, 0.52, 0.99) 0s",
-          }}
+          } : undefined}
         >
           <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-zinc-700 via-zinc-600 to-zinc-800 opacity-75 blur-sm" />
           <div className="relative flex items-center justify-center p-2 rounded-lg bg-zinc-900 shadow-md">
