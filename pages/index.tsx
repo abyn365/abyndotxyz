@@ -187,17 +187,18 @@ export default function Home() {
             <div className="container mx-auto">
               <p className="text-sm">
                 Copyright © 2025 <a href="https://abyn.xyz"
-                className="hover:text-[#ff6347] transition-colors"> abyn.xyz </a> | <a 
+                className="hover:text-[#ff6347] transition-colors"> abyn.xyz </a>
+              </p>
+              <p className="mt-2 text-xs faded-in">
+                Made by abyn with ❤️ based of{" "}
+                <a 
                   href="https://github.com/lrmn7/personal-bio"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-[#ff6347] transition-colors"
                 >
-                  L RMN
+                  L RMN works
                 </a>
-              </p>
-              <p className="mt-2 text-xs faded-in">
-                Made by TRAGIC modified by abyn
               </p>
             </div>
           </footer>
