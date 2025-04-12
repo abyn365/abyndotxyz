@@ -205,21 +205,23 @@ click-spark {
 }
 
 /* Add these new styles */
+.glass-card {
+  @apply backdrop-blur-sm bg-zinc-900/30 border border-zinc-800/50;
+}
+
 .elegant-card {
   @apply relative overflow-hidden rounded-lg bg-zinc-900/50 backdrop-blur-sm;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   transition: all 400ms cubic-bezier(0.03, 0.98, 0.52, 0.99);
 }
 
 .elegant-card:before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   border-radius: inherit;
-  @apply bg-gradient-to-r from-zinc-700/20 via-zinc-600/20 to-zinc-800/20;
+  @apply bg-gradient-to-r from-zinc-700/10 via-zinc-600/10 to-zinc-800/10;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
