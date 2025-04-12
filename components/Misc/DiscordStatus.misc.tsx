@@ -12,6 +12,7 @@ type StatusData = {
     image?: string | null;
   };
   message?: string;
+  activeDevice?: string;
 };
 
 // Throttle function
@@ -96,9 +97,16 @@ const DiscordStatus: NextComponentType = () => {
 
   return (
     <div className="w-full sm:w-80 mx-auto font-sen mb-4 flex flex-col items-center gap-2 text-sm text-gray-300">
-      <p className="text-white text-sm">
-        See what I&apos;m currently doing
-      </p>
+      <div className="flex items-center gap-2">
+        <p className="text-white text-sm">
+          See what I&apos;m currently doing
+        </p>
+        {status?.activeDevice && (
+          <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">
+            Active on {status.activeDevice}
+          </span>
+        )}
+      </div>
       {status?.isActive ? (
         <div 
           {...mouseEvents}

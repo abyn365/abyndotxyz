@@ -2,6 +2,26 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 const DISCORD_ID = "877018055815868426";
 
+export const statusImages = {
+  online: 'https://cdn3.emoji.gg/emojis/1514-online-blank.png',
+  idle: 'https://cdn3.emoji.gg/emojis/5204-idle-blank.png',
+  dnd: 'https://cdn3.emoji.gg/emojis/4431-dnd-blank.png',
+  offline: 'https://cdn3.emoji.gg/emojis/6610-invisible-offline-blank.png'
+};
+
+export const getStatusImage = (status: string, isActive: boolean) => {
+  if (!isActive) return statusImages.offline;
+  return statusImages[status as keyof typeof statusImages] || statusImages.offline;
+};
+
+export const getActiveDevice = (data: any) => {
+  // Priority order: desktop > web > mobile
+  if (data.active_on_discord_desktop) return 'Desktop';
+  if (data.active_on_discord_web) return 'Web';
+  if (data.active_on_discord_mobile) return 'Mobile';
+  return null;
+};
+
 const getImageUrl = (activity: any) => {
   if (!activity) return null;
   
@@ -44,30 +64,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Failed to fetch Discord status' });
     }
 
-    // Look for any activity (type 0 for game, 2 for Spotify, 3 for streaming)
+    // Check active status with priority
+    const device = getActiveDevice(data.data);
+    const isActive = Boolean(device);
+
     const activity = data.data.activities?.find((a: any) => 
       a.type === 0 || a.type === 2 || a.type === 3
     );
     
-    if (!activity) {
-      return res.status(200).json({
-        isActive: false,
-        status: data.data.discord_status,
-        message: 'Not doing anything'
-      });
-    }
-
-    const imageUrl = getImageUrl(activity);
-
     return res.status(200).json({
-      isActive: true,
+      isActive: Boolean(activity),
       status: data.data.discord_status,
-      activity: {
+      activeDevice: device,
+      isOnline: isActive,
+      activity: activity ? {
         name: activity.name,
         details: activity.details,
         state: activity.state,
-        image: imageUrl
-      }
+        image: getImageUrl(activity)
+      } : null
     });
 
   } catch (error) {

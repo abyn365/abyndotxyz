@@ -25,11 +25,32 @@ const getDiscordAvatar = (userId: string, avatarId: string) => {
   return `https://cdn.discordapp.com/avatars/${userId}/${avatarId}.${extension}?size=256`;
 };
 
+const getStatusImage = (status: string) => {
+  const statusMap = {
+    online: 'https://cdn3.emoji.gg/emojis/1514-online-blank.png',
+    idle: 'https://cdn3.emoji.gg/emojis/5204-idle-blank.png',
+    dnd: 'https://cdn3.emoji.gg/emojis/4431-dnd-blank.png',
+    offline: 'https://cdn3.emoji.gg/emojis/6610-invisible-offline-blank.png'
+  };
+
+  return statusMap[status as keyof typeof statusMap] || statusMap.offline;
+};
+
+const getActiveDevice = (data: any) => {
+  // Priority order: desktop > web > mobile
+  if (data.active_on_discord_desktop) return 'Desktop';
+  if (data.active_on_discord_web) return 'Web';
+  if (data.active_on_discord_mobile) return 'Mobile';
+  return null;
+};
+
 export default function Home() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [customStatus, setCustomStatus] = useState<CustomStatus | null>(null);
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(true);
+  const [discordStatus, setDiscordStatus] = useState('');
+  const [isOnline, setIsOnline] = useState(false);
 
   useEffect(() => {
     AOS.init({
@@ -48,7 +69,12 @@ export default function Home() {
           setAvatarUrl(getDiscordAvatar(id, avatar));
           setUsername(username);
           
-          // Get custom status with both emoji and text
+          // Set Discord status
+          setDiscordStatus(data.data.discord_status);
+          // Check active state with priority
+          setIsOnline(Boolean(getActiveDevice(data.data)));
+
+          // Get custom status
           const customStatusActivity = data.data.activities.find(
             (activity: any) => activity.type === 4
           );
@@ -102,6 +128,18 @@ export default function Home() {
                       sizes="(max-width: 640px) 128px, 160px"
                       priority
                     />
+                    {/* Discord Status Indicator */}
+                    <div className="absolute -top-1 -right-1 z-10">
+                      <Image
+                        src={getStatusImage(discordStatus)}
+                        alt={discordStatus}
+                        width={20}
+                        height={20}
+                        className="rounded-full"
+                        unoptimized
+                      />
+                    </div>
+                    {/* Custom Status */}
                     {customStatus && (customStatus.emoji || customStatus.state) && (
                       <div className="absolute -bottom-2 -right-2 flex items-center gap-1 rounded-full bg-zinc-900/90 px-2 py-1 border border-zinc-800/50">
                         {customStatus.emoji && (

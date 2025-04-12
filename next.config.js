@@ -20,6 +20,12 @@ module.exports = {
       },
       {
         protocol: 'https',
+        hostname: 'cdn3.emoji.gg',
+        port: '',
+        pathname: '/emojis/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'cdn.rcd.gg',
         port: '',
         pathname: '/**',
