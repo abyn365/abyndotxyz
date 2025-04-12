@@ -30,7 +30,7 @@ const TopTracks: NextComponentType = () => {
   if (!data?.tracks) return null;
 
   return (
-    <div className="font-sen -mt-4 flex flex-col gap-2 text-sm text-gray-300 fade-in">
+    <div className="font-sen -mt-4 flex flex-col gap-2 text-sm text-gray-300">
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between w-full px-4 py-2 bg-zinc-900/50 rounded-lg hover:bg-zinc-900/70 transition-all"
@@ -62,7 +62,7 @@ const TopTracks: NextComponentType = () => {
                 width={40}
                 height={40}
                 alt={track.title}
-                className="rounded top-fade-in"
+                className="rounded top"
               />
               <div className="flex flex-col overflow-hidden">
                 <p className="text-white truncate hover:text-[#ff6347] transition-colors top-no-caret-typing-animation">
@@ -88,7 +88,7 @@ const TopTracks: NextComponentType = () => {
                   <span className="opacity-50">Popularity:</span>
                   <div className="w-16 h-1.5 bg-gray-700 rounded-full">
                     <div 
-                      className="h-full bg-[#ff6347] rounded-full top-fade-in" 
+                      className="h-full bg-[#ff6347] rounded-full top" 
                       style={{ width: `${track.popularity || 0}%` }}
                     />
                   </div>
