@@ -16,11 +16,8 @@ type CustomStatus = {
   state?: string; // Add state for custom status text
 };
 
-const name = "abyn";
 const belowLink = "Когда огонь погаснет, останется ли тепло?";
 const bio = "The biolink of a dumbass 🗿";
-
-const servername = "abynab";
 
 const getDiscordAvatar = (userId: string, avatarId: string) => {
   const isAnimated = avatarId.startsWith('a_');
@@ -31,6 +28,8 @@ const getDiscordAvatar = (userId: string, avatarId: string) => {
 export default function Home() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [customStatus, setCustomStatus] = useState<CustomStatus | null>(null);
+  const [username, setUsername] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     AOS.init({
@@ -45,8 +44,9 @@ export default function Home() {
         const response = await fetch('https://api.lanyard.rest/v1/users/877018055815868426');
         const data = await response.json();
         if (data.success) {
-          const { id, avatar } = data.data.discord_user;
+          const { id, avatar, username } = data.data.discord_user;
           setAvatarUrl(getDiscordAvatar(id, avatar));
+          setUsername(username);
           
           // Get custom status with both emoji and text
           const customStatusActivity = data.data.activities.find(
@@ -61,6 +61,8 @@ export default function Home() {
         }
       } catch (error) {
         console.error('Failed to fetch Discord user:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -72,8 +74,8 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Squares background - hide on mobile for better performance */}
-      <div className="fixed inset-0 z-0 hidden sm:block">
+      {/* Squares background - hide on mobile for better performance (use classname hidden) */}
+      <div className="fixed inset-0 z-0 sm:block">
         <Squares 
           speed={0.2} // Reduced speed
           squareSize={40}
@@ -122,7 +124,7 @@ export default function Home() {
                     )}
                   </div>
                   <div className="mt-6 text-center">
-                    <h1 className="text-2xl font-bold text-zinc-100">{name}</h1>
+                    <h1 className="text-2xl font-bold text-zinc-100">{username || 'Loading...'}</h1>
                     <p className="mt-3 text-sm text-zinc-400 italic">{belowLink}</p>
                     <p className="mt-4 text-sm text-zinc-500">{bio}</p>
                   </div>
@@ -232,7 +234,7 @@ export default function Home() {
                             href="/discord"
                             className="text-sm font-medium text-indigo-100"
                           >
-                            {servername}
+                            {username || 'Loading...'}
                           </a>
                         </p>
                       </div>
