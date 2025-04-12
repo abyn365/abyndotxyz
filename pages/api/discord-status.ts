@@ -8,10 +8,14 @@ const getImageUrl = (activity: any) => {
   // Handle PreMiD format
   if (activity.assets?.large_image?.startsWith('mp:external/')) {
     try {
-      // Extract image URL from PreMiD format
-      const imageUrl = activity.assets.large_image.split('/https/')[1];
+      // Extract image URL from PreMiD format and fix URL encoding
+      const imageUrl = activity.assets.large_image
+        .split('/https/')[1]
+        ?.replace(/%25/g, '%')  // Fix double encoding
+        ?.replace(/\/assets\/\d+\.png$/, '/assets/logo.png'); // Replace numbered assets with logo.png
+      
       if (imageUrl) {
-        return `https://${imageUrl.replace(/%2F/g, '/')}`;
+        return `https://${imageUrl}`;
       }
     } catch (error) {
       console.error('Error processing PreMiD image:', error);

@@ -13,6 +13,7 @@ type CustomStatus = {
     name: string;
     animated: boolean;
   };
+  state?: string; // Add state for custom status text
 };
 
 const name = "abyn";
@@ -47,12 +48,15 @@ export default function Home() {
           const { id, avatar } = data.data.discord_user;
           setAvatarUrl(getDiscordAvatar(id, avatar));
           
-          // Get custom status
+          // Get custom status with both emoji and text
           const customStatusActivity = data.data.activities.find(
             (activity: any) => activity.type === 4
           );
-          if (customStatusActivity?.emoji) {
-            setCustomStatus(customStatusActivity);
+          if (customStatusActivity) {
+            setCustomStatus({
+              emoji: customStatusActivity.emoji,
+              state: customStatusActivity.state
+            });
           }
         }
       } catch (error) {
@@ -61,6 +65,9 @@ export default function Home() {
     };
 
     fetchDiscordUser();
+    // Add interval to refresh status
+    const interval = setInterval(fetchDiscordUser, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -93,17 +100,24 @@ export default function Home() {
                       sizes="(max-width: 640px) 128px, 160px"
                       priority
                     />
-                    {customStatus?.emoji && (
-                      <div className="absolute bottom-0 right-0 rounded-full bg-zinc-900/90 p-1.5 border border-zinc-800/50">
-                        <Image
-                          src={`https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${
-                            customStatus.emoji.animated ? 'gif' : 'png'
-                          }`}
-                          alt={customStatus.emoji.name}
-                          width={20}
-                          height={20}
-                          className="w-5 h-5"
-                        />
+                    {customStatus && (customStatus.emoji || customStatus.state) && (
+                      <div className="absolute -bottom-2 -right-2 flex items-center gap-1 rounded-full bg-zinc-900/90 px-2 py-1 border border-zinc-800/50">
+                        {customStatus.emoji && (
+                          <Image
+                            src={`https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${
+                              customStatus.emoji.animated ? 'gif' : 'png'
+                            }`}
+                            alt={customStatus.emoji.name}
+                            width={16}
+                            height={16}
+                            className="w-4 h-4"
+                          />
+                        )}
+                        {customStatus.state && (
+                          <span className="text-xs text-zinc-300 max-w-[150px] truncate">
+                            {customStatus.state}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
