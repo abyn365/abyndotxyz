@@ -18,6 +18,18 @@ module.exports = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.rcd.gg',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.discordapp.net',
+        port: '',
+        pathname: '/**',
+      }
     ],
   },
   async redirects() {
@@ -53,6 +65,6 @@ module.exports = {
         permanent: true,
       },
     ];
-  }, 
-  trailingSlash: false // Tambahkan opsi trailingSlash di sini
-}; 
+  },
+  trailingSlash: false
+};

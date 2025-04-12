@@ -11,6 +11,7 @@ import "@fontsource/jost/600.css";
 import "@fontsource/jost/700.css";
 import "@fontsource/sen/400.css";
 import "@fontsource/sen/700.css";
+import "../components/ClickSpark/ClickSpark";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [title, setTitle] = useState('');
@@ -39,6 +40,15 @@ function MyApp({ Component, pageProps }: AppProps) {
     script.src = "https://cloud.umami.is/script.js";
     script.dataset.websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
     document.head.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    const clickSpark = document.createElement('click-spark');
+    document.body.appendChild(clickSpark);
+
+    return () => {
+      document.body.removeChild(clickSpark);
+    };
   }, []);
 
   return (

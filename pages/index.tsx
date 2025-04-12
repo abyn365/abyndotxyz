@@ -1,14 +1,26 @@
-import { NowPlaying, TopTracks } from "../components";import Image from "next/image";
+import { useEffect } from 'react';
+import { TopTracks } from "../components";
+import Image from "next/image";
 import Banners from "../components/Banner";
+import DiscordStatus from "../components/Misc/DiscordStatus.misc";
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 const name = "abyn";
 const belowLink = "Когда огонь погаснет, останется ли тепло?";
 const bio = "The biolink of a dumbass 🗿";
 
-
 const servername = "abynab";
 
 export default function Home() {
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      once: true,
+      easing: 'ease-out',
+    });
+  }, []);
+
   return (
     <div>
       <div className="flex flex-col">
@@ -49,21 +61,18 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="fade-in">
-                    <p className="text-center text-sm text-gray-400 dark:text-gray-500 no-caret-typing-animation truncate">
-                      <a
-                      // rel="noopener noreferrer nofollow"
-                      // target="_blank"
-                      // href=""
-                      className="italic"
-                      >
-                        {belowLink}
-                      </a>
-                    </p>
+                      <p className="text-center text-sm text-gray-400 dark:text-gray-500 no-caret-typing-animation truncate">
+                        <a
+                          className="italic"
+                        >
+                          {belowLink}
+                        </a>
+                      </p>
                     </div>
                     <div className="mt-3 bio-fade-in text-center">
-                        <a className="text-center text-sm text-gray-500 dark:text-gray-400">
-                          {bio}
-                        </a>
+                      <a className="text-center text-sm text-gray-500 dark:text-gray-400">
+                        {bio}
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -155,7 +164,7 @@ export default function Home() {
                             </svg>
                             <p className="text-sm font-medium text-indigo-100">
                               <a
-                                 rel="noopener noreferrer nofollow"
+                                rel="noopener noreferrer nofollow"
                                 target="_blank"
                                 href="/discord"
                                 className="text-sm font-medium text-indigo-100"
@@ -216,7 +225,9 @@ export default function Home() {
                     <div className="mb-4 flex justify-center"></div>
                   </div>
                 </div>
-                <NowPlaying />
+                <div className="w-full max-w-md">
+                  <DiscordStatus />
+                </div>
                 <TopTracks />
               </div>
             </div>

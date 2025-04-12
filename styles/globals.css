@@ -8,8 +8,14 @@
     font-family: Ubuntu;
 } */
 
+:root {
+  --click-spark-color: #ff6347;
+}
+
 body {
   font-family: "Raleway", sans-serif;
+  cursor: pointer;
+  position: relative;
 }
 
 * {
@@ -190,4 +196,10 @@ button:hover {
 /* Membuat scrollbar lebih tipis */
 body {
   scrollbar-width: thin;
+}
+
+click-spark {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
 }
