@@ -35,7 +35,7 @@ const TopTracks: NextComponentType = () => {
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between w-full px-4 py-2 bg-zinc-900/50 rounded-lg hover:bg-zinc-900/70 transition-all"
       >
-        <span className="text-white hover:text-[#ff6347] transition-colors no-caret-typing-animation truncate">My Top Tracks</span>
+        <span className="text-white hover:text-[#ff6347] transition-colors truncate">My Top Tracks</span>
         <svg 
           className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
           fill="none" 
@@ -65,10 +65,10 @@ const TopTracks: NextComponentType = () => {
                 className="rounded top"
               />
               <div className="flex flex-col overflow-hidden">
-                <p className="text-white truncate hover:text-[#ff6347] transition-colors top-no-caret-typing-animation">
+                <p className="text-white truncate hover:text-[#ff6347] transition-colors ">
                   {track.title}
                 </p>
-                <p className="text-gray-400 text-xs truncate top-no-caret-typing-animation">
+                <p className="text-gray-400 text-xs truncate">
                   {track.artist}
                 </p>
               </div>
@@ -78,11 +78,11 @@ const TopTracks: NextComponentType = () => {
               <div className="ml-11 mt-1 grid grid-cols-3 gap-2 text-xs text-gray-400">
                 <div className="flex items-center gap-1">
                   <span className="opacity-50">Year:</span>
-                  <span className="top1-no-caret-typing-animation">{track.albumYear || 'N/A'}</span>
+                  <span>{track.albumYear || 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="opacity-50">Duration:</span>
-                  <span className="top1-no-caret-typing-animation">{formatDuration(track.duration)}</span>
+                  <span>{formatDuration(track.duration)}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="opacity-50">Popularity:</span>
@@ -95,13 +95,13 @@ const TopTracks: NextComponentType = () => {
                 </div>
                 {track.genre && track.genre.length > 0 ? (
                   <div className="col-span-3 flex flex-wrap gap-1">
-                    <span className="opacity-50 mr-1 top1-no-caret-typing-animation">
+                    <span>
                       {track.isArtistGenre ? 'Artist Genre:' : 'Track Genre:'}
                     </span>
                     {track.genre.slice(0, 3).map((genre) => (
                       <span 
                         key={genre}
-                        className="px-1.5 py-0.5 bg-white/5 rounded-full text-[10px] top1-no-caret-typing-animation"
+                        className="px-1.5 py-0.5 bg-white/5 rounded-full text-[10px]"
                       >
                         {genre}
                       </span>
