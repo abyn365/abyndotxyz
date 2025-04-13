@@ -114,7 +114,7 @@ export default function Home() {
 
       {/* Content with glassmorphism */}
       <div className="relative z-10 flex min-h-screen flex-col">
-        <div className="mx-auto mt-10 sm:mt-20 flex w-full max-w-2xl flex-1 flex-col items-center px-3 sm:px-10">
+        <div className="mx-auto mt-6 sm:mt-8 flex w-full max-w-2xl flex-1 flex-col items-center px-3 sm:px-10">
           <div className="w-full backdrop-blur-sm bg-zinc-900/30 rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl">
             <div className="flex flex-col items-center justify-center gap-8">
               {/* Profile Section */}
