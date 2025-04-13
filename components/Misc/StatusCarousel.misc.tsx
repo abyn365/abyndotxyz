@@ -118,7 +118,7 @@ export default function StatusCarousel({
             style={{ width: itemWidth }}
           >
             <div className="flex items-center gap-3">
-              {discordActivity?.image && (
+              {discordActivity?.image ? (
                 <Image
                   src={discordActivity.image}
                   width={64}
@@ -127,17 +127,32 @@ export default function StatusCarousel({
                   className="rounded-md"
                   unoptimized
                 />
+              ) : (
+                <div className="w-16 h-16 bg-zinc-800 rounded-md flex items-center justify-center">
+                  <FiActivity className="h-8 w-8 text-zinc-600" />
+                </div>
               )}
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <FiActivity className="h-4 w-4 text-indigo-400" />
                   <span className="text-sm font-medium text-white">
-                    {discordActivity?.name || 'Not doing anything'}
+                    Discord Activity
                   </span>
                 </div>
-                {discordActivity?.details && (
+                {discordActivity?.name ? (
+                  <>
+                    <p className="mt-1 text-sm text-white truncate">
+                      {discordActivity.name}
+                    </p>
+                    {discordActivity.details && (
+                      <p className="text-xs text-gray-400 truncate">
+                        {discordActivity.details}
+                      </p>
+                    )}
+                  </>
+                ) : (
                   <p className="mt-1 text-xs text-gray-400">
-                    {discordActivity.details}
+                    Not doing anything right now
                   </p>
                 )}
               </div>
