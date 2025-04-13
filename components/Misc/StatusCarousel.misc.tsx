@@ -82,7 +82,7 @@ export default function StatusCarousel({
     <div className="w-full font-sen mb-4 flex flex-col items-center gap-2">
       <div className="flex items-center gap-2">
         <p className="text-white text-sm">
-          See what I'm currently doing
+          See what I&apos;m currently doing
         </p>
         {activeDevice && (
           <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">
