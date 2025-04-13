@@ -311,15 +311,7 @@ export default function Home() {
                 className="hover:text-[#ff6347] transition-colors"> abyn.xyz </a>
               </p>
               <p className="mt-2 text-xs faded-in">
-                Made by abyn with ❤️{" "}
-                <a 
-                  href="https://github.com/lrmn7/personal-bio"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-[#ff6347] transition-colors"
-                >
-                  based of L RMN work.
-                </a>
+                Made by abyn with ❤️
               </p>
             </div>
           </footer>
