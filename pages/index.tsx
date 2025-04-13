@@ -6,6 +6,7 @@ import DiscordStatus from "../components/Misc/DiscordStatus.misc";
 import Squares from "../components/Squares";
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import VisitorStats from "../components/Misc/VisitorStats.misc";
 
 type CustomStatus = {
   emoji?: {
@@ -119,6 +120,9 @@ export default function Home() {
               {/* Profile Section */}
               <div className="elegant-card glow-effect p-6 w-full">
                 <div className="relative flex flex-col items-center">
+                  {/* Add VisitorStats here */}
+                  <VisitorStats />
+                  
                   <div className="relative w-32 h-32 sm:w-40 sm:h-40">
                     <Image
                       className="rounded-full border-2 border-zinc-800/50 object-cover transition-transform hover:scale-105"
@@ -128,7 +132,7 @@ export default function Home() {
                       sizes="(max-width: 640px) 128px, 160px"
                       priority
                     />
-                                        {/* Status Group - Bottom Right */}
+                    {/* Status Group - Bottom Right */}
                     <div className="absolute -bottom-2 -right-2 flex items-center gap-1">
                       {/* Custom Status Text - Show first if exists */}
                       {customStatus?.state && (
