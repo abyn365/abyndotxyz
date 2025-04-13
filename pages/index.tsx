@@ -7,6 +7,7 @@ import Squares from "../components/Squares";
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import VisitorStats from "../components/Misc/VisitorStats.misc";
+import StatusCarousel from "../components/Misc/StatusCarousel.misc";
 
 type CustomStatus = {
   emoji?: {
