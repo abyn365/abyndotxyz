@@ -36,7 +36,7 @@ const VisitorStats = () => {
   if (error || loading) return null;
 
   return (
-    <div className="absolute -top-3 -left-2 flex items-center gap-2">
+    <div className="absolute -top-3 -left-3 flex items-center gap-2">
       <div className="bg-zinc-900/90 rounded-full px-2 py-1 border border-zinc-800/50 flex items-center gap-1.5">
         {/* Active visitors */}
         <div className="flex items-center gap-1">
