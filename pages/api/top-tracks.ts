@@ -1,9 +1,5 @@
+import { NextApiRequest, NextApiResponse } from 'next';
 import { getTopTracks, getAccessToken } from "../../lib/spotify";
-import { NextRequest } from 'next/server';
-
-export const config = {
-  runtime: 'edge',
-};
 
 // Cache storage
 let cache: {
@@ -16,9 +12,12 @@ let cache: {
 // Cache duration in milliseconds (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
 
-export default async function handler(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const period = searchParams.get('period') || 'short';
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const period = (req.query.period as string) || 'short';
   
   const timeRange = {
     short: 'short_term',
@@ -31,17 +30,9 @@ export default async function handler(req: NextRequest) {
   const now = Date.now();
   
   if (cache[cacheKey] && (now - cache[cacheKey].timestamp) < CACHE_DURATION) {
-    return new Response(
-      JSON.stringify(cache[cacheKey].data),
-      { 
-        status: 200, 
-        headers: { 
-          'content-type': 'application/json',
-          'cache-control': 'public, max-age=300', // 5 minutes browser cache
-          'x-cache': 'HIT'
-        } 
-      }
-    );
+    res.setHeader('x-cache', 'HIT');
+    res.setHeader('cache-control', 'public, max-age=300');
+    return res.status(200).json(cache[cacheKey].data);
   }
 
   try {
@@ -88,39 +79,20 @@ export default async function handler(req: NextRequest) {
       timestamp: now
     };
 
-    return new Response(
-      JSON.stringify(responseData), 
-      { 
-        status: 200, 
-        headers: { 
-          'content-type': 'application/json',
-          'cache-control': 'public, max-age=300', // 5 minutes browser cache
-          'x-cache': 'MISS'
-        } 
-      }
-    );
+    res.setHeader('x-cache', 'MISS');
+    res.setHeader('cache-control', 'public, max-age=300');
+    return res.status(200).json(responseData);
 
   } catch (error) {
     console.error('Error fetching top tracks:', error);
     
     // If cache exists but is stale, return stale data on error
     if (cache[cacheKey]) {
-      return new Response(
-        JSON.stringify(cache[cacheKey].data),
-        { 
-          status: 200, 
-          headers: { 
-            'content-type': 'application/json',
-            'cache-control': 'public, max-age=300',
-            'x-cache': 'STALE'
-          } 
-        }
-      );
+      res.setHeader('x-cache', 'STALE');
+      res.setHeader('cache-control', 'public, max-age=300');
+      return res.status(200).json(cache[cacheKey].data);
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Failed to fetch top tracks' }), 
-      { status: 500, headers: { 'content-type': 'application/json' } }
-    );
+    return res.status(500).json({ error: 'Failed to fetch top tracks' });
   }
 }
