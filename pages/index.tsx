@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { TopTracks } from "../components";
 import Image from "next/image";
 import Banners from "../components/Banner";
 import DiscordStatus from "../components/Misc/DiscordStatus.misc";
@@ -8,6 +7,8 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import VisitorStats from "../components/Misc/VisitorStats.misc";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { FiMusic } from "react-icons/fi";
 
 type CustomStatus = {
   emoji?: {
@@ -200,7 +201,6 @@ export default function Home() {
                 <Banners />
               </motion.div>
 
-              {/* Social Icons */}
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -318,14 +318,40 @@ export default function Home() {
                 <DiscordStatus />
               </motion.div>
 
-              {/* Top Tracks */}
+              {/* Music Button */}
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.4 }}
                 className="w-full"
               >
-                <TopTracks />
+                <Link href="/music">
+                  <motion.button
+                    className="elegant-card glow-effect w-full px-4 py-3 flex items-center justify-between"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    <span className="flex items-center gap-2">
+                      <FiMusic className="h-4 w-4 text-[#ff6347]" />
+                      <span className="text-white hover:text-[#ff6347] transition-colors">
+                        Music I Listen To
+                      </span>
+                    </span>
+                    <svg 
+                      className="w-4 h-4 text-zinc-400"
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </motion.button>
+                </Link>
               </motion.div>
             </div>
           </motion.div>
