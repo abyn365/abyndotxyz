@@ -7,6 +7,7 @@ import Squares from "../components/Squares";
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import VisitorStats from "../components/Misc/VisitorStats.misc";
+import { motion } from "framer-motion";
 
 type CustomStatus = {
   emoji?: {
@@ -100,11 +101,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Squares background - hide on mobile for better performance (use classname hidden) */}
+    <div className="relative min-h-screen w-full overflow-hidden bg-zinc-900">
+      {/* Background squares effect */}
       <div className="fixed inset-0 z-0 sm:block">
         <Squares 
-          speed={0.2} // Reduced speed
+          speed={0.2}
           squareSize={40}
           direction='diagonal'
           borderColor='rgba(255,255,255,0.1)'
@@ -112,13 +113,23 @@ export default function Home() {
         />
       </div>
 
-      {/* Content with glassmorphism */}
-      <div className="relative z-10 flex min-h-screen flex-col">
-        <div className="mx-auto mt-6 sm:mt-8 flex w-full max-w-2xl flex-1 flex-col items-center px-3 sm:px-10">
-          <div className="w-full backdrop-blur-sm bg-zinc-900/30 rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl">
+      {/* Content */}
+      <div className="relative z-10 flex flex-col">
+        <div className="mx-auto py-8 sm:py-12 flex w-full max-w-2xl flex-col items-center px-4 sm:px-8">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="w-full backdrop-blur-sm bg-zinc-900/30 rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl"
+          >
             <div className="flex flex-col items-center justify-center gap-8">
               {/* Profile Section */}
-              <div className="elegant-card glow-effect p-6 w-full">
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1, duration: 0.4 }}
+                className="elegant-card glow-effect p-6 w-full"
+              >
                 <div className="relative flex flex-col items-center">
                   {/* Add VisitorStats here */}
                   <VisitorStats />
@@ -177,16 +188,25 @@ export default function Home() {
                     <p className="mt-4 text-sm text-zinc-500">{bio}</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Banners */}
-              <div className="w-full">
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
+                className="w-full"
+              >
                 <Banners />
-              </div>
+              </motion.div>
 
               {/* Social Icons */}
-              <div className="grid grid-cols-5 items-center gap-4 w-full">
-                {/* Instagram */}
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+                className="grid grid-cols-5 items-center gap-4 w-full"
+              >
                 <div className="elegant-card glow-effect p-2 w-full flex justify-center">
                   <a
                     rel="noopener noreferrer nofollow"
@@ -205,8 +225,6 @@ export default function Home() {
                     </svg>
                   </a>
                 </div>
-                
-                {/* GitHub */}
                 <div className="elegant-card glow-effect p-2 w-full flex justify-center">
                   <a
                     rel="noopener noreferrer nofollow"
@@ -227,8 +245,6 @@ export default function Home() {
                     </svg>
                   </a>
                 </div>
-                
-                {/* Spotify */}
                 <div className="elegant-card glow-effect p-2 w-full flex justify-center">
                   <a
                     rel="noopener noreferrer nofollow"
@@ -247,8 +263,6 @@ export default function Home() {
                     </svg>
                   </a>
                 </div>
-                
-                {/* Pinterest */}
                 <div className="elegant-card glow-effect p-2 w-full flex justify-center">
                   <a
                     rel="noopener noreferrer nofollow"
@@ -269,8 +283,6 @@ export default function Home() {
                     </svg>
                   </a>
                 </div>
-                
-                {/* Discord - Modified to fit in one column */}
                 <div className="elegant-card glow-effect p-2 w-full">
                   <div className="flex items-center justify-center">
                     <a
@@ -294,22 +306,37 @@ export default function Home() {
                     </a>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Discord Status */}
-              <div className="w-full max-w-md">
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.4 }}
+                className="w-full max-w-md"
+              >
                 <DiscordStatus />
-              </div>
+              </motion.div>
 
               {/* Top Tracks */}
-              <div className="w-full">
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.4 }}
+                className="w-full"
+              >
                 <TopTracks />
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Footer */}
-          <footer className="mt-8 mb-4 text-center text-zinc-500">
+          <motion.footer 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.4 }}
+            className="mt-8 text-center text-zinc-500"
+          >
             <div className="container mx-auto">
               <p className="text-sm">
                 Copyright © 2025 <a href="https://abyn.xyz"
@@ -319,7 +346,7 @@ export default function Home() {
                 Made by abyn with ♥︎
               </p>
             </div>
-          </footer>
+          </motion.footer>
         </div>
       </div>
     </div>

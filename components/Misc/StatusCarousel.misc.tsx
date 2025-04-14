@@ -188,14 +188,15 @@ export default function StatusCarousel({
                     {spotifyData?.isPlaying ? 'Now Playing' : 'Not Playing'}
                   </span>
                 </div>
+                {/* Spotify Card Content */}
                 {spotifyData?.isPlaying ? (
                   <>
-                    <p className="mt-1 text-sm text-white truncate hover:text-green-400 transition-colors">
+                    <p className="mt-1 text-sm text-white truncate max-w-[200px] hover:text-green-400 transition-colors">
                       <a href={spotifyData.songUrl} target="_blank" rel="noopener noreferrer">
                         {spotifyData.title}
                       </a>
                     </p>
-                    <p className="text-xs text-gray-400 truncate">{spotifyData.artist}</p>
+                    <p className="text-xs text-gray-400 truncate max-w-[200px]">{spotifyData.artist}</p>
                   </>
                 ) : (
                   <p className="mt-1 text-xs text-gray-400">
