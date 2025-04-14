@@ -68,8 +68,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const device = getActiveDevice(data.data);
     const isActive = Boolean(device);
 
+    // Find activity that is not Spotify
     const activity = data.data.activities?.find((a: any) => 
-      a.type === 0 || a.type === 2 || a.type === 3
+      (a.type === 0 || a.type === 3) && a.name !== 'Spotify'
     );
     
     return res.status(200).json({
