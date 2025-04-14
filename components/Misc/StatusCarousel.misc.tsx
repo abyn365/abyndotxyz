@@ -133,20 +133,25 @@ export default function StatusCarousel({
                 </div>
               )}
               <div className="flex-1">
+                {/* Discord Activity Header */}
                 <div className="flex items-center gap-2">
                   <FiActivity className="h-4 w-4 text-indigo-400" />
                   <span className="text-sm font-medium text-white">
-                    Discord Activity
+                    {discordActivity?.name || 'Not Active'}
                   </span>
                 </div>
                 {discordActivity?.name ? (
                   <>
-                    <p className="mt-1 text-sm text-white truncate">
-                      {discordActivity.name}
-                    </p>
+                    {/* Only show details and state */}
                     {discordActivity.details && (
-                      <p className="text-xs text-gray-400 truncate">
+                      <p className="mt-1 text-xs text-gray-400 truncate max-w-[200px]">
                         {discordActivity.details}
+                      </p>
+                    )}
+                    {/* Add channel name for YouTube */}
+                    {discordActivity.name === 'YouTube' && discordActivity.state && (
+                      <p className="text-xs text-gray-500 truncate max-w-[200px]">
+                        {discordActivity.state}
                       </p>
                     )}
                   </>
