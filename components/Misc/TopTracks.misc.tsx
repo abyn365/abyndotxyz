@@ -30,7 +30,7 @@ const TopTracks: NextComponentType = () => {
   if (!data?.tracks) return null;
 
   return (
-    <div className="font-sen -mt-4 flex flex-col gap-2 text-sm text-gray-300">
+    <div className="font-sen flex flex-col gap-2 text-sm text-gray-300">
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between w-full px-4 py-2 bg-zinc-900/50 rounded-lg hover:bg-zinc-900/70 transition-all"
@@ -47,7 +47,7 @@ const TopTracks: NextComponentType = () => {
       </button>
       
       {isExpanded && (
-        <div className="flex flex-col gap-y-3 mt-2">
+        <div className="flex flex-col gap-y-2 mt-1">
           {data.tracks.map((track, index) => (
             <div key={track.songUrl} className="flex flex-col">
               <Link 
@@ -62,7 +62,7 @@ const TopTracks: NextComponentType = () => {
                 width={40}
                 height={40}
                 alt={track.title}
-                className="rounded top"
+                className="rounded"
               />
               <div className="flex flex-col overflow-hidden">
                 <p className="text-white truncate hover:text-[#ff6347] transition-colors ">
@@ -75,39 +75,41 @@ const TopTracks: NextComponentType = () => {
             </Link>
               
               {/* Add stats section */}
-              <div className="ml-11 mt-1 grid grid-cols-3 gap-2 text-xs text-gray-400">
-                <div className="flex items-center gap-1">
-                  <span className="opacity-50">Year:</span>
-                  <span>{track.albumYear || 'N/A'}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="opacity-50">Duration:</span>
-                  <span>{formatDuration(track.duration)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="opacity-50">Popularity:</span>
-                  <div className="w-16 h-1.5 bg-gray-700 rounded-full">
-                    <div 
-                      className="h-full bg-[#ff6347] rounded-full top" 
-                      style={{ width: `${track.popularity || 0}%` }}
-                    />
+              <div className="ml-11 mt-1 flex flex-col gap-2 text-xs text-gray-400">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="opacity-50 text-[10px]">Year</span>
+                    <span className="text-white">{track.albumYear || 'N/A'}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="opacity-50 text-[10px]">Duration</span>
+                    <span className="text-white">{formatDuration(track.duration)}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="opacity-50 text-[10px]">Popularity</span>
+                    <div className="w-16 h-1.5 bg-gray-700 rounded-full">
+                      <div 
+                        className="h-full bg-[#ff6347] rounded-full" 
+                        style={{ width: `${track.popularity || 0}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-                {track.genre && track.genre.length > 0 ? (
-                  <div className="col-span-3 flex flex-wrap gap-1">
-                    <span>
+                {track.genre && track.genre.length > 0 && (
+                  <div className="flex flex-wrap gap-1 items-center pt-1 border-t border-gray-700">
+                    <span className="opacity-50 text-[10px]">
                       {track.isArtistGenre ? 'Artist Genre:' : 'Track Genre:'}
                     </span>
                     {track.genre.slice(0, 3).map((genre) => (
                       <span 
                         key={genre}
-                        className="px-1.5 py-0.5 bg-white/5 rounded-full text-[10px]"
+                        className="px-2 py-0.5 bg-white/5 hover:bg-white/10 rounded-full text-[10px] transition-colors"
                       >
                         {genre}
                       </span>
                     ))}
                   </div>
-                ) : null}
+                )}
               </div>
             </div>
           ))}
