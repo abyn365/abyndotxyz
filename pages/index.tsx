@@ -499,22 +499,45 @@ export default function Home() {
           </motion.div>
 
           {/* Footer */}
-          <motion.footer 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.4 }}
-            className="mt-8 text-center text-zinc-500"
-          >
-            <div className="container mx-auto">
-              <p className="text-sm">
-                Copyright © 2025 <a href="https://abyn.xyz"
-                className="hover:text-[#ff6347] transition-colors"> abyn.xyz </a>
-              </p>
-              <p className="mt-2 text-xs faded-in">
-                Made by abyn with ♥︎
-              </p>
-            </div>
-          </motion.footer>
+<motion.footer 
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ delay: 0.6, duration: 0.4 }}
+  className="mt-8 text-center text-zinc-500"
+>
+  <div className="container mx-auto">
+    <p className="text-sm">
+      Copyright © 
+      <span 
+        className="inline-block mx-1 relative group cursor-help"
+      >
+        <span className="hover:text-[#ff6347] transition-colors">
+          {new Date().getFullYear()}
+        </span>
+        {/* Tooltip */}
+        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-zinc-800 text-zinc-100 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-zinc-700 shadow-lg">
+          {new Date().toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
+          {/* Arrow */}
+          <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-zinc-800"></span>
+        </span>
+      </span>
+      <a 
+        href="https://abyn.xyz"
+        className="hover:text-[#ff6347] transition-colors"
+      >
+        abyn.xyz
+      </a>
+    </p>
+    <p className="mt-2 text-xs">
+      Made by abyn with ♥︎
+    </p>
+  </div>
+</motion.footer>
         </div>
       </div>
     </div>
