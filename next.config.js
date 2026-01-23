@@ -57,7 +57,7 @@ module.exports = {
       },
       {
         source: '/spotify',
-        destination: 'https://open.spotify.com/user/31nytpd33uqzjhemiwj4cd2o3x5u?si=47776eedc9ad4a30',
+        destination: 'https://spotify.link/XuGGbL7o8Zb',
         permanent: true,
       },
       {
@@ -67,7 +67,7 @@ module.exports = {
       },
       {
         source: '/discord',
-        destination: 'http://discord.com/users/abynab',
+        destination: 'http://discord.com/users/abynb',
         permanent: true,
       },
     ];

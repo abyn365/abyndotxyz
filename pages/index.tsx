@@ -10,6 +10,26 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { FiMusic } from "react-icons/fi";
 
+type Track = {
+  artist: string;
+  title: string;
+  songUrl: string;
+  cover: string;
+  albumYear: string;
+  popularity: number;
+};
+
+type Period = "short" | "medium" | "long";
+
+type NowPlaying = {
+  isPlaying: boolean;
+  title?: string;
+  artist?: string;
+  album?: string;
+  albumImageUrl?: string;
+  songUrl?: string;
+};
+
 type CustomStatus = {
   emoji?: {
     id: string;
@@ -54,6 +74,26 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [discordStatus, setDiscordStatus] = useState('');
   const [isOnline, setIsOnline] = useState(false);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [period, setPeriod] = useState<Period>("short");
+  const [tracksLoading, setTracksLoading] = useState(true);
+  const [nowPlaying, setNowPlaying] = useState<NowPlaying>({ isPlaying: false });
+
+  useEffect(() => {
+    const fetchNowPlaying = async () => {
+      try {
+        const res = await fetch('/api/now-playing');
+        const data = await res.json();
+        setNowPlaying(data);
+      } catch (error) {
+        console.error('Failed to fetch now playing:', error);
+      }
+    };
+
+    fetchNowPlaying();
+    const interval = setInterval(fetchNowPlaying, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     AOS.init({
@@ -100,6 +140,25 @@ export default function Home() {
     const interval = setInterval(fetchDiscordUser, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const fetchTracks = async () => {
+      setTracksLoading(true);
+      try {
+        const res = await fetch(`/api/top-tracks?period=${period}`);
+        const data = await res.json();
+        if (!data.error) setTracks(data.tracks);
+      } finally {
+        setTracksLoading(false);
+      }
+    };
+    fetchTracks();
+  }, [period]);
+
+  const getTrackIdFromUrl = (songUrl: string) => {
+    const match = songUrl.match(/track\/([a-zA-Z0-9]+)/);
+    return match ? match[1] : null;
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-zinc-900">
@@ -318,40 +377,123 @@ export default function Home() {
                 <DiscordStatus />
               </motion.div>
 
-              {/* Music Button */}
+              {/* Music Embed Section */}
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.4 }}
                 className="w-full"
               >
-                <Link href="/music">
-                  <motion.button
-                    className="elegant-card glow-effect w-full px-4 py-3 flex items-center justify-between"
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
+                {/* Now Playing Card */}
+                {nowPlaying.isPlaying && (
+                  <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="mb-6 backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/10 transition-all"
                   >
-                    <span className="flex items-center gap-2">
-                      <FiMusic className="h-4 w-4 text-[#ff6347]" />
-                      <span className="text-white hover:text-[#ff6347] transition-colors">
-                        Music I Listen To
+                    <h2 className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
+                      <span className="relative inline-block w-2 h-2">
+                        <span className="absolute inset-0 bg-[#1DB954] rounded-full animate-pulse"></span>
+                        <span className="absolute inset-0 bg-[#1DB954] rounded-full"></span>
                       </span>
-                    </span>
-                    <svg 
-                      className="w-4 h-4 text-zinc-400"
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
+                      Now Playing
+                    </h2>
+                    <a
+                      href={nowPlaying.songUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex gap-3 items-center hover:opacity-80 transition-opacity"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </motion.button>
-                </Link>
+                      {nowPlaying.albumImageUrl && (
+                        <Image
+                          src={nowPlaying.albumImageUrl}
+                          alt={nowPlaying.title || 'Now Playing'}
+                          width={56}
+                          height={56}
+                          className="rounded-lg w-14 h-14 flex-shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-semibold text-sm truncate">{nowPlaying.title}</p>
+                        <p className="text-zinc-400 text-xs truncate">{nowPlaying.artist}</p>
+                        <p className="text-zinc-500 text-[10px] truncate">{nowPlaying.album}</p>
+                      </div>
+                    </a>
+                  </motion.div>
+                )}
+
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2">
+                    <FiMusic className="text-[#ff6347] w-5 h-5" />
+                    <h2 className="text-white font-semibold">My Top Tracks</h2>
+                  </div>
+
+                  {/* Period Selector */}
+                  <div className="flex justify-center">
+                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-full p-1 flex gap-1">
+                      {(["short", "medium", "long"] as Period[]).map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => setPeriod(p)}
+                          className={`px-3 py-1.5 rounded-full text-xs transition ${
+                            period === p ? "bg-[#ff6347] text-white" : "text-zinc-400 hover:text-zinc-200"
+                          }`}
+                        >
+                          {p === "short" ? "1M" : p === "medium" ? "6M" : "1Y"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tracks Grid */}
+                  {tracksLoading ? (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="text-zinc-400 text-sm">Loading tracks...</div>
+                    </div>
+                  ) : tracks.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-1 overflow-hidden">
+                      {tracks.slice(0, 4).map((track, index) => {
+                        const trackId = getTrackIdFromUrl(track.songUrl);
+                        if (!trackId) return null;
+
+                        return (
+                          <motion.div
+                            key={track.songUrl}
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: index * 0.05, duration: 0.3 }}
+                            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-0 hover:bg-white/10 transition-all"
+                          >
+                            <iframe
+                              style={{
+                                borderRadius: "8px",
+                              }}
+                              src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`}
+                              width="100%"
+                              height="152"
+                              frameBorder="0"
+                              allowFullScreen
+                              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                              loading="lazy"
+                            />
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="text-zinc-400 text-sm">No tracks found</div>
+                    </div>
+                  )}
+
+                  <Link 
+                    href="/music"
+                    className="text-center text-sm text-[#ff6347] hover:text-red-400 transition-colors"
+                  >
+                    View all tracks →
+                  </Link>
+                </div>
               </motion.div>
             </div>
           </motion.div>

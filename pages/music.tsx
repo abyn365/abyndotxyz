@@ -1,13 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import Squares from "../components/Squares";
-import Link from "next/link";
-import { FiMusic, FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectCoverflow } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/effect-coverflow";
+import { FiMusic, FiChevronLeft } from "react-icons/fi";
+import Image from "next/image";
 
 type Track = {
   artist: string;
@@ -18,16 +14,38 @@ type Track = {
   popularity: number;
 };
 
+type NowPlaying = {
+  isPlaying: boolean;
+  title?: string;
+  artist?: string;
+  album?: string;
+  albumImageUrl?: string;
+  songUrl?: string;
+};
+
 type Period = "short" | "medium" | "long";
 
-export default function Music() {
+export default function MusicEmbed() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [period, setPeriod] = useState<Period>("short");
   const [loading, setLoading] = useState(true);
-  const [swiperRef, setSwiperRef] = useState<any>(null);
-  const [isHoldingPrev, setIsHoldingPrev] = useState(false);
-  const [isHoldingNext, setIsHoldingNext] = useState(false);
-  const holdIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [nowPlaying, setNowPlaying] = useState<NowPlaying>({ isPlaying: false });
+
+  useEffect(() => {
+    const fetchNowPlaying = async () => {
+      try {
+        const res = await fetch('/api/now-playing');
+        const data = await res.json();
+        setNowPlaying(data);
+      } catch (error) {
+        console.error('Failed to fetch now playing:', error);
+      }
+    };
+
+    fetchNowPlaying();
+    const interval = setInterval(fetchNowPlaying, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchTracks = async () => {
@@ -43,26 +61,10 @@ export default function Music() {
     fetchTracks();
   }, [period]);
 
-  useEffect(() => {
-    if (isHoldingPrev || isHoldingNext) {
-      if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
-
-      const slide = () => {
-        if (!swiperRef) return;
-        isHoldingPrev ? swiperRef.slidePrev() : swiperRef.slideNext();
-      };
-
-      slide();
-
-      holdIntervalRef.current = setInterval(slide, 400);
-    } else {
-      if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
-    }
-
-    return () => {
-      if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
-    };
-  }, [isHoldingPrev, isHoldingNext, swiperRef]);
+  const getTrackIdFromUrl = (songUrl: string) => {
+    const match = songUrl.match(/track\/([a-zA-Z0-9]+)/);
+    return match ? match[1] : null;
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-zinc-900">
@@ -76,89 +78,67 @@ export default function Music() {
         />
       </div>
 
-      <div className="relative z-10 w-full h-screen flex flex-col">
-        <div className="px-4 pt-4 sm:pt-6">
+      <div className="relative z-10 w-full min-h-screen flex flex-col">
+        <div className="px-3 pt-4 sm:pt-6 sm:px-4">
           <Link href="/" className="inline-flex items-center text-zinc-400 hover:text-white">
             <FiChevronLeft size={20} className="sm:w-6 sm:h-6" />
             <span className="ml-2 text-sm sm:text-base">Back</span>
           </Link>
           <h1 className="mt-3 sm:mt-4 text-xl sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3">
             <FiMusic className="text-[#ff6347] w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="truncate">My Music Collection</span>
+            <span className="truncate">My Top Tracks</span>
           </h1>
         </div>
 
-        <div className="flex-1 w-full flex items-center justify-center min-h-0">
-          <div className="relative w-full h-full max-h-[50vh] sm:max-h-[60vh] px-2 sm:px-4 flex justify-center">
-            {tracks.length > 0 && !loading && (
-              <Swiper
-                key={period}
-                modules={[Autoplay, EffectCoverflow]}
-                effect="coverflow"
-                grabCursor
-                centeredSlides
-                slidesPerView="auto"
-                speed={400}
-                loop
-                onSwiper={setSwiperRef}
-                coverflowEffect={{
-                  rotate: 50,
-                  stretch: 0,
-                  depth: 120,
-                  modifier: 1,
-                  slideShadows: false
-                }}
-                className="h-full"
+        <div className="flex-1 w-full py-4 sm:py-8 md:py-10 px-1 sm:px-4 md:px-6">
+          <div className="mx-auto w-full max-w-7xl">
+            {/* Now Playing Card */}
+            {nowPlaying.isPlaying && (
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                className="mb-6 sm:mb-8 backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-2 sm:p-4 hover:bg-white/10 transition-all"
               >
-                {tracks.map((track, index) => (
-                  <SwiperSlide key={track.songUrl} className="!w-48 sm:!w-64">
-                    <TrackCard track={track} index={index} />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+                <h2 className="text-white text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                  <span className="relative inline-block w-2 h-2">
+                    <span className="absolute inset-0 bg-[#1DB954] rounded-full animate-pulse"></span>
+                    <span className="absolute inset-0 bg-[#1DB954] rounded-full"></span>
+                  </span>
+                  Now Playing
+                </h2>
+                <a
+                  href={nowPlaying.songUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex gap-2 sm:gap-4 items-center hover:opacity-80 transition-opacity"
+                >
+                  {nowPlaying.albumImageUrl && (
+                    <Image
+                      src={nowPlaying.albumImageUrl}
+                      alt={nowPlaying.title || 'Now Playing'}
+                      width={64}
+                      height={64}
+                      className="rounded-lg w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold text-xs sm:text-sm truncate">{nowPlaying.title}</p>
+                    <p className="text-zinc-400 text-xs sm:text-sm truncate">{nowPlaying.artist}</p>
+                    <p className="text-zinc-500 text-[10px] sm:text-xs truncate">{nowPlaying.album}</p>
+                  </div>
+                </a>
+              </motion.div>
             )}
 
-            {/* Prev */}
-            <motion.button
-              onMouseDown={() => setIsHoldingPrev(true)}
-              onMouseUp={() => setIsHoldingPrev(false)}
-              onMouseLeave={() => setIsHoldingPrev(false)}
-              onTouchStart={() => setIsHoldingPrev(true)}
-              onTouchEnd={() => setIsHoldingPrev(false)}
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full backdrop-blur-xl bg-white/5 border border-white/20 flex items-center justify-center"
-              whileHover={{ scale: 1.1 }}
-              style={{
-                boxShadow: isHoldingPrev
-                  ? "0 0 25px #ff6347"
-                  : "0 0 10px rgba(255,255,255,0.15)",
-                color: isHoldingPrev ? "#ff6347" : "white"
-              }}
+            {/* Period Selector */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="mb-8 flex justify-center"
             >
-              <FiChevronLeft size={20} className="sm:w-6 sm:h-6" />
-            </motion.button>
-
-            {/* Next */}
-            <motion.button
-              onMouseDown={() => setIsHoldingNext(true)}
-              onMouseUp={() => setIsHoldingNext(false)}
-              onMouseLeave={() => setIsHoldingNext(false)}
-              onTouchStart={() => setIsHoldingNext(true)}
-              onTouchEnd={() => setIsHoldingNext(false)}
-              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full backdrop-blur-xl bg-white/5 border border-white/20 flex items-center justify-center"
-              whileHover={{ scale: 1.1 }}
-              style={{
-                boxShadow: isHoldingNext
-                  ? "0 0 25px #ff6347"
-                  : "0 0 10px rgba(255,255,255,0.15)",
-                color: isHoldingNext ? "#ff6347" : "white"
-              }}
-            >
-              <FiChevronRight size={20} className="sm:w-6 sm:h-6" />
-            </motion.button>
-
-            {/* Period */}
-            <div className="absolute bottom-4 sm:bottom-10 left-1/2 -translate-x-1/2 z-50">
-              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-full p-1 flex gap-1 sm:gap-2 shadow-2xl">
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-full p-1 flex gap-1 sm:gap-2">
                 {(["short", "medium", "long"] as Period[]).map((p) => (
                   <button
                     key={p}
@@ -167,92 +147,60 @@ export default function Music() {
                       period === p ? "bg-[#ff6347] text-white" : "text-zinc-400"
                     }`}
                   >
-                    {p === "short"
-                      ? "Month"
-                      : p === "medium"
-                      ? "6M"
-                      : "All"}
+                    {p === "short" ? "1M" : p === "medium" ? "6M" : "1Y"}
                   </button>
                 ))}
               </div>
-            </div>
+            </motion.div>
+
+            {/* Tracks Grid */}
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-zinc-400">Loading tracks...</div>
+              </div>
+            ) : tracks.length > 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6"
+              >
+                {tracks.map((track, index) => {
+                  const trackId = getTrackIdFromUrl(track.songUrl);
+                  if (!trackId) return null;
+
+                  return (
+                    <motion.div
+                      key={track.songUrl}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: index * 0.05, duration: 0.3 }}
+                      className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-0 hover:bg-white/10 transition-all"
+                    >
+                      <iframe
+                        style={{
+                          borderRadius: "12px",
+                        }}
+                        src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`}
+                        width="100%"
+                        height="152"
+                        frameBorder="0"
+                        allowFullScreen
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy"
+                      />
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            ) : (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-zinc-400">No tracks found</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-const TrackCard = ({ track, index }: { track: Track; index: number }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState(false);
-  const [touched, setTouched] = useState(false);
-
-  return (
-    <div
-      ref={cardRef}
-      className="relative group flex flex-col"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onTouchStart={() => setTouched(!touched)}
-    >
-      <a
-        href={track.songUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block relative rounded-xl overflow-hidden flex-1"
-      >
-        <div className="relative aspect-square w-full rounded-xl overflow-hidden">
-
-          {/* Glow */}
-          <div className="absolute -inset-1 bg-[#ff6347] blur-2xl opacity-20 group-hover:opacity-40 transition" />
-
-          <Image
-            src={track.cover}
-            alt={track.title}
-            fill
-            priority={index < 6}
-            className="object-cover relative z-10"
-          />
-
-          {/* Glass overlay on hover */}
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition" />
-        </div>
-      </a>
-
-      {/* GLASS TOOLTIP - Desktop Hover Only */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{
-          opacity: hovered ? 1 : 0,
-          y: hovered ? 0 : 12
-        }}
-        className="absolute inset-x-0 bottom-0 translate-y-1/2 flex justify-center z-50 pointer-events-none hidden sm:flex"
-      >
-        <div
-          className="px-4 py-2 rounded-xl backdrop-blur-xl bg-black/60 border border-white/20 text-center w-[85%]"
-          style={{
-            boxShadow: "0 8px 20px rgba(0,0,0,0.6)"
-          }}
-        >
-          <p className="text-white font-semibold text-sm truncate">
-            {track.title}
-          </p>
-          <p className="text-zinc-300 text-xs truncate">
-            {track.artist}
-          </p>
-        </div>
-      </motion.div>
-
-      {/* Mobile Info - Always Show Below Card */}
-      <div className="sm:hidden mt-1 flex flex-col gap-0.5 text-center">
-        <p className="text-white font-semibold text-xs line-clamp-2">
-          {track.title}
-        </p>
-        <p className="text-zinc-400 text-[10px] line-clamp-1">
-          {track.artist}
-        </p>
-      </div>
-    </div>
-  );
-};
