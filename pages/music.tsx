@@ -181,7 +181,7 @@ export default function MusicEmbed() {
                         style={{
                           borderRadius: "12px",
                         }}
-                        src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`}
+                        src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=1`}
                         width="100%"
                         height="152"
                         frameBorder="0"
