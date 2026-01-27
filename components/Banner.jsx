@@ -17,7 +17,7 @@ function Banners() {
       <Banner icon="🎮" label="Gamer" />
       <Banner icon="🎵" label="Music Enjoyer" />
       <Banner icon="🏍" label="Vroom Vroom" />
-      <Banner icon="🏆" label="Achievement Hunter" />
+      <Banner icon="🏋" label="Gym Rat" />
     </div>
   );
 }

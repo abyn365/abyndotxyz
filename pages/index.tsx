@@ -39,7 +39,7 @@ type CustomStatus = {
   state?: string; // Add state for custom status text
 };
 
-const belowLink = "Когда огонь погаснет, останется ли тепло?";
+const belowLink = "";
 const bio = "The biolink of a dumbass 🗿";
 
 const getDiscordAvatar = (userId: string, avatarId: string) => {
@@ -182,7 +182,7 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="w-full backdrop-blur-sm bg-zinc-900/30 rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl"
           >
-            <div className="flex flex-col items-center justify-center gap-8">
+            <div className="flex flex-col items-center justify-center gap-6">
               {/* Profile Section */}
               <motion.div 
                 initial={{ scale: 0.95, opacity: 0 }}
@@ -260,18 +260,23 @@ export default function Home() {
                 <Banners />
               </motion.div>
 
+              {/* Social Links Section */}
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
-                className="grid grid-cols-5 items-center gap-4 w-full"
+                className="w-full flex flex-col gap-3"
               >
-                <div className="elegant-card glow-effect p-2 w-full flex justify-center">
+                <p className="text-center text-sm text-zinc-400">
+                  Stalk me here:
+                </p>
+                
+                <div className="grid grid-cols-5 items-center gap-4 w-full">
                   <a
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/instagram"
-                    className="flex cursor-pointer items-center justify-center rounded-full border-white border-opacity-10 bg-opacity-10 p-1.5 transition-all"
+                    className="elegant-card glow-effect p-2 w-full flex justify-center cursor-pointer hover:scale-105 transition-transform"
                   >
                     <svg
                       className="social-icon fill-current text-pink-400"
@@ -283,13 +288,12 @@ export default function Home() {
                       <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"></path>
                     </svg>
                   </a>
-                </div>
-                <div className="elegant-card glow-effect p-2 w-full flex justify-center">
+
                   <a
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/github"
-                    className="flex cursor-pointer items-center justify-center rounded-full border-white border-opacity-10 bg-opacity-10 p-1.5 transition-all"
+                    className="elegant-card glow-effect p-2 w-full flex justify-center cursor-pointer hover:scale-105 transition-transform"
                   >
                     <svg
                       className="social-icon fill-current text-primary transition-all dark:text-gray-100"
@@ -303,13 +307,12 @@ export default function Home() {
                       />
                     </svg>
                   </a>
-                </div>
-                <div className="elegant-card glow-effect p-2 w-full flex justify-center">
+
                   <a
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/spotify"
-                    className="flex cursor-pointer items-center justify-center rounded-full border-white border-opacity-10 bg-opacity-10 p-1.5 transition-all"
+                    className="elegant-card glow-effect p-2 w-full flex justify-center cursor-pointer hover:scale-105 transition-transform"
                   >
                     <svg
                       className="social-icon fill-current text-green-400"
@@ -321,13 +324,12 @@ export default function Home() {
                       <path d="M32 0C14.3 0 0 14.337 0 32c0 17.7 14.337 32 32 32 17.7 0 32-14.337 32-32S49.663 0 32 0zm14.68 46.184c-.573.956-1.797 1.223-2.753.65-7.532-4.588-16.975-5.62-28.14-3.097-1.07.23-2.14-.42-2.37-1.49s.42-2.14 1.49-2.37c12.196-2.79 22.67-1.606 31.082 3.556a2 2 0 0 1 .688 2.753zm3.9-8.717c-.726 1.185-2.256 1.53-3.44.84-8.602-5.276-21.716-6.805-31.885-3.747-1.338.382-2.714-.344-3.097-1.644-.382-1.338.344-2.714 1.682-3.097 11.622-3.517 26.074-1.835 35.976 4.244 1.147.688 1.49 2.217.765 3.403zm.344-9.1c-10.323-6.117-27.336-6.69-37.2-3.708-1.568.497-3.25-.42-3.747-1.988s.42-3.25 1.988-3.747c11.317-3.44 30.127-2.753 41.98 4.282 1.415.84 1.873 2.676 1.032 4.09-.765 1.453-2.638 1.912-4.053 1.07z"></path>
                     </svg>
                   </a>
-                </div>
-                <div className="elegant-card glow-effect p-2 w-full flex justify-center">
+
                   <a
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/pinterest"
-                    className="flex cursor-pointer items-center justify-center rounded-full border-white border-opacity-10 bg-opacity-10 p-1.5 transition-all group"
+                    className="elegant-card glow-effect p-2 w-full flex justify-center cursor-pointer hover:scale-105 transition-transform group"
                   >
                     <svg
                       className="social-icon h-6"
@@ -341,15 +343,14 @@ export default function Home() {
                       <title>Pinterest</title>
                     </svg>
                   </a>
-                </div>
-                <div className="elegant-card glow-effect p-2 w-full">
-                  <div className="flex items-center justify-center">
-                    <a
-                      rel="noopener noreferrer nofollow"
-                      target="_blank"
-                      href="/discord"
-                      className="flex cursor-pointer items-center justify-center space-x-2 rounded-full border-white border-opacity-10 px-2 py-2 hover:bg-white hover:bg-opacity-5"
-                    >
+
+                  <a
+                    rel="noopener noreferrer nofollow"
+                    target="_blank"
+                    href="/discord"
+                    className="elegant-card glow-effect p-2 w-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+                  >
+                    <div className="flex items-center justify-center space-x-2">
                       <svg
                         className="social-icon h-5 fill-current text-indigo-500"
                         role="img"
@@ -362,8 +363,8 @@ export default function Home() {
                       <span className="hidden sm:inline text-sm font-medium text-indigo-100 truncate">
                         {username || 'Loading...'}
                       </span>
-                    </a>
-                  </div>
+                    </div>
+                  </a>
                 </div>
               </motion.div>
 
