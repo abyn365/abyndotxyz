@@ -80,8 +80,8 @@ function MyApp({ Component, pageProps }: AppProps) {
         }}
         twitter={{
           cardType: "summary_large_image",
-          handle: "@abyb_1",
-          site: "@abyb_1",
+          handle: "@abyn_1",
+          site: "@abyn_1",
         }}
         additionalMetaTags={[
           {
