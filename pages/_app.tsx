@@ -58,7 +58,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       {/* ================= SEO & OPEN GRAPH ================= */}
       <NextSeo
         title="abyn | biolink"
-        description="Aspiring Software & Cloud Developer. Tech & Science Enthusiast."
+        description="Abyn's biolink."
         canonical="https://abyn.xyz"
         openGraph={{
           type: "website",
@@ -67,10 +67,10 @@ function MyApp({ Component, pageProps }: AppProps) {
           siteName: "abyn | biolink",
           title: "abyn | biolink",
           description:
-            "Aspiring Software & Cloud Developer. Tech & Science Enthusiast.",
+            "Abyn's biolink.",
           images: [
             {
-              url: "https://abyn.xyz/banner.gif",
+              url: "https://abyn.xyz/banner.png",
               width: 1200,
               height: 630,
               alt: "abyn | biolink",
@@ -107,9 +107,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:title" content="abyn | biolink" />
         <meta
           property="og:description"
-          content="Aspiring Software & Cloud Developer. Tech & Science Enthusiast."
+          content="Abyn's biolink."
         />
-        <meta property="og:image" content="https://abyn.xyz/banner.gif" />
+        <meta property="og:image" content="https://abyn.xyz/banner.png" />
         <meta property="og:url" content="https://abyn.xyz" />
         <meta property="og:type" content="website" />
       </Head>

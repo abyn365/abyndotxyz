@@ -48,11 +48,6 @@ body::-webkit-scrollbar {
 
 /* Put banner here, if you dont like the solid color */
 
-.bg-banner {
-  background-size: cover;
-  background-position: center;
-  background-image: url(/banner.gif);
-}
 
 #snackbar {
   visibility: hidden;
