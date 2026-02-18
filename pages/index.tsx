@@ -243,7 +243,7 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/instagram"
-                    className="elegant-card glow-effect p-2 w-full flex justify-center cursor-pointer hover:scale-105 transition-transform"
+                    className="w-full flex justify-center rounded-xl border border-zinc-700/50 bg-zinc-900/70 p-2 text-zinc-200 transition-all hover:border-zinc-500/60 hover:bg-zinc-800/70"
                   >
                     <svg
                       className="social-icon fill-current text-pink-400"
@@ -260,7 +260,7 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/github"
-                    className="elegant-card glow-effect p-2 w-full flex justify-center cursor-pointer hover:scale-105 transition-transform"
+                    className="w-full flex justify-center rounded-xl border border-zinc-700/50 bg-zinc-900/70 p-2 text-zinc-200 transition-all hover:border-zinc-500/60 hover:bg-zinc-800/70"
                   >
                     <svg
                       className="social-icon fill-current text-primary transition-all dark:text-gray-100"
@@ -279,7 +279,7 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/spotify"
-                    className="elegant-card glow-effect p-2 w-full flex justify-center cursor-pointer hover:scale-105 transition-transform"
+                    className="w-full flex justify-center rounded-xl border border-zinc-700/50 bg-zinc-900/70 p-2 text-zinc-200 transition-all hover:border-zinc-500/60 hover:bg-zinc-800/70"
                   >
                     <svg
                       className="social-icon fill-current text-green-400"
@@ -296,7 +296,7 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/pinterest"
-                    className="elegant-card glow-effect p-2 w-full flex justify-center cursor-pointer hover:scale-105 transition-transform group"
+                    className="w-full flex justify-center rounded-xl border border-zinc-700/50 bg-zinc-900/70 p-2 text-zinc-200 transition-all hover:border-zinc-500/60 hover:bg-zinc-800/70 group"
                   >
                     <svg
                       className="social-icon h-6"
@@ -315,7 +315,7 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/discord"
-                    className="elegant-card glow-effect p-2 w-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+                    className="w-full flex items-center justify-center rounded-xl border border-zinc-700/50 bg-zinc-900/70 p-2 text-zinc-200 transition-all hover:border-zinc-500/60 hover:bg-zinc-800/70"
                   >
                     <div className="flex items-center justify-center space-x-2">
                       <svg
@@ -358,9 +358,6 @@ export default function Home() {
                       <FiMusic className="h-5 w-5 text-[#ff6347]" />
                       <h2 className="text-white font-semibold">My Top Tracks</h2>
                     </div>
-                    <p className="text-xs text-zinc-500 sm:text-right">
-                      Desktop optimized embeds for quicker previews
-                    </p>
                   </div>
 
                   {/* Period Selector */}

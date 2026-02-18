@@ -1,6 +1,6 @@
 import type { NextComponentType } from "next";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type PointerEvent } from "react";
 import { FiActivity, FiDisc, FiMusic } from "react-icons/fi";
 
 type StatusData = {
@@ -28,6 +28,7 @@ const DiscordStatus: NextComponentType = () => {
   const [loading, setLoading] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [pointerStartX, setPointerStartX] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -67,7 +68,7 @@ const DiscordStatus: NextComponentType = () => {
     return [
       {
         key: 'discord',
-        icon: <FiActivity className="h-3.5 w-3.5 text-indigo-400" />,
+        icon: <FiActivity className="h-3.5 w-3.5 text-indigo-300" />,
         eyebrow: 'Discord Activity',
         title: status?.activity?.name || 'Not Active',
         subtitle: status?.activity?.details || 'Not doing anything right now',
@@ -78,12 +79,12 @@ const DiscordStatus: NextComponentType = () => {
               ? `Active on ${status.activeDevice}`
               : 'Currently idle',
         image: status?.activity?.image || null,
-        accent: 'from-indigo-500/40 via-indigo-500/15 to-transparent',
-        surface: 'from-indigo-500/15 via-zinc-900/70 to-zinc-900/80'
+        accent: 'from-indigo-400/14 via-indigo-300/6 to-transparent',
+        surface: 'from-indigo-400/5 via-zinc-900/84 to-zinc-900/88'
       },
       {
         key: 'spotify',
-        icon: <FiMusic className="h-3.5 w-3.5 text-[#1DB954]" />,
+        icon: <FiMusic className="h-3.5 w-3.5 text-emerald-300" />,
         eyebrow: 'Now Playing',
         title: nowPlaying.isPlaying ? nowPlaying.title || 'Unknown track' : 'Nothing playing',
         subtitle: nowPlaying.isPlaying
@@ -92,22 +93,41 @@ const DiscordStatus: NextComponentType = () => {
         meta: nowPlaying.isPlaying ? nowPlaying.album || 'Unknown album' : 'Check back in a bit',
         image: nowPlaying.isPlaying ? nowPlaying.albumImageUrl || null : null,
         href: nowPlaying.isPlaying ? nowPlaying.songUrl : undefined,
-        accent: 'from-emerald-500/45 via-emerald-500/20 to-transparent',
-        surface: 'from-emerald-500/15 via-zinc-900/70 to-zinc-900/80'
+        accent: 'from-emerald-400/14 via-emerald-300/6 to-transparent',
+        surface: 'from-emerald-400/5 via-zinc-900/84 to-zinc-900/88'
       }
     ];
   }, [status, nowPlaying]);
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    setPointerStartX(event.clientX);
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    if (pointerStartX === null) return;
+    const deltaX = event.clientX - pointerStartX;
+
+    if (deltaX > 40) {
+      setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    } else if (deltaX < -40) {
+      setActiveSlide((prev) => (prev + 1) % slides.length);
+    }
+
+    setPointerStartX(null);
+  };
 
   if (loading) return null;
 
   return (
     <div className="w-full">
       <div
-        className="relative overflow-hidden rounded-2xl border border-zinc-700/60 bg-gradient-to-br from-zinc-900/95 via-zinc-900/80 to-zinc-900/75 shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+        className="relative overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/90 via-zinc-900/84 to-zinc-900/82 shadow-[0_8px_18px_rgba(0,0,0,0.2)]"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
       >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-zinc-700/20 via-transparent to-zinc-700/20" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-zinc-700/8 via-transparent to-zinc-700/8" />
 
         <div
           className="flex transition-transform duration-700 ease-out"
@@ -115,34 +135,34 @@ const DiscordStatus: NextComponentType = () => {
         >
           {slides.map((slide) => {
             const content = (
-              <div className={`relative min-w-full bg-gradient-to-br ${slide.surface} p-4 sm:p-5 md:p-6`}>
-                <div className={`absolute inset-x-0 top-0 h-16 bg-gradient-to-r ${slide.accent}`} />
-                <div className="relative flex items-start gap-3 md:gap-4">
+              <div className={`relative min-w-full bg-gradient-to-br ${slide.surface} p-2.5 sm:p-3 md:p-3`}>
+                <div className={`absolute inset-x-0 top-0 h-7 bg-gradient-to-r ${slide.accent}`} />
+                <div className="relative flex items-start gap-2 md:gap-2.5">
                   {slide.image ? (
                     <Image
                       src={slide.image}
-                      width={72}
-                      height={72}
+                      width={48}
+                      height={48}
                       alt={slide.title}
-                      className="h-12 w-12 rounded-lg border border-zinc-700/60 object-cover sm:h-14 sm:w-14 md:h-[72px] md:w-[72px]"
+                      className="h-9 w-9 rounded-md border border-zinc-700/50 object-cover sm:h-10 sm:w-10 md:h-12 md:w-12"
                       unoptimized
                     />
                   ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-zinc-700/60 bg-zinc-800 sm:h-14 sm:w-14 md:h-[72px] md:w-[72px]">
-                      <FiDisc className="h-6 w-6 text-zinc-500" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md border border-zinc-700/50 bg-zinc-800 sm:h-10 sm:w-10 md:h-12 md:w-12">
+                      <FiDisc className="h-4.5 w-4.5 text-zinc-500" />
                     </div>
                   )}
 
                   <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center gap-1.5">
+                    <div className="mb-0.5 flex items-center gap-1.5">
                       {slide.icon}
-                      <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
                         {slide.eyebrow}
                       </span>
                     </div>
-                    <p className="truncate text-sm font-semibold text-white sm:text-base md:text-lg">{slide.title}</p>
-                    <p className="truncate text-xs text-zinc-300 sm:text-sm">{slide.subtitle}</p>
-                    <p className="truncate pt-1 text-[11px] text-zinc-500 sm:text-xs">{slide.meta}</p>
+                    <p className="truncate text-xs font-semibold text-white sm:text-sm">{slide.title}</p>
+                    <p className="truncate text-[10px] text-zinc-300 sm:text-[11px]">{slide.subtitle}</p>
+                    <p className="truncate pt-0.5 text-[9px] text-zinc-500">{slide.meta}</p>
                   </div>
                 </div>
               </div>
@@ -170,16 +190,16 @@ const DiscordStatus: NextComponentType = () => {
           })}
         </div>
 
-        <div className="border-t border-zinc-800/80 px-4 py-2 sm:px-5">
-          <div className="flex items-center justify-between text-[11px] text-zinc-500">
-            <span>Auto swap every 5.5s</span>
+        <div className="border-t border-zinc-800/70 px-3 py-1 sm:px-4">
+          <div className="flex items-center justify-between text-[9px] text-zinc-500">
+            <span>Swipe / drag to change</span>
             <div className="flex items-center gap-1.5">
               {slides.map((slide, index) => (
                 <button
                   key={slide.key}
                   onClick={() => setActiveSlide(index)}
-                  className={`h-1.5 rounded-full transition-all ${
-                    activeSlide === index ? 'w-5 bg-[#ff6347]' : 'w-1.5 bg-zinc-600'
+                  className={`h-1 rounded-full transition-all ${
+                    activeSlide === index ? 'w-4 bg-zinc-400' : 'w-1 bg-zinc-600'
                   }`}
                   aria-label={`Go to ${slide.eyebrow}`}
                   type="button"
