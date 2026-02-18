@@ -78,7 +78,8 @@ const DiscordStatus: NextComponentType = () => {
               ? `Active on ${status.activeDevice}`
               : 'Currently idle',
         image: status?.activity?.image || null,
-        accent: 'from-indigo-500/20 to-transparent'
+        accent: 'from-indigo-500/40 via-indigo-500/15 to-transparent',
+        surface: 'from-indigo-500/15 via-zinc-900/70 to-zinc-900/80'
       },
       {
         key: 'spotify',
@@ -91,7 +92,8 @@ const DiscordStatus: NextComponentType = () => {
         meta: nowPlaying.isPlaying ? nowPlaying.album || 'Unknown album' : 'Check back in a bit',
         image: nowPlaying.isPlaying ? nowPlaying.albumImageUrl || null : null,
         href: nowPlaying.isPlaying ? nowPlaying.songUrl : undefined,
-        accent: 'from-emerald-500/20 to-transparent'
+        accent: 'from-emerald-500/45 via-emerald-500/20 to-transparent',
+        surface: 'from-emerald-500/15 via-zinc-900/70 to-zinc-900/80'
       }
     ];
   }, [status, nowPlaying]);
@@ -101,11 +103,11 @@ const DiscordStatus: NextComponentType = () => {
   return (
     <div className="w-full">
       <div
-        className="relative overflow-hidden rounded-2xl border border-zinc-700/60 bg-zinc-900/80 shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+        className="relative overflow-hidden rounded-2xl border border-zinc-700/60 bg-gradient-to-br from-zinc-900/95 via-zinc-900/80 to-zinc-900/75 shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-zinc-700/10 via-transparent to-zinc-700/10" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-zinc-700/20 via-transparent to-zinc-700/20" />
 
         <div
           className="flex transition-transform duration-700 ease-out"
@@ -113,7 +115,7 @@ const DiscordStatus: NextComponentType = () => {
         >
           {slides.map((slide) => {
             const content = (
-              <div className="relative min-w-full p-4 sm:p-5 md:p-6">
+              <div className={`relative min-w-full bg-gradient-to-br ${slide.surface} p-4 sm:p-5 md:p-6`}>
                 <div className={`absolute inset-x-0 top-0 h-16 bg-gradient-to-r ${slide.accent}`} />
                 <div className="relative flex items-start gap-3 md:gap-4">
                   {slide.image ? (

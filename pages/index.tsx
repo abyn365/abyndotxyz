@@ -60,6 +60,7 @@ export default function Home() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [period, setPeriod] = useState<Period>("short");
   const [tracksLoading, setTracksLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
 
   useEffect(() => {
@@ -101,6 +102,10 @@ export default function Home() {
     // Add interval to refresh status
     const interval = setInterval(fetchDiscordUser, 10000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -410,7 +415,6 @@ export default function Home() {
                               width="100%"
                               height="180"
                               frameBorder="0"
-                              allowFullScreen
                               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                               loading="lazy"
                             />
@@ -449,16 +453,16 @@ export default function Home() {
         className="inline-block mx-1 relative group cursor-help"
       >
         <span className="hover:text-[#ff6347] transition-colors">
-          {new Date().getFullYear()}
+          {mounted ? new Date().getFullYear() : "----"}
         </span>
         {/* Tooltip */}
         <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-zinc-800 text-zinc-100 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-zinc-700 shadow-lg">
-          {new Date().toLocaleDateString('en-US', { 
+          {mounted ? new Date().toLocaleDateString('en-US', { 
             weekday: 'long', 
             year: 'numeric', 
             month: 'long', 
             day: 'numeric' 
-          })}
+          }) : 'Loading date...'}
           {/* Arrow */}
           <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-zinc-800"></span>
         </span>
