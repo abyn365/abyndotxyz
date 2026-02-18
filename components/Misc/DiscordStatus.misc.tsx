@@ -152,15 +152,15 @@ const DiscordStatus: NextComponentType = () => {
                   {slide.image ? (
                     <Image
                       src={slide.image}
-                      width={56}
-                      height={56}
+                      width={72}
+                      height={72}
                       alt={slide.title}
-                      className="h-12 w-12 rounded-md border border-zinc-700/50 object-cover sm:h-14 sm:w-14"
+                      className="h-14 w-14 rounded-md border border-zinc-700/50 object-cover sm:h-16 sm:w-16"
                       unoptimized
                     />
                   ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-md border border-zinc-700/50 bg-zinc-800 sm:h-14 sm:w-14">
-                      <FiDisc className="h-6 w-6 text-zinc-500" />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-md border border-zinc-700/50 bg-zinc-800 sm:h-16 sm:w-16">
+                      <FiDisc className="h-7 w-7 text-zinc-500" />
                     </div>
                   )}
 
