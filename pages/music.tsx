@@ -3,7 +3,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Squares from "../components/Squares";
 import { FiMusic, FiChevronLeft } from "react-icons/fi";
-import Image from "next/image";
+import DiscordStatus from "../components/Misc/DiscordStatus.misc";
 
 type Track = {
   artist: string;
@@ -14,38 +14,12 @@ type Track = {
   popularity: number;
 };
 
-type NowPlaying = {
-  isPlaying: boolean;
-  title?: string;
-  artist?: string;
-  album?: string;
-  albumImageUrl?: string;
-  songUrl?: string;
-};
-
 type Period = "short" | "medium" | "long";
 
 export default function MusicEmbed() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [period, setPeriod] = useState<Period>("short");
   const [loading, setLoading] = useState(true);
-  const [nowPlaying, setNowPlaying] = useState<NowPlaying>({ isPlaying: false });
-
-  useEffect(() => {
-    const fetchNowPlaying = async () => {
-      try {
-        const res = await fetch('/api/now-playing');
-        const data = await res.json();
-        setNowPlaying(data);
-      } catch (error) {
-        console.error('Failed to fetch now playing:', error);
-      }
-    };
-
-    fetchNowPlaying();
-    const interval = setInterval(fetchNowPlaying, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const fetchTracks = async () => {
@@ -78,73 +52,53 @@ export default function MusicEmbed() {
         />
       </div>
 
-      <div className="relative z-10 w-full min-h-screen flex flex-col">
-        <div className="px-3 pt-4 sm:pt-6 sm:px-4">
-          <Link href="/" className="inline-flex items-center text-zinc-400 hover:text-white">
-            <FiChevronLeft size={20} className="sm:w-6 sm:h-6" />
-            <span className="ml-2 text-sm sm:text-base">Back</span>
-          </Link>
-          <h1 className="mt-3 sm:mt-4 text-xl sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3">
-            <FiMusic className="text-[#ff6347] w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="truncate">My Top Tracks</span>
-          </h1>
-        </div>
+      <div className="relative z-10 min-h-screen w-full px-3 py-4 sm:px-6 sm:py-8">
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6">
+            <Link href="/" passHref legacyBehavior>
+              <a className="inline-flex items-center text-zinc-400 transition-colors hover:text-white">
+                <FiChevronLeft size={20} className="sm:h-6 sm:w-6" />
+                <span className="ml-2 text-sm sm:text-base">Back</span>
+              </a>
+            </Link>
+            <h1 className="text-right text-lg font-bold text-white sm:text-2xl">
+              <span className="inline-flex items-center gap-2 sm:gap-3">
+                <FiMusic className="h-5 w-5 text-[#ff6347] sm:h-6 sm:w-6" />
+                My Music
+              </span>
+            </h1>
+          </div>
 
-        <div className="flex-1 w-full py-4 sm:py-8 md:py-10 px-1 sm:px-4 md:px-6">
-          <div className="mx-auto w-full max-w-7xl">
-            {/* Now Playing Card */}
-            {nowPlaying.isPlaying && (
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="mb-6 sm:mb-8 backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-2 sm:p-4 hover:bg-white/10 transition-all"
-              >
-                <h2 className="text-white text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2">
-                  <span className="relative inline-block w-2 h-2">
-                    <span className="absolute inset-0 bg-[#1DB954] rounded-full animate-pulse"></span>
-                    <span className="absolute inset-0 bg-[#1DB954] rounded-full"></span>
-                  </span>
-                  Now Playing
-                </h2>
-                <a
-                  href={nowPlaying.songUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex gap-2 sm:gap-4 items-center hover:opacity-80 transition-opacity"
-                >
-                  {nowPlaying.albumImageUrl && (
-                    <Image
-                      src={nowPlaying.albumImageUrl}
-                      alt={nowPlaying.title || 'Now Playing'}
-                      width={64}
-                      height={64}
-                      className="rounded-lg w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold text-xs sm:text-sm truncate">{nowPlaying.title}</p>
-                    <p className="text-zinc-400 text-xs sm:text-sm truncate">{nowPlaying.artist}</p>
-                    <p className="text-zinc-500 text-[10px] sm:text-xs truncate">{nowPlaying.album}</p>
-                  </div>
-                </a>
-              </motion.div>
-            )}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            className="mb-5 sm:mb-8"
+          >
+            <DiscordStatus />
+          </motion.div>
 
-            {/* Period Selector */}
+          <div className="rounded-2xl border border-zinc-800/70 bg-zinc-900/70 p-3 shadow-xl sm:p-5">
+            <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-sm font-semibold text-white sm:text-base">Top Tracks</h2>
+              <p className="text-xs text-zinc-500">Mobile & desktop polished Spotify embeds</p>
+            </div>
+
             <motion.div
-              initial={{ y: 20, opacity: 0 }}
+              initial={{ y: 12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              className="mb-8 flex justify-center"
+              transition={{ duration: 0.25 }}
+              className="mb-5 flex justify-center sm:mb-6"
             >
-              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-full p-1 flex gap-1 sm:gap-2">
+              <div className="flex gap-1 rounded-full border border-white/10 bg-white/5 p-1">
                 {(["short", "medium", "long"] as Period[]).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPeriod(p)}
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition ${
-                      period === p ? "bg-[#ff6347] text-white" : "text-zinc-400"
+                    className={`rounded-full px-3 py-1.5 text-xs transition sm:px-4 ${
+                      period === p
+                        ? "bg-[#ff6347] text-white"
+                        : "text-zinc-400 hover:text-zinc-200"
                     }`}
                   >
                     {p === "short" ? "1M" : p === "medium" ? "6M" : "1Y"}
@@ -153,17 +107,16 @@ export default function MusicEmbed() {
               </div>
             </motion.div>
 
-            {/* Tracks Grid */}
             {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="text-zinc-400">Loading tracks...</div>
+              <div className="flex items-center justify-center py-12">
+                <div className="text-sm text-zinc-400">Loading tracks...</div>
               </div>
             ) : tracks.length > 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
-                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6"
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
               >
                 {tracks.map((track, index) => {
                   const trackId = getTrackIdFromUrl(track.songUrl);
@@ -174,18 +127,19 @@ export default function MusicEmbed() {
                       key={track.songUrl}
                       initial={{ y: 20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: index * 0.05, duration: 0.3 }}
-                      className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-0 hover:bg-white/10 transition-all"
+                      transition={{ delay: index * 0.03, duration: 0.25 }}
+                      className="group overflow-hidden rounded-xl border border-zinc-700/60 bg-zinc-900/80 shadow-[0_8px_20px_rgba(0,0,0,0.25)] transition-all hover:-translate-y-0.5 hover:border-zinc-500/70"
                     >
+                      <div className="flex items-center justify-between border-b border-zinc-800/80 px-3 py-2">
+                        <p className="truncate text-xs font-medium text-zinc-300">{track.title}</p>
+                        <span className="text-[10px] uppercase tracking-wide text-zinc-500">Spotify</span>
+                      </div>
                       <iframe
-                        style={{
-                          borderRadius: "12px",
-                        }}
-                        src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=1`}
+                        style={{ borderRadius: "0 0 12px 12px" }}
+                        src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`}
                         width="100%"
-                        height="152"
+                        height="180"
                         frameBorder="0"
-                        allowFullScreen
                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                         loading="lazy"
                       />
@@ -194,8 +148,8 @@ export default function MusicEmbed() {
                 })}
               </motion.div>
             ) : (
-              <div className="flex justify-center items-center py-12">
-                <div className="text-zinc-400">No tracks found</div>
+              <div className="flex items-center justify-center py-12">
+                <div className="text-sm text-zinc-400">No tracks found</div>
               </div>
             )}
           </div>
