@@ -21,14 +21,6 @@ type Track = {
 
 type Period = "short" | "medium" | "long";
 
-type NowPlaying = {
-  isPlaying: boolean;
-  title?: string;
-  artist?: string;
-  album?: string;
-  albumImageUrl?: string;
-  songUrl?: string;
-};
 
 type CustomStatus = {
   emoji?: {
@@ -59,41 +51,16 @@ const getStatusImage = (status: string) => {
   return statusMap[status as keyof typeof statusMap] || statusMap.offline;
 };
 
-const getActiveDevice = (data: any) => {
-  // Priority order: desktop > web > mobile
-  if (data.active_on_discord_desktop) return 'Desktop';
-  if (data.active_on_discord_web) return 'Web';
-  if (data.active_on_discord_mobile) return 'Mobile';
-  return null;
-};
 
 export default function Home() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [customStatus, setCustomStatus] = useState<CustomStatus | null>(null);
   const [username, setUsername] = useState('');
-  const [loading, setLoading] = useState(true);
   const [discordStatus, setDiscordStatus] = useState('');
-  const [isOnline, setIsOnline] = useState(false);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [period, setPeriod] = useState<Period>("short");
   const [tracksLoading, setTracksLoading] = useState(true);
-  const [nowPlaying, setNowPlaying] = useState<NowPlaying>({ isPlaying: false });
 
-  useEffect(() => {
-    const fetchNowPlaying = async () => {
-      try {
-        const res = await fetch('/api/now-playing');
-        const data = await res.json();
-        setNowPlaying(data);
-      } catch (error) {
-        console.error('Failed to fetch now playing:', error);
-      }
-    };
-
-    fetchNowPlaying();
-    const interval = setInterval(fetchNowPlaying, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     AOS.init({
@@ -114,9 +81,6 @@ export default function Home() {
           
           // Set Discord status
           setDiscordStatus(data.data.discord_status);
-          // Check active state with priority
-          setIsOnline(Boolean(getActiveDevice(data.data)));
-
           // Get custom status
           const customStatusActivity = data.data.activities.find(
             (activity: any) => activity.type === 4
@@ -130,8 +94,6 @@ export default function Home() {
         }
       } catch (error) {
         console.error('Failed to fetch Discord user:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -385,48 +347,6 @@ export default function Home() {
                 transition={{ delay: 0.5, duration: 0.4 }}
                 className="w-full"
               >
-                {/* Now Playing Card */}
-                {nowPlaying.isPlaying && (
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="mb-6 rounded-2xl border border-zinc-700/60 bg-gradient-to-r from-zinc-900/95 via-zinc-900/85 to-zinc-900/70 p-4 shadow-[0_10px_24px_rgba(0,0,0,0.25)] transition-all"
-                  >
-                    <h2 className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
-                      <span className="relative inline-block w-2 h-2">
-                        <span className="absolute inset-0 bg-[#1DB954] rounded-full animate-pulse"></span>
-                        <span className="absolute inset-0 bg-[#1DB954] rounded-full"></span>
-                      </span>
-                      Now Playing
-                    </h2>
-                    <a
-                      href={nowPlaying.songUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center gap-3 transition-opacity hover:opacity-90"
-                    >
-                      {nowPlaying.albumImageUrl && (
-                        <Image
-                          src={nowPlaying.albumImageUrl}
-                          alt={nowPlaying.title || 'Now Playing'}
-                          width={56}
-                          height={56}
-                          className="rounded-lg w-14 h-14 flex-shrink-0"
-                        />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-white font-semibold text-sm truncate">{nowPlaying.title}</p>
-                        <p className="text-zinc-400 text-xs truncate">{nowPlaying.artist}</p>
-                        <p className="text-zinc-500 text-[10px] truncate">{nowPlaying.album}</p>
-                      </div>
-                      <span className="hidden text-[11px] font-medium text-[#1DB954] transition-colors group-hover:text-green-300 sm:inline">
-                        Open in Spotify ↗
-                      </span>
-                    </a>
-                  </motion.div>
-                )}
-
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-2">
