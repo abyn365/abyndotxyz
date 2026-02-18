@@ -22,6 +22,20 @@ type NowPlaying = {
   songUrl?: string;
 };
 
+type Slide = {
+  key: string;
+  icon: JSX.Element;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  meta: string;
+  image: string | null;
+  href?: string;
+  accent: string;
+  surface: string;
+  halo: string;
+};
+
 const DiscordStatus: NextComponentType = () => {
   const [status, setStatus] = useState<StatusData | null>(null);
   const [nowPlaying, setNowPlaying] = useState<NowPlaying>({ isPlaying: false });
@@ -64,7 +78,7 @@ const DiscordStatus: NextComponentType = () => {
     return () => clearInterval(timer);
   }, [isHovered]);
 
-  const slides = useMemo(() => {
+  const slides = useMemo<Slide[]>(() => {
     return [
       {
         key: 'discord',
@@ -79,8 +93,9 @@ const DiscordStatus: NextComponentType = () => {
               ? `Active on ${status.activeDevice}`
               : 'Currently idle',
         image: status?.activity?.image || null,
-        accent: 'from-indigo-400/10 via-indigo-300/4 to-transparent',
-        surface: 'from-indigo-400/[0.035] via-zinc-900/86 to-zinc-900/90'
+        accent: 'from-indigo-300/16 via-indigo-300/5 to-transparent',
+        surface: 'from-indigo-400/[0.025] via-zinc-900/88 to-zinc-900/92',
+        halo: 'radial-gradient(circle at 10% 12%, rgba(129, 140, 248, 0.14), transparent 48%)'
       },
       {
         key: 'spotify',
@@ -93,8 +108,9 @@ const DiscordStatus: NextComponentType = () => {
         meta: nowPlaying.isPlaying ? nowPlaying.album || 'Unknown album' : 'Check back in a bit',
         image: nowPlaying.isPlaying ? nowPlaying.albumImageUrl || null : null,
         href: nowPlaying.isPlaying ? nowPlaying.songUrl : undefined,
-        accent: 'from-emerald-400/10 via-emerald-300/4 to-transparent',
-        surface: 'from-emerald-400/[0.035] via-zinc-900/86 to-zinc-900/90'
+        accent: 'from-emerald-300/16 via-emerald-300/5 to-transparent',
+        surface: 'from-emerald-400/[0.025] via-zinc-900/88 to-zinc-900/92',
+        halo: 'radial-gradient(circle at 10% 12%, rgba(52, 211, 153, 0.13), transparent 48%)'
       }
     ];
   }, [status, nowPlaying]);
@@ -121,7 +137,7 @@ const DiscordStatus: NextComponentType = () => {
   return (
     <div className="w-full">
       <div
-        className="relative select-none overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/90 via-zinc-900/86 to-zinc-900/84 shadow-[0_6px_16px_rgba(0,0,0,0.2)]"
+        className="relative select-none overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/92 via-zinc-900/88 to-zinc-900/86 shadow-[0_6px_16px_rgba(0,0,0,0.2)]"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onPointerDown={handlePointerDown}
@@ -136,7 +152,10 @@ const DiscordStatus: NextComponentType = () => {
           {slides.map((slide) => {
             const content = (
               <div className={`relative min-w-full select-none bg-gradient-to-br ${slide.surface} p-2 sm:p-2.5 md:p-2.5`}>
-                <div className={`absolute inset-x-0 top-0 h-5 bg-gradient-to-r ${slide.accent}`} />
+                <div className="pointer-events-none absolute inset-0" style={{ background: slide.halo }} />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.02] via-transparent to-transparent" />
+                <div className={`absolute inset-x-0 top-0 h-5 bg-gradient-to-r ${slide.accent} blur-[1px]`} />
+
                 <div className="relative flex items-start gap-2">
                   {slide.image ? (
                     <Image
