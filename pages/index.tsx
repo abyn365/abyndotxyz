@@ -21,14 +21,6 @@ type Track = {
 
 type Period = "short" | "medium" | "long";
 
-type NowPlaying = {
-  isPlaying: boolean;
-  title?: string;
-  artist?: string;
-  album?: string;
-  albumImageUrl?: string;
-  songUrl?: string;
-};
 
 type CustomStatus = {
   emoji?: {
@@ -59,41 +51,16 @@ const getStatusImage = (status: string) => {
   return statusMap[status as keyof typeof statusMap] || statusMap.offline;
 };
 
-const getActiveDevice = (data: any) => {
-  // Priority order: desktop > web > mobile
-  if (data.active_on_discord_desktop) return 'Desktop';
-  if (data.active_on_discord_web) return 'Web';
-  if (data.active_on_discord_mobile) return 'Mobile';
-  return null;
-};
 
 export default function Home() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [customStatus, setCustomStatus] = useState<CustomStatus | null>(null);
   const [username, setUsername] = useState('');
-  const [loading, setLoading] = useState(true);
   const [discordStatus, setDiscordStatus] = useState('');
-  const [isOnline, setIsOnline] = useState(false);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [period, setPeriod] = useState<Period>("short");
   const [tracksLoading, setTracksLoading] = useState(true);
-  const [nowPlaying, setNowPlaying] = useState<NowPlaying>({ isPlaying: false });
 
-  useEffect(() => {
-    const fetchNowPlaying = async () => {
-      try {
-        const res = await fetch('/api/now-playing');
-        const data = await res.json();
-        setNowPlaying(data);
-      } catch (error) {
-        console.error('Failed to fetch now playing:', error);
-      }
-    };
-
-    fetchNowPlaying();
-    const interval = setInterval(fetchNowPlaying, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     AOS.init({
@@ -114,9 +81,6 @@ export default function Home() {
           
           // Set Discord status
           setDiscordStatus(data.data.discord_status);
-          // Check active state with priority
-          setIsOnline(Boolean(getActiveDevice(data.data)));
-
           // Get custom status
           const customStatusActivity = data.data.activities.find(
             (activity: any) => activity.type === 4
@@ -130,8 +94,6 @@ export default function Home() {
         }
       } catch (error) {
         console.error('Failed to fetch Discord user:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -175,7 +137,7 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col">
-        <div className="mx-auto py-8 sm:py-12 flex w-full max-w-2xl flex-col items-center px-4 sm:px-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center px-4 py-8 sm:px-8 sm:py-12">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -373,7 +335,7 @@ export default function Home() {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.4 }}
-                className="w-full max-w-md"
+                className="w-full max-w-3xl"
               >
                 <DiscordStatus />
               </motion.div>
@@ -385,49 +347,15 @@ export default function Home() {
                 transition={{ delay: 0.5, duration: 0.4 }}
                 className="w-full"
               >
-                {/* Now Playing Card */}
-                {nowPlaying.isPlaying && (
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="mb-6 backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/10 transition-all"
-                  >
-                    <h2 className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
-                      <span className="relative inline-block w-2 h-2">
-                        <span className="absolute inset-0 bg-[#1DB954] rounded-full animate-pulse"></span>
-                        <span className="absolute inset-0 bg-[#1DB954] rounded-full"></span>
-                      </span>
-                      Now Playing
-                    </h2>
-                    <a
-                      href={nowPlaying.songUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex gap-3 items-center hover:opacity-80 transition-opacity"
-                    >
-                      {nowPlaying.albumImageUrl && (
-                        <Image
-                          src={nowPlaying.albumImageUrl}
-                          alt={nowPlaying.title || 'Now Playing'}
-                          width={56}
-                          height={56}
-                          className="rounded-lg w-14 h-14 flex-shrink-0"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-semibold text-sm truncate">{nowPlaying.title}</p>
-                        <p className="text-zinc-400 text-xs truncate">{nowPlaying.artist}</p>
-                        <p className="text-zinc-500 text-[10px] truncate">{nowPlaying.album}</p>
-                      </div>
-                    </a>
-                  </motion.div>
-                )}
-
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-2">
-                    <FiMusic className="text-[#ff6347] w-5 h-5" />
-                    <h2 className="text-white font-semibold">My Top Tracks</h2>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2">
+                      <FiMusic className="h-5 w-5 text-[#ff6347]" />
+                      <h2 className="text-white font-semibold">My Top Tracks</h2>
+                    </div>
+                    <p className="text-xs text-zinc-500 sm:text-right">
+                      Desktop optimized embeds for quicker previews
+                    </p>
                   </div>
 
                   {/* Period Selector */}
@@ -453,7 +381,7 @@ export default function Home() {
                       <div className="text-zinc-400 text-sm">Loading tracks...</div>
                     </div>
                   ) : tracks.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-1 overflow-hidden">
+                    <div className="grid grid-cols-1 gap-3 overflow-hidden md:grid-cols-2 md:gap-3">
                       {tracks.slice(0, 4).map((track, index) => {
                         const trackId = getTrackIdFromUrl(track.songUrl);
                         if (!trackId) return null;
@@ -464,15 +392,23 @@ export default function Home() {
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: index * 0.05, duration: 0.3 }}
-                            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-0 hover:bg-white/10 transition-all"
+                            className="group overflow-hidden rounded-xl border border-zinc-700/60 bg-zinc-900/70 p-0 shadow-[0_8px_20px_rgba(0,0,0,0.25)] transition-all hover:-translate-y-0.5 hover:border-zinc-500/70 hover:bg-zinc-900"
                           >
+                            <div className="flex items-center justify-between border-b border-zinc-800/70 px-3 py-2">
+                              <p className="truncate text-xs font-medium text-zinc-300">
+                                {track.title}
+                              </p>
+                              <span className="text-[10px] uppercase tracking-wide text-zinc-500">
+                                Spotify
+                              </span>
+                            </div>
                             <iframe
                               style={{
-                                borderRadius: "8px",
+                                borderRadius: "0 0 12px 12px",
                               }}
                               src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`}
                               width="100%"
-                              height="152"
+                              height="180"
                               frameBorder="0"
                               allowFullScreen
                               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
