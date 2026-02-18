@@ -134,7 +134,7 @@ const DiscordStatus: NextComponentType = () => {
   return (
     <div className="w-full">
       <div
-        className="relative mx-auto w-full max-w-3xl select-none overflow-hidden rounded-xl border border-zinc-700/50 bg-zinc-900/90 shadow-[0_6px_16px_rgba(0,0,0,0.2)]"
+        className="relative mx-auto w-full max-w-4xl select-none overflow-hidden rounded-xl border border-zinc-700/50 bg-zinc-900/90 shadow-[0_6px_16px_rgba(0,0,0,0.2)]"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onPointerDown={handlePointerDown}
@@ -146,21 +146,21 @@ const DiscordStatus: NextComponentType = () => {
         >
           {slides.map((slide) => {
             const content = (
-              <div className={`relative min-w-full select-none border-l-2 ${slide.accent} ${slide.surface} p-1.5 sm:p-2`}>
+              <div className={`relative min-w-full select-none border-l-2 ${slide.accent} ${slide.surface} p-2.5 sm:p-3`}>
 
                 <div className="relative flex items-start gap-2">
                   {slide.image ? (
                     <Image
                       src={slide.image}
-                      width={36}
-                      height={36}
+                      width={56}
+                      height={56}
                       alt={slide.title}
-                      className="h-7 w-7 rounded-md border border-zinc-700/50 object-cover sm:h-8 sm:w-8"
+                      className="h-12 w-12 rounded-md border border-zinc-700/50 object-cover sm:h-14 sm:w-14"
                       unoptimized
                     />
                   ) : (
-                    <div className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-700/50 bg-zinc-800 sm:h-8 sm:w-8">
-                      <FiDisc className="h-4 w-4 text-zinc-500" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-md border border-zinc-700/50 bg-zinc-800 sm:h-14 sm:w-14">
+                      <FiDisc className="h-6 w-6 text-zinc-500" />
                     </div>
                   )}
 
@@ -171,9 +171,9 @@ const DiscordStatus: NextComponentType = () => {
                         {slide.eyebrow}
                       </span>
                     </div>
-                    <p className="truncate text-[10px] font-semibold text-white sm:text-[11px]">{slide.title}</p>
-                    <p className="truncate text-[9px] text-zinc-300">{slide.subtitle}</p>
-                    <p className="truncate pt-0.5 text-[8px] text-zinc-500">{slide.meta}</p>
+                    <p className="truncate text-sm font-semibold text-white sm:text-base">{slide.title}</p>
+                    <p className="truncate text-xs text-zinc-300 sm:text-sm">{slide.subtitle}</p>
+                    <p className="truncate pt-0.5 text-[11px] text-zinc-500 sm:text-xs">{slide.meta}</p>
                   </div>
                 </div>
               </div>

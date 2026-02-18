@@ -12,7 +12,7 @@ function Banner({ icon, label, tone }) {
 
 function Banners() {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-2 px-2 sm:px-4">
+    <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-center gap-2 px-2 sm:px-4">
       <Banner
         icon="🎮"
         label="Gamer"
