@@ -33,7 +33,6 @@ type Slide = {
   href?: string;
   accent: string;
   surface: string;
-  halo: string;
 };
 
 const DiscordStatus: NextComponentType = () => {
@@ -93,9 +92,8 @@ const DiscordStatus: NextComponentType = () => {
               ? `Active on ${status.activeDevice}`
               : 'Currently idle',
         image: status?.activity?.image || null,
-        accent: 'from-indigo-300/16 via-indigo-300/5 to-transparent',
-        surface: 'from-indigo-400/[0.025] via-zinc-900/88 to-zinc-900/92',
-        halo: 'radial-gradient(circle at 10% 12%, rgba(129, 140, 248, 0.14), transparent 48%)'
+        accent: 'border-l-indigo-400/60',
+        surface: 'bg-indigo-400/12'
       },
       {
         key: 'spotify',
@@ -108,9 +106,8 @@ const DiscordStatus: NextComponentType = () => {
         meta: nowPlaying.isPlaying ? nowPlaying.album || 'Unknown album' : 'Check back in a bit',
         image: nowPlaying.isPlaying ? nowPlaying.albumImageUrl || null : null,
         href: nowPlaying.isPlaying ? nowPlaying.songUrl : undefined,
-        accent: 'from-emerald-300/16 via-emerald-300/5 to-transparent',
-        surface: 'from-emerald-400/[0.025] via-zinc-900/88 to-zinc-900/92',
-        halo: 'radial-gradient(circle at 10% 12%, rgba(52, 211, 153, 0.13), transparent 48%)'
+        accent: 'border-l-emerald-400/60',
+        surface: 'bg-emerald-400/12'
       }
     ];
   }, [status, nowPlaying]);
@@ -137,38 +134,33 @@ const DiscordStatus: NextComponentType = () => {
   return (
     <div className="w-full">
       <div
-        className="relative select-none overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/92 via-zinc-900/88 to-zinc-900/86 shadow-[0_6px_16px_rgba(0,0,0,0.2)]"
+        className="relative mx-auto w-full max-w-3xl select-none overflow-hidden rounded-xl border border-zinc-700/50 bg-zinc-900/90 shadow-[0_6px_16px_rgba(0,0,0,0.2)]"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-zinc-700/5 via-transparent to-zinc-700/5" />
-
         <div
           className="flex transition-transform duration-700 ease-out"
           style={{ transform: `translateX(-${activeSlide * 100}%)` }}
         >
           {slides.map((slide) => {
             const content = (
-              <div className={`relative min-w-full select-none bg-gradient-to-br ${slide.surface} p-2 sm:p-2.5 md:p-2.5`}>
-                <div className="pointer-events-none absolute inset-0" style={{ background: slide.halo }} />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.02] via-transparent to-transparent" />
-                <div className={`absolute inset-x-0 top-0 h-5 bg-gradient-to-r ${slide.accent} blur-[1px]`} />
+              <div className={`relative min-w-full select-none border-l-2 ${slide.accent} ${slide.surface} p-1.5 sm:p-2`}>
 
                 <div className="relative flex items-start gap-2">
                   {slide.image ? (
                     <Image
                       src={slide.image}
-                      width={44}
-                      height={44}
+                      width={36}
+                      height={36}
                       alt={slide.title}
-                      className="h-8 w-8 rounded-md border border-zinc-700/50 object-cover sm:h-9 sm:w-9 md:h-10 md:w-10"
+                      className="h-7 w-7 rounded-md border border-zinc-700/50 object-cover sm:h-8 sm:w-8"
                       unoptimized
                     />
                   ) : (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-700/50 bg-zinc-800 sm:h-9 sm:w-9 md:h-10 md:w-10">
-                      <FiDisc className="h-4.5 w-4.5 text-zinc-500" />
+                    <div className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-700/50 bg-zinc-800 sm:h-8 sm:w-8">
+                      <FiDisc className="h-4 w-4 text-zinc-500" />
                     </div>
                   )}
 
@@ -179,9 +171,9 @@ const DiscordStatus: NextComponentType = () => {
                         {slide.eyebrow}
                       </span>
                     </div>
-                    <p className="truncate text-[11px] font-semibold text-white sm:text-xs md:text-sm">{slide.title}</p>
-                    <p className="truncate text-[10px] text-zinc-300">{slide.subtitle}</p>
-                    <p className="truncate pt-0.5 text-[9px] text-zinc-500">{slide.meta}</p>
+                    <p className="truncate text-[10px] font-semibold text-white sm:text-[11px]">{slide.title}</p>
+                    <p className="truncate text-[9px] text-zinc-300">{slide.subtitle}</p>
+                    <p className="truncate pt-0.5 text-[8px] text-zinc-500">{slide.meta}</p>
                   </div>
                 </div>
               </div>

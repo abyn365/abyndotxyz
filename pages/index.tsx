@@ -340,7 +340,7 @@ export default function Home() {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.4 }}
-                className="w-full max-w-5xl"
+                className="w-full max-w-4xl"
               >
                 <DiscordStatus />
               </motion.div>
