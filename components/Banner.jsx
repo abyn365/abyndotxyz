@@ -1,11 +1,10 @@
-function Banner({ icon, label }) {
+function Banner({ icon, label, tone }) {
   return (
-    <div 
-      className="elegant-card glow-effect transform transition-all duration-300 flex-1 min-w-[120px] sm:min-w-[140px]"
-    >
-      <div className="flex select-none flex-row items-center justify-center space-x-2 px-2 sm:px-3 py-1.5">
+    <div className="relative flex-1 min-w-[120px] sm:min-w-[140px] overflow-hidden rounded-xl border border-zinc-700/60 bg-zinc-900/82 shadow-[0_6px_18px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-0.5 hover:border-zinc-500/60">
+      <div className={`pointer-events-none absolute inset-0 ${tone}`} />
+      <div className="relative flex select-none flex-row items-center justify-center space-x-2 px-2 py-1.5 sm:px-3">
         <span className="text-base sm:text-lg">{icon}</span>
-        <span className="text-[11px] sm:text-xs font-medium text-zinc-300">{label}</span>
+        <span className="text-[11px] font-medium text-zinc-200 sm:text-xs">{label}</span>
       </div>
     </div>
   );
@@ -13,11 +12,27 @@ function Banner({ icon, label }) {
 
 function Banners() {
   return (
-    <div className="mx-auto flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 w-full max-w-3xl px-2 sm:px-4">
-      <Banner icon="🎮" label="Gamer" />
-      <Banner icon="🎵" label="Music Enjoyer" />
-      <Banner icon="🏍" label="Vroom Vroom" />
-      <Banner icon="🏋" label="Gym Rat" />
+    <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-center gap-2 px-2 sm:px-4">
+      <Banner
+        icon="🎮"
+        label="Gamer"
+        tone="bg-indigo-400/10"
+      />
+      <Banner
+        icon="🎵"
+        label="Music Enjoyer"
+        tone="bg-emerald-400/10"
+      />
+      <Banner
+        icon="🏍"
+        label="Vroom Vroom"
+        tone="bg-orange-400/10"
+      />
+      <Banner
+        icon="🏋"
+        label="Gym Rat"
+        tone="bg-rose-400/10"
+      />
     </div>
   );
 }
