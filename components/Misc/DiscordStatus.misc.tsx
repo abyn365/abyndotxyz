@@ -79,8 +79,8 @@ const DiscordStatus: NextComponentType = () => {
               ? `Active on ${status.activeDevice}`
               : 'Currently idle',
         image: status?.activity?.image || null,
-        accent: 'from-indigo-400/14 via-indigo-300/6 to-transparent',
-        surface: 'from-indigo-400/5 via-zinc-900/84 to-zinc-900/88'
+        accent: 'from-indigo-400/10 via-indigo-300/4 to-transparent',
+        surface: 'from-indigo-400/[0.035] via-zinc-900/86 to-zinc-900/90'
       },
       {
         key: 'spotify',
@@ -93,8 +93,8 @@ const DiscordStatus: NextComponentType = () => {
         meta: nowPlaying.isPlaying ? nowPlaying.album || 'Unknown album' : 'Check back in a bit',
         image: nowPlaying.isPlaying ? nowPlaying.albumImageUrl || null : null,
         href: nowPlaying.isPlaying ? nowPlaying.songUrl : undefined,
-        accent: 'from-emerald-400/14 via-emerald-300/6 to-transparent',
-        surface: 'from-emerald-400/5 via-zinc-900/84 to-zinc-900/88'
+        accent: 'from-emerald-400/10 via-emerald-300/4 to-transparent',
+        surface: 'from-emerald-400/[0.035] via-zinc-900/86 to-zinc-900/90'
       }
     ];
   }, [status, nowPlaying]);
@@ -121,13 +121,13 @@ const DiscordStatus: NextComponentType = () => {
   return (
     <div className="w-full">
       <div
-        className="relative overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/90 via-zinc-900/84 to-zinc-900/82 shadow-[0_8px_18px_rgba(0,0,0,0.2)]"
+        className="relative select-none overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/90 via-zinc-900/86 to-zinc-900/84 shadow-[0_6px_16px_rgba(0,0,0,0.2)]"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-zinc-700/8 via-transparent to-zinc-700/8" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-zinc-700/5 via-transparent to-zinc-700/5" />
 
         <div
           className="flex transition-transform duration-700 ease-out"
@@ -135,20 +135,20 @@ const DiscordStatus: NextComponentType = () => {
         >
           {slides.map((slide) => {
             const content = (
-              <div className={`relative min-w-full bg-gradient-to-br ${slide.surface} p-2.5 sm:p-3 md:p-3`}>
-                <div className={`absolute inset-x-0 top-0 h-7 bg-gradient-to-r ${slide.accent}`} />
-                <div className="relative flex items-start gap-2 md:gap-2.5">
+              <div className={`relative min-w-full select-none bg-gradient-to-br ${slide.surface} p-2 sm:p-2.5 md:p-2.5`}>
+                <div className={`absolute inset-x-0 top-0 h-5 bg-gradient-to-r ${slide.accent}`} />
+                <div className="relative flex items-start gap-2">
                   {slide.image ? (
                     <Image
                       src={slide.image}
-                      width={48}
-                      height={48}
+                      width={44}
+                      height={44}
                       alt={slide.title}
-                      className="h-9 w-9 rounded-md border border-zinc-700/50 object-cover sm:h-10 sm:w-10 md:h-12 md:w-12"
+                      className="h-8 w-8 rounded-md border border-zinc-700/50 object-cover sm:h-9 sm:w-9 md:h-10 md:w-10"
                       unoptimized
                     />
                   ) : (
-                    <div className="flex h-9 w-9 items-center justify-center rounded-md border border-zinc-700/50 bg-zinc-800 sm:h-10 sm:w-10 md:h-12 md:w-12">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-700/50 bg-zinc-800 sm:h-9 sm:w-9 md:h-10 md:w-10">
                       <FiDisc className="h-4.5 w-4.5 text-zinc-500" />
                     </div>
                   )}
@@ -160,8 +160,8 @@ const DiscordStatus: NextComponentType = () => {
                         {slide.eyebrow}
                       </span>
                     </div>
-                    <p className="truncate text-xs font-semibold text-white sm:text-sm">{slide.title}</p>
-                    <p className="truncate text-[10px] text-zinc-300 sm:text-[11px]">{slide.subtitle}</p>
+                    <p className="truncate text-[11px] font-semibold text-white sm:text-xs md:text-sm">{slide.title}</p>
+                    <p className="truncate text-[10px] text-zinc-300">{slide.subtitle}</p>
                     <p className="truncate pt-0.5 text-[9px] text-zinc-500">{slide.meta}</p>
                   </div>
                 </div>
@@ -190,16 +190,16 @@ const DiscordStatus: NextComponentType = () => {
           })}
         </div>
 
-        <div className="border-t border-zinc-800/70 px-3 py-1 sm:px-4">
+        <div className="relative z-10 border-t border-zinc-800/70 bg-zinc-900/90 px-3 py-0.5 sm:px-4">
           <div className="flex items-center justify-between text-[9px] text-zinc-500">
-            <span>Swipe / drag to change</span>
+            <span className="select-none text-zinc-500">Swipe / drag to change</span>
             <div className="flex items-center gap-1.5">
               {slides.map((slide, index) => (
                 <button
                   key={slide.key}
                   onClick={() => setActiveSlide(index)}
                   className={`h-1 rounded-full transition-all ${
-                    activeSlide === index ? 'w-4 bg-zinc-400' : 'w-1 bg-zinc-600'
+                    activeSlide === index ? 'w-3.5 bg-zinc-400' : 'w-1 bg-zinc-600'
                   }`}
                   aria-label={`Go to ${slide.eyebrow}`}
                   type="button"
