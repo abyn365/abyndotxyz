@@ -175,7 +175,7 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col">
-        <div className="mx-auto py-8 sm:py-12 flex w-full max-w-2xl flex-col items-center px-4 sm:px-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center px-4 py-8 sm:px-8 sm:py-12">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -391,7 +391,7 @@ export default function Home() {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="mb-6 backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/10 transition-all"
+                    className="mb-6 rounded-2xl border border-zinc-700/60 bg-gradient-to-r from-zinc-900/95 via-zinc-900/85 to-zinc-900/70 p-4 shadow-[0_10px_24px_rgba(0,0,0,0.25)] transition-all"
                   >
                     <h2 className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
                       <span className="relative inline-block w-2 h-2">
@@ -404,7 +404,7 @@ export default function Home() {
                       href={nowPlaying.songUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex gap-3 items-center hover:opacity-80 transition-opacity"
+                      className="group flex items-center gap-3 transition-opacity hover:opacity-90"
                     >
                       {nowPlaying.albumImageUrl && (
                         <Image
@@ -415,19 +415,27 @@ export default function Home() {
                           className="rounded-lg w-14 h-14 flex-shrink-0"
                         />
                       )}
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="text-white font-semibold text-sm truncate">{nowPlaying.title}</p>
                         <p className="text-zinc-400 text-xs truncate">{nowPlaying.artist}</p>
                         <p className="text-zinc-500 text-[10px] truncate">{nowPlaying.album}</p>
                       </div>
+                      <span className="hidden text-[11px] font-medium text-[#1DB954] transition-colors group-hover:text-green-300 sm:inline">
+                        Open in Spotify ↗
+                      </span>
                     </a>
                   </motion.div>
                 )}
 
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-2">
-                    <FiMusic className="text-[#ff6347] w-5 h-5" />
-                    <h2 className="text-white font-semibold">My Top Tracks</h2>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2">
+                      <FiMusic className="h-5 w-5 text-[#ff6347]" />
+                      <h2 className="text-white font-semibold">My Top Tracks</h2>
+                    </div>
+                    <p className="text-xs text-zinc-500 sm:text-right">
+                      Desktop optimized embeds for quicker previews
+                    </p>
                   </div>
 
                   {/* Period Selector */}
@@ -453,7 +461,7 @@ export default function Home() {
                       <div className="text-zinc-400 text-sm">Loading tracks...</div>
                     </div>
                   ) : tracks.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-1 overflow-hidden">
+                    <div className="grid grid-cols-1 gap-3 overflow-hidden md:grid-cols-2 md:gap-3">
                       {tracks.slice(0, 4).map((track, index) => {
                         const trackId = getTrackIdFromUrl(track.songUrl);
                         if (!trackId) return null;
@@ -464,15 +472,23 @@ export default function Home() {
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: index * 0.05, duration: 0.3 }}
-                            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-0 hover:bg-white/10 transition-all"
+                            className="group overflow-hidden rounded-xl border border-zinc-700/60 bg-zinc-900/70 p-0 shadow-[0_8px_20px_rgba(0,0,0,0.25)] transition-all hover:-translate-y-0.5 hover:border-zinc-500/70 hover:bg-zinc-900"
                           >
+                            <div className="flex items-center justify-between border-b border-zinc-800/70 px-3 py-2">
+                              <p className="truncate text-xs font-medium text-zinc-300">
+                                {track.title}
+                              </p>
+                              <span className="text-[10px] uppercase tracking-wide text-zinc-500">
+                                Spotify
+                              </span>
+                            </div>
                             <iframe
                               style={{
-                                borderRadius: "8px",
+                                borderRadius: "0 0 12px 12px",
                               }}
                               src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`}
                               width="100%"
-                              height="152"
+                              height="180"
                               frameBorder="0"
                               allowFullScreen
                               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
