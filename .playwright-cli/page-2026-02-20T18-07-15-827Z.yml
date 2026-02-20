@@ -1,0 +1,43 @@
+- generic [active] [ref=e1] [cursor=pointer]:
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - link "Back" [ref=e9]:
+        - /url: /
+        - img [ref=e10]
+        - generic [ref=e12]: Back
+      - heading "My Music" [level=1] [ref=e13]:
+        - generic [ref=e14]:
+          - img [ref=e15]
+          - text: My Music
+    - generic [ref=e31]:
+      - generic [ref=e36]:
+        - img [ref=e39]
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - img [ref=e45]
+            - generic [ref=e49]: Now Playing
+          - paragraph [ref=e50]: Nothing playing
+          - paragraph [ref=e51]: Spotify is currently idle
+          - paragraph [ref=e52]: Check back in a bit
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - button "Previous slide" [ref=e56]:
+            - img [ref=e57]
+          - button "Next slide" [ref=e59]:
+            - img [ref=e60]
+        - generic [ref=e62]: Click arrows or wait for auto-play
+        - generic [ref=e63]:
+          - button "Go to Discord Activity" [ref=e64]
+          - button "Go to Now Playing" [ref=e65]
+    - generic [ref=e19]:
+      - heading "Top Tracks" [level=2] [ref=e21]
+      - generic [ref=e23]:
+        - button "1M" [ref=e24]
+        - button "6M" [ref=e25]
+        - button "1Y" [ref=e26]
+      - generic [ref=e28]: No tracks found
+  - button "Open Next.js Dev Tools" [ref=e72]:
+    - img [ref=e73]
+  - generic:
+    - img
+  - alert [ref=e76]

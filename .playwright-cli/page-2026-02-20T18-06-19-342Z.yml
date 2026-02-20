@@ -1,0 +1,100 @@
+- generic [active] [ref=e1] [cursor=pointer]:
+  - generic [ref=e7]:
+    - generic [ref=e9]:
+      - generic [ref=e11]:
+        - generic [ref=e90]:
+          - generic [ref=e91]:
+            - img [ref=e92]
+            - generic [ref=e94]: "0"
+          - generic [ref=e96]:
+            - img [ref=e97]
+            - generic [ref=e100]: "0"
+          - generic [ref=e102]:
+            - img [ref=e103]
+            - generic [ref=e105]: "0"
+        - generic [ref=e12]:
+          - img "profile" [ref=e13]
+          - img "offline" [ref=e106]
+        - generic [ref=e16]:
+          - heading "abynb" [level=1] [ref=e107]
+          - paragraph
+          - paragraph [ref=e18]: The biolink of a dumbass 🗿
+      - generic [ref=e20]:
+        - generic [ref=e22]:
+          - generic [ref=e23]: 🎮
+          - generic [ref=e24]: Gamer
+        - generic [ref=e26]:
+          - generic [ref=e27]: 🎵
+          - generic [ref=e28]: Music Enjoyer
+        - generic [ref=e30]:
+          - generic [ref=e31]: 🏍
+          - generic [ref=e32]: Vroom Vroom
+        - generic [ref=e34]:
+          - generic [ref=e35]: 🏋
+          - generic [ref=e36]: Gym Rat
+      - generic [ref=e37]:
+        - paragraph [ref=e38]: "Stalk me here:"
+        - generic [ref=e39]:
+          - link "Instagram" [ref=e40]:
+            - /url: /instagram
+            - img "Instagram" [ref=e41]
+          - link "GitHub" [ref=e43]:
+            - /url: /github
+            - img "GitHub" [ref=e44]
+          - link "Spotify" [ref=e46]:
+            - /url: /spotify
+            - img "Spotify" [ref=e47]
+          - link "Pinterest" [ref=e49]:
+            - /url: /pinterest
+            - img "Pinterest" [ref=e50]
+          - link "Discord abynb" [ref=e108]:
+            - /url: /discord
+            - generic [ref=e52]:
+              - img "Discord" [ref=e53]
+              - generic [ref=e55]: abynb
+      - generic [ref=e111]:
+        - generic [ref=e116]:
+          - img [ref=e119]
+          - generic [ref=e122]:
+            - generic [ref=e123]:
+              - img [ref=e125]
+              - generic [ref=e127]: Discord Activity
+            - paragraph [ref=e128]: Not Active
+            - paragraph [ref=e129]: Not doing anything right now
+            - paragraph [ref=e130]: Currently idle
+        - generic [ref=e132]:
+          - generic [ref=e133]:
+            - button "Previous slide" [ref=e134]:
+              - img [ref=e135]
+            - button "Next slide" [ref=e137]:
+              - img [ref=e138]
+          - generic [ref=e140]: Click arrows or wait for auto-play
+          - generic [ref=e141]:
+            - button "Go to Discord Activity" [ref=e142]
+            - button "Go to Now Playing" [ref=e144]
+      - generic [ref=e57]:
+        - generic [ref=e59]:
+          - img [ref=e60]
+          - heading "My Top Tracks" [level=2] [ref=e64]
+        - generic [ref=e66]:
+          - button "1M" [ref=e67]
+          - button "6M" [ref=e68]
+          - button "1Y" [ref=e69]
+        - generic [ref=e71]: No tracks found
+        - link "View all tracks →" [ref=e72]:
+          - /url: /music
+    - contentinfo [ref=e73]:
+      - generic [ref=e74]:
+        - paragraph [ref=e75]:
+          - text: Copyright ©
+          - generic [ref=e76]:
+            - text: "2026"
+            - generic: Friday, February 20, 2026
+          - link "abyn.xyz" [ref=e77]:
+            - /url: https://abyn.xyz
+        - paragraph [ref=e78]: Made by abyn with ♥︎
+  - button "Open Next.js Dev Tools" [ref=e84]:
+    - img [ref=e85]
+  - generic:
+    - img
+  - alert [ref=e88]
