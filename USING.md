@@ -1,89 +1,162 @@
-# How to use this ?
+# How to Use This Template
 
-- Star the repository to show your support
-- Also, if you need any help, feel free connect me on [Discord](https://discord.gg/2pkvB82NaS)
+This guide will walk you through setting up and customizing your personal bio page.
 
-### Using the Template
+## Getting Started
 
-First, click on the `Use this template` button
+### 1. Fork or Use the Template
 
+Click the "Use this template" button on the GitHub repository to create your own copy.
 
-Now choose a name for your repo and create.
+### 2. Clone Locally
 
-
-### Running locally
-
-- Clone the repo locally first
-
-```git
-git clone <url>
+```bash
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
 ```
 
-- Install the dependencies
+### 3. Install Dependencies
 
-```
-npm install # for npm
-yarn install # for yarn
-pnpm install # for pnpm
-```
-
-- Start the server
-
-```
-npm run dev # for npm
-yarn dev # for yarn
-pnpm dev # for pnpm
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
 ```
 
-## Making changes
+### 4. Run Development Server
 
-To add your details go to the data.json file in the public folder and replace my data with yours.
-
-To customize the colors go to `tailwind.config.js` and replace the existing colors with your brand colors.
-
-After you have added all your data. Push the code to GitHub with these commands
-
-```
-git add .
-git commit -m "your commit message"
-git push
+```bash
+npm run dev
 ```
 
-## Deploying
+Your site will be available at [http://localhost:3000](http://localhost:3000)
 
-- Go to [Vercel](https://vercel.com/dashboard)
-- Sign up for an account
-- Click on New project
-- Import your repository
-- Click skip while creating a team and then hit deploy
-- After it is deployed click on go to dashboard
-- Your site is successfully deployed 🥳
-- Now grab the URL and show it to world
+## Customizing Your Profile
 
-![](./public/assests/docs/vercel.png)
+### Adding Your Information
 
-### Bonus ⭐
+Edit the `data.json` file in the `public` folder:
 
-This portfolio template contain a Spotify Card component [here](./pages/api/now-playing.ts) which shows the current streaming song on spotify.
-
-**Example:**
-
-# [Live Demo](https://hi-lrmn.is-a.dev) :sparkles: 
-
-To configure this, you need to add `env` vars to thr `.env.local` file in the following format:
-
-```txt
-SPOTIFY_CLIENT_ID=
-SPOTIFY_CLIENT_SECRET=
-SPOTIFY_REFRESH_TOKEN=
-NEXT_PUBLIC_GOOGLE_ANALYTICS=
-NEXT_PUBLIC_UMAMI_WEBSITE_ID=
+```json
+{
+  "name": "Your Name",
+  "tagline": "Your tagline or bio",
+  "links": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/yourusername",
+      "icon": "github"
+    },
+    {
+      "name": "Twitter",
+      "url": "https://twitter.com/yourusername",
+      "icon": "twitter"
+    }
+  ],
+  "tags": ["Developer", "Designer", "Open Source"]
+}
 ```
 
-Read this [article](https://leerob.io/blog/spotify-api-nextjs) to get our own keys in this format.
+### Customizing Colors
 
-And you're good to go!
+Edit `tailwind.config.js` to change the theme colors:
 
-## 💌 Support Server
+```javascript
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#6366f1',    // Main brand color
+        secondary: '#8b5cf6',  // Secondary color
+        background: '#0f0f0f', // Background color
+        foreground: '#ffffff'  // Text color
+      }
+    }
+  }
+}
+```
 
-[![DiscordBanner](https://invidget.switchblade.xyz/2pkvB82NaS)](https://discord.gg/2pkvB82NaS)
+## Optional Integrations
+
+### Spotify Now Playing
+
+To display your currently playing Spotify song:
+
+1. Create a Spotify Developer Application at [developer.spotify.com](https://developer.spotify.com)
+2. Get your Client ID and Client Secret
+3. Generate a refresh token (see [Lee Robinson's guide](https://leerob.io/blog/spotify-api-nextjs))
+4. Add to `.env.local`:
+
+```env
+SPOTIFY_CLIENT_ID=your_client_id
+SPOTIFY_CLIENT_SECRET=your_client_secret
+SPOTIFY_REFRESH_TOKEN=your_refresh_token
+```
+
+### Umami Analytics
+
+To track visitor statistics:
+
+1. Set up Umami or use cloud umami
+2. Get your website ID
+3. Add to `.env.local`:
+
+```env
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=your_website_id
+```
+
+### Discord Status (Lanyard)
+
+The Discord status is automatically displayed using Lanyard API. Edit the Discord user ID in the components to show your status.
+
+## Deploying to Production
+
+### Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+3. Click "New Project"
+4. Import your repository
+5. Add environment variables if needed
+6. Click "Deploy"
+
+Your site will be live at `your-project.vercel.app`
+
+### GitHub Pages
+
+1. Update `next.config.js` with your domain
+2. Push to main branch
+3. Go to repository settings
+4. Enable GitHub Pages
+5. Select "Deploy from branch"
+6. Choose `main` branch and `root` folder
+
+## Troubleshooting
+
+### Build Errors
+
+- Make sure Node.js version is 18 or higher
+- Clear `.next` folder and rebuild: `rm -rf .next && npm run build`
+
+### Environment Variables Not Working
+
+- Restart the development server after adding env variables
+- Ensure `.env.local` is in the project root
+
+### Styling Issues
+
+- Check that Tailwind CSS is properly configured
+- Clear cache: `rm -rf .next`
+
+## Support
+
+If you need help:
+
+- Join our [Discord server](https://discord.gg/your-invite-code)
+- Open an issue on GitHub
+
+## License
+
+MIT License - feel free to use this template for your own projects!
