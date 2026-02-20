@@ -1,7 +1,7 @@
 import type { NextComponentType } from "next";
 import Image from "next/image";
 import { useEffect, useMemo, useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from "framer-motion";
 import { FiActivity, FiDisc, FiMusic, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 type StatusData = {
@@ -45,7 +45,10 @@ const DiscordStatus: NextComponentType = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [direction, setDirection] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const progressRef = useRef<NodeJS.Timeout | null>(null);
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [-100, 0, 100], [0.5, 1, 0.5]);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -109,10 +112,10 @@ const DiscordStatus: NextComponentType = () => {
     ];
   }, [status, nowPlaying]);
 
-  const AUTOPLAY_INTERVAL = 5000;
+  const AUTOPLAY_INTERVAL = 10000; // Changed to 10 seconds
 
   useEffect(() => {
-    if (isHovered) {
+    if (isHovered || isDragging) {
       if (progressRef.current) clearInterval(progressRef.current);
       return;
     }
@@ -131,12 +134,22 @@ const DiscordStatus: NextComponentType = () => {
     return () => {
       if (progressRef.current) clearInterval(progressRef.current);
     };
-  }, [isHovered, slides.length]);
+  }, [isHovered, isDragging, slides.length]);
 
   const navigate = (newDirection: number) => {
     setDirection(newDirection);
     setActiveSlide((prev) => (prev + newDirection + slides.length) % slides.length);
     setProgress(0);
+  };
+
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    const threshold = 50;
+    if (info.offset.x < -threshold) {
+      navigate(1);
+    } else if (info.offset.x > threshold) {
+      navigate(-1);
+    }
+    setIsDragging(false);
   };
 
   const slideVariants = {
@@ -186,6 +199,7 @@ const DiscordStatus: NextComponentType = () => {
               alt={slide.title}
               className="h-10 w-10 rounded-md border border-zinc-700/30 object-cover sm:h-11 sm:w-11"
               unoptimized
+              draggable={false}
             />
           ) : (
             <div className={`flex h-10 w-10 items-center justify-center rounded-md border ${slide.borderColor} bg-zinc-800/50 sm:h-11 sm:w-11`}>
@@ -195,7 +209,7 @@ const DiscordStatus: NextComponentType = () => {
         </motion.div>
 
         {/* Text content - compact */}
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 select-none">
           {/* Eyebrow */}
           <div className="mb-0.5 flex items-center gap-1.5">
             <span className={`${slide.accentColor}`}>
@@ -223,7 +237,7 @@ const DiscordStatus: NextComponentType = () => {
   return (
     <div className="w-full">
       <div
-        className="relative mx-auto w-full max-w-4xl overflow-hidden rounded-xl border border-zinc-700/30 bg-transparent shadow-lg"
+        className="relative mx-auto w-full max-w-4xl overflow-hidden rounded-xl border border-zinc-700/30 bg-transparent shadow-lg select-none"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -251,7 +265,13 @@ const DiscordStatus: NextComponentType = () => {
               initial="enter"
               animate="center"
               exit="exit"
-              className="block"
+              style={{ x, opacity }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragStart={() => setIsDragging(true)}
+              onDragEnd={handleDragEnd}
+              className="block cursor-grab active:cursor-grabbing"
             >
               <SlideContent slide={currentSlide} />
             </motion.a>
@@ -263,6 +283,13 @@ const DiscordStatus: NextComponentType = () => {
               initial="enter"
               animate="center"
               exit="exit"
+              style={{ x, opacity }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragStart={() => setIsDragging(true)}
+              onDragEnd={handleDragEnd}
+              className="cursor-grab active:cursor-grabbing"
             >
               <SlideContent slide={currentSlide} />
             </motion.div>
