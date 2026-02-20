@@ -1,0 +1,180 @@
+- generic [ref=e1] [cursor=pointer]:
+  - generic [ref=e7]:
+    - generic [ref=e9]:
+      - generic [ref=e11]:
+        - generic [ref=e90]:
+          - generic [ref=e91]:
+            - img [ref=e92]
+            - generic [ref=e94]: "0"
+          - generic [ref=e96]:
+            - img [ref=e97]
+            - generic [ref=e100]: "0"
+          - generic [ref=e102]:
+            - img [ref=e103]
+            - generic [ref=e105]: "0"
+        - img "profile" [ref=e13]
+        - generic [ref=e16]:
+          - heading "Loading..." [level=1] [ref=e17]
+          - paragraph
+          - paragraph [ref=e18]: The biolink of a dumbass 🗿
+      - generic [ref=e20]:
+        - generic [ref=e22]:
+          - generic [ref=e23]: 🎮
+          - generic [ref=e24]: Gamer
+        - generic [ref=e26]:
+          - generic [ref=e27]: 🎵
+          - generic [ref=e28]: Music Enjoyer
+        - generic [ref=e30]:
+          - generic [ref=e31]: 🏍
+          - generic [ref=e32]: Vroom Vroom
+        - generic [ref=e34]:
+          - generic [ref=e35]: 🏋
+          - generic [ref=e36]: Gym Rat
+      - generic [ref=e37]:
+        - paragraph [ref=e38]: "Stalk me here:"
+        - generic [ref=e39]:
+          - link "Instagram" [ref=e40]:
+            - /url: /instagram
+            - img "Instagram" [ref=e41]
+          - link "GitHub" [ref=e43]:
+            - /url: /github
+            - img "GitHub" [ref=e44]
+          - link "Spotify" [ref=e46]:
+            - /url: /spotify
+            - img "Spotify" [ref=e47]
+          - link "Pinterest" [ref=e49]:
+            - /url: /pinterest
+            - img "Pinterest" [ref=e50]
+          - link "Discord Loading..." [ref=e51]:
+            - /url: /discord
+            - generic [ref=e52]:
+              - img "Discord" [ref=e53]
+              - generic [ref=e55]: Loading...
+      - generic [ref=e108]:
+        - generic [ref=e113]:
+          - img [ref=e116]
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - img [ref=e122]
+              - generic [ref=e126]: Now Playing
+            - paragraph [ref=e127]: Nothing playing
+            - paragraph [ref=e128]: Spotify is currently idle
+            - paragraph [ref=e129]: Check back in a bit
+        - generic [ref=e131]:
+          - generic [ref=e132]:
+            - button "Previous slide" [ref=e133]:
+              - img [ref=e134]
+            - button "Next slide" [ref=e136]:
+              - img [ref=e137]
+          - generic [ref=e139]:
+            - button "Go to Discord Activity" [ref=e140]
+            - button "Go to Now Playing" [ref=e141]
+      - generic [ref=e57]:
+        - generic [ref=e59]:
+          - img [ref=e60]
+          - heading "My Top Tracks" [level=2] [ref=e64]
+        - generic [ref=e66]:
+          - button "1M" [ref=e67]
+          - button "6M" [ref=e68]
+          - button "1Y" [ref=e69]
+        - generic [ref=e71]: No tracks found
+        - link "View all tracks →" [ref=e72]:
+          - /url: /music
+    - contentinfo [ref=e73]:
+      - generic [ref=e74]:
+        - paragraph [ref=e75]:
+          - text: Copyright ©
+          - generic [ref=e76]:
+            - text: "2026"
+            - generic: Friday, February 20, 2026
+          - link "abyn.xyz" [ref=e77]:
+            - /url: https://abyn.xyz
+        - paragraph [ref=e78]: Made by abyn with ♥︎
+  - generic [active]:
+    - generic [ref=e144]:
+      - generic [ref=e145]:
+        - generic [ref=e146]:
+          - navigation [ref=e147]:
+            - button "previous" [disabled] [ref=e148]:
+              - img "previous" [ref=e149]
+            - generic [ref=e151]:
+              - generic [ref=e152]: 1/
+              - text: "2"
+            - button "next" [ref=e153]:
+              - img "next" [ref=e154]
+          - img
+        - generic [ref=e156]:
+          - link "Next.js 15.5.9 (outdated) Webpack" [ref=e157]:
+            - /url: https://nextjs.org/docs/messages/version-staleness
+            - img [ref=e158]
+            - generic "An outdated version detected (latest is 16.1.6), upgrade is highly recommended!" [ref=e160]: Next.js 15.5.9 (outdated)
+            - generic [ref=e161]: Webpack
+          - img
+      - dialog "Runtime TypeError" [ref=e163]:
+        - generic [ref=e166]:
+          - generic [ref=e167]:
+            - generic [ref=e168]:
+              - generic [ref=e170]: Runtime TypeError
+              - generic [ref=e171]:
+                - button "Copy Error Info" [ref=e172]:
+                  - img [ref=e173]
+                - button "No related documentation found" [disabled] [ref=e175]:
+                  - img [ref=e176]
+                - link "Learn more about enabling Node.js inspector for server code with Chrome DevTools" [ref=e178]:
+                  - /url: https://nextjs.org/docs/app/building-your-application/configuring/debugging#server-side-code
+                  - img [ref=e179]
+            - paragraph [ref=e188]: Failed to fetch
+          - generic [ref=e189]:
+            - generic [ref=e190]:
+              - paragraph [ref=e192]:
+                - img [ref=e194]
+                - generic [ref=e197]: pages/index.tsx (76:32) @ Home.useEffect.fetchDiscordUser
+                - button "Open in editor" [ref=e198]:
+                  - img [ref=e200]
+              - generic [ref=e203]:
+                - generic [ref=e204]: "74 | const fetchDiscordUser = async () => {"
+                - generic [ref=e205]: "75 | try {"
+                - generic [ref=e206]: "> 76 | const response = await fetch('https://api.lanyard.rest/v1/users/877018055815868426');"
+                - generic [ref=e207]: "| ^"
+                - generic [ref=e208]: 77 | const data = await response.json();
+                - generic [ref=e209]: "78 | if (data.success) {"
+                - generic [ref=e210]: "79 | const { id, avatar, username } = data.data.discord_user;"
+            - generic [ref=e211]:
+              - generic [ref=e212]:
+                - paragraph [ref=e213]:
+                  - text: Call Stack
+                  - generic [ref=e214]: "13"
+                - button "Show 11 ignore-listed frame(s)" [ref=e215]:
+                  - text: Show 11 ignore-listed frame(s)
+                  - img [ref=e216]
+              - generic [ref=e218]:
+                - generic [ref=e219]:
+                  - text: Home.useEffect.fetchDiscordUser
+                  - button "Open Home.useEffect.fetchDiscordUser in editor" [ref=e220]:
+                    - img [ref=e221]
+                - text: pages/index.tsx (76:32)
+              - generic [ref=e223]:
+                - generic [ref=e224]:
+                  - text: Home.useEffect
+                  - button "Open Home.useEffect in editor" [ref=e225]:
+                    - img [ref=e226]
+                - text: pages/index.tsx (101:5)
+        - generic [ref=e228]:
+          - generic [ref=e229]: "1"
+          - generic [ref=e230]: "2"
+    - generic [ref=e83]:
+      - button "Open Next.js Dev Tools" [ref=e84]:
+        - img [ref=e85]
+      - generic [ref=e231]:
+        - button "Open issues overlay" [ref=e232]:
+          - generic [ref=e233]:
+            - generic [ref=e234]: "1"
+            - generic [ref=e235]: "2"
+          - generic [ref=e236]:
+            - text: Issue
+            - generic [ref=e237]: s
+        - button "Collapse issues badge" [ref=e238]:
+          - img [ref=e239]
+  - generic:
+    - img
+  - alert [ref=e88]

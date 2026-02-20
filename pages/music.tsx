@@ -69,19 +69,14 @@ export default function MusicEmbed() {
             </h1>
           </div>
 
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            className="mb-5 sm:mb-8"
-          >
-            <DiscordStatus />
-          </motion.div>
-
           <div className="rounded-2xl border border-zinc-800/70 bg-zinc-900/70 p-3 shadow-xl sm:p-5">
-            <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+            {/* Activity Carousel */}
+            <div className="mb-4 sm:mb-5">
+              <DiscordStatus />
+            </div>
+
+            <div className="mb-4 sm:mb-5">
               <h2 className="text-sm font-semibold text-white sm:text-base">Top Tracks</h2>
-              <p className="text-xs text-zinc-500">Mobile & desktop polished Spotify embeds</p>
             </div>
 
             <motion.div

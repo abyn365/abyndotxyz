@@ -232,21 +232,21 @@ export default function Home() {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
-                className="w-full flex flex-col gap-3"
+                className="w-full flex flex-col gap-2.5"
               >
-                <p className="text-center text-sm text-zinc-400">
+                <p className="text-center text-xs text-zinc-500">
                   Stalk me here:
                 </p>
                 
-                <div className="grid grid-cols-5 items-center gap-4 w-full">
+                <div className="grid grid-cols-5 items-center gap-2 sm:gap-3 w-full">
                   <a
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/instagram"
-                    className="w-full flex justify-center rounded-xl border border-zinc-700/50 bg-zinc-900/70 p-2 text-zinc-200 transition-all hover:border-zinc-500/60 hover:bg-zinc-800/70"
+                    className="w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-pink-500/40 hover:bg-pink-500/5"
                   >
                     <svg
-                      className="social-icon fill-current text-pink-400"
+                      className="social-icon fill-current text-pink-400 h-5 w-5"
                       role="img"
                       viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
@@ -260,18 +260,16 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/github"
-                    className="w-full flex justify-center rounded-xl border border-zinc-700/50 bg-zinc-900/70 p-2 text-zinc-200 transition-all hover:border-zinc-500/60 hover:bg-zinc-800/70"
+                    className="w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-zinc-500/40 hover:bg-zinc-500/5"
                   >
                     <svg
-                      className="social-icon fill-current text-primary transition-all dark:text-gray-100"
+                      className="social-icon fill-current text-zinc-300 h-5 w-5"
                       role="img"
                       viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <title>GitHub</title>
-                      <path
-                        d="M12 0C5.4 0 0 5.4 0 12c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.3-1.3-1.6-1.3-1.6-1.1-.7.1-.7.1-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.9 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.5-.3-5-1.3-5-5.8 0-1.3.5-2.4 1.3-3.2-.1-.3-.6-1.5.1-3.1 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.2-1.5 3.2-1.2 3.2-1.2.7 1.6.2 2.8.1 3.1.8.8 1.3 1.9 1.3 3.2 0 4.6-2.5 5.5-4.9 5.8.4.4.7 1.1.7 2.2v3.3c0 .4.2.7.8.6 4.7-1.6 8.1-6.1 8.1-11.4C24 5.4 18.6 0 12 0z"
-                      />
+                      <path d="M12 0C5.4 0 0 5.4 0 12c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.3-1.3-1.6-1.3-1.6-1.1-.7.1-.7.1-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.9 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.5-.3-5-1.3-5-5.8 0-1.3.5-2.4 1.3-3.2-.1-.3-.6-1.5.1-3.1 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.2-1.5 3.2-1.2 3.2-1.2.7 1.6.2 2.8.1 3.1.8.8 1.3 1.9 1.3 3.2 0 4.6-2.5 5.5-4.9 5.8.4.4.7 1.1.7 2.2v3.3c0 .4.2.7.8.6 4.7-1.6 8.1-6.1 8.1-11.4C24 5.4 18.6 0 12 0z" />
                     </svg>
                   </a>
 
@@ -279,10 +277,10 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/spotify"
-                    className="w-full flex justify-center rounded-xl border border-zinc-700/50 bg-zinc-900/70 p-2 text-zinc-200 transition-all hover:border-zinc-500/60 hover:bg-zinc-800/70"
+                    className="w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/5"
                   >
                     <svg
-                      className="social-icon fill-current text-green-400"
+                      className="social-icon fill-current text-emerald-400 h-5 w-5"
                       role="img"
                       viewBox="0 0 64 64"
                       xmlns="http://www.w3.org/2000/svg"
@@ -296,16 +294,16 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/pinterest"
-                    className="w-full flex justify-center rounded-xl border border-zinc-700/50 bg-zinc-900/70 p-2 text-zinc-200 transition-all hover:border-zinc-500/60 hover:bg-zinc-800/70 group"
+                    className="w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-rose-500/40 hover:bg-rose-500/5"
                   >
                     <svg
-                      className="social-icon h-6"
+                      className="social-icon h-5 w-5"
                       viewBox="0 0 32 32"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path 
                         d="M16.132 0a16 16 0 0 0-5.771 30.952c-.13-1.312-.262-3.148 0-4.6l1.836-8a5.771 5.771 0 0 1-.525-2.361c0-2.23 1.312-3.935 2.885-3.935s1.967 1.05 1.967 2.23-.918 3.4-1.312 5.377.787 2.885 2.36 2.885 4.984-3.016 4.984-7.344-2.754-6.558-6.69-6.558-7.082 3.54-7.082 7.082c0 1.312.525 2.885 1.18 3.672a.525.525 0 0 1 .131.393l-.393 1.836c-.13.262-.262.393-.525.262-1.967-.918-3.28-3.803-3.28-6.164 0-4.984 3.672-9.705 10.623-9.705s9.836 3.935 9.836 9.18-3.54 9.968-8.263 9.968c-1.574 0-3.148-.787-3.672-1.836l-1.05 3.803c-.393 1.443-1.312 3.148-1.967 4.197A16 16 0 1 0 16.132 0z"
-                        className="fill-[#E60023] group-hover:fill-[#ff6347] transition-colors pointer-events-none"
+                        className="fill-[#E60023] transition-colors pointer-events-none"
                       />
                       <title>Pinterest</title>
                     </svg>
@@ -315,11 +313,11 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/discord"
-                    className="w-full flex items-center justify-center rounded-xl border border-zinc-700/50 bg-zinc-900/70 p-2 text-zinc-200 transition-all hover:border-zinc-500/60 hover:bg-zinc-800/70"
+                    className="w-full flex items-center justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/5"
                   >
-                    <div className="flex items-center justify-center space-x-2">
+                    <div className="flex items-center justify-center space-x-1.5">
                       <svg
-                        className="social-icon h-5 fill-current text-indigo-500"
+                        className="social-icon h-5 w-5 fill-current text-indigo-400"
                         role="img"
                         viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg"
@@ -327,7 +325,7 @@ export default function Home() {
                         <title>Discord</title>
                         <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"></path>
                       </svg>
-                      <span className="hidden sm:inline text-sm font-medium text-indigo-100 truncate">
+                      <span className="hidden sm:inline text-xs font-medium text-zinc-300 truncate">
                         {username || 'Loading...'}
                       </span>
                     </div>
