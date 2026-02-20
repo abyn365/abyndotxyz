@@ -1,0 +1,23 @@
+- generic [active] [ref=e1] [cursor=pointer]:
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - link "Back" [ref=e9]:
+        - /url: /
+        - img [ref=e10]
+        - generic [ref=e12]: Back
+      - heading "My Music" [level=1] [ref=e13]:
+        - generic [ref=e14]:
+          - img [ref=e15]
+          - text: My Music
+    - generic [ref=e19]:
+      - heading "Top Tracks" [level=2] [ref=e21]
+      - generic [ref=e23]:
+        - button "1M" [ref=e24]
+        - button "6M" [ref=e25]
+        - button "1Y" [ref=e26]
+      - generic [ref=e28]: Loading tracks...
+  - button "Open Next.js Dev Tools" [ref=e34]:
+    - img [ref=e35]
+  - generic:
+    - img
+  - alert [ref=e38]

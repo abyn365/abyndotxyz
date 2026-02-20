@@ -194,8 +194,8 @@ const DiscordStatus: NextComponentType = () => {
           )}
         </motion.div>
 
-        {/* Text content - more compact */}
-        <div className="min-w-0 flex-1 py-0.5">
+        {/* Text content - compact */}
+        <div className="min-w-0 flex-1">
           {/* Eyebrow */}
           <div className="mb-0.5 flex items-center gap-1.5">
             <span className={`${slide.accentColor}`}>
@@ -214,11 +214,6 @@ const DiscordStatus: NextComponentType = () => {
           {/* Subtitle */}
           <p className="truncate text-[11px] text-zinc-400 mt-0.5">
             {slide.subtitle}
-          </p>
-
-          {/* Meta */}
-          <p className="truncate text-[10px] text-zinc-600 mt-0.5">
-            {slide.meta}
           </p>
         </div>
       </div>
