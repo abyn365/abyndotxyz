@@ -1,5 +1,6 @@
 {
-  "name": "lrmn-personal-bio",
+  "name": "abyndotxyz",
+  "description": "Personal bio/links website with Discord status, Spotify integration, and visitor analytics",
   "private": true,
   "scripts": {
     "dev": "next dev",
