@@ -1,0 +1,64 @@
+[    7122ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/top-tracks?period=short:0
+[    7130ms] Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[   24236ms] [ERROR] Access to fetch at 'https://api.lanyard.rest/v1/users/877018055815868426' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:3000/:0
+[   24237ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://api.lanyard.rest/v1/users/877018055815868426:0
+[   24237ms] [ERROR] Failed to fetch Discord user: TypeError: Failed to fetch
+    at Home.useEffect.fetchDiscordUser (webpack-internal:///(pages-dir-browser)/./pages/index.tsx:73:48)
+    at Home.useEffect (webpack-internal:///(pages-dir-browser)/./pages/index.tsx:97:13)
+    at commitHookEffectListMount (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:23184:26)
+    at commitPassiveMountOnFiber (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:24960:13)
+    at commitPassiveMountEffects_complete (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:24925:9)
+    at commitPassiveMountEffects_begin (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:24912:7)
+    at commitPassiveMountEffects (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:24900:3)
+    at flushPassiveEffectsImpl (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:27073:3)
+    at flushPassiveEffects (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:27018:14)
+    at eval (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:26803:9)
+    at workLoop (webpack-internal:///(pages-dir-browser)/./node_modules/scheduler/cjs/scheduler.development.js:266:34)
+    at flushWork (webpack-internal:///(pages-dir-browser)/./node_modules/scheduler/cjs/scheduler.development.js:239:14)
+    at MessagePort.performWorkUntilDeadline (webpack-internal:///(pages-dir-browser)/./node_modules/scheduler/cjs/scheduler.development.js:533:21) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   25133ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/discord-status:0
+[   43692ms] [ERROR] Access to fetch at 'https://api.lanyard.rest/v1/users/877018055815868426' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:3000/:0
+[   43692ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://api.lanyard.rest/v1/users/877018055815868426:0
+[   43693ms] [ERROR] Failed to fetch Discord user: TypeError: Failed to fetch
+    at Home.useEffect.fetchDiscordUser (webpack-internal:///(pages-dir-browser)/./pages/index.tsx:73:48) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   44589ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/discord-status:0
+[   63147ms] [ERROR] Access to fetch at 'https://api.lanyard.rest/v1/users/877018055815868426' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:3000/:0
+[   63147ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://api.lanyard.rest/v1/users/877018055815868426:0
+[   63148ms] [ERROR] Failed to fetch Discord user: TypeError: Failed to fetch
+    at Home.useEffect.fetchDiscordUser (webpack-internal:///(pages-dir-browser)/./pages/index.tsx:73:48) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   64044ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/discord-status:0
+[   72647ms] [ERROR] Failed to fetch Discord user: TypeError: Failed to fetch
+    at Home.useEffect.fetchDiscordUser (webpack-internal:///(pages-dir-browser)/./pages/index.tsx:73:48) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   72647ms] [ERROR] Failed to fetch Discord user: TypeError: Failed to fetch
+    at Home.useEffect.fetchDiscordUser (webpack-internal:///(pages-dir-browser)/./pages/index.tsx:73:48) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   72647ms] [ERROR] Failed to fetch Discord user: TypeError: Failed to fetch
+    at Home.useEffect.fetchDiscordUser (webpack-internal:///(pages-dir-browser)/./pages/index.tsx:73:48) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   72648ms] [ERROR] Failed to fetch Discord user: TypeError: Failed to fetch
+    at Home.useEffect.fetchDiscordUser (webpack-internal:///(pages-dir-browser)/./pages/index.tsx:73:48) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   72648ms] [ERROR] Failed to fetch activity data: TypeError: Failed to fetch
+    at DiscordStatus.useEffect.fetchAll (webpack-internal:///(pages-dir-browser)/./components/Misc/DiscordStatus.misc.tsx:37:29) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   72648ms] [ERROR] Failed to fetch activity data: TypeError: Failed to fetch
+    at DiscordStatus.useEffect.fetchAll (webpack-internal:///(pages-dir-browser)/./components/Misc/DiscordStatus.misc.tsx:37:29) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   72648ms] [ERROR] Failed to fetch activity data: TypeError: Failed to fetch
+    at DiscordStatus.useEffect.fetchAll (webpack-internal:///(pages-dir-browser)/./components/Misc/DiscordStatus.misc.tsx:37:29) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   72648ms] [ERROR] Failed to fetch activity data: TypeError: Failed to fetch
+    at DiscordStatus.useEffect.fetchAll (webpack-internal:///(pages-dir-browser)/./components/Misc/DiscordStatus.misc.tsx:37:29) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   73704ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/top-tracks?period=short:0
+[   73710ms] Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[   92844ms] [ERROR] Access to fetch at 'https://api.lanyard.rest/v1/users/877018055815868426' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:3000/:0
+[   92844ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://api.lanyard.rest/v1/users/877018055815868426:0
+[   92845ms] [ERROR] Failed to fetch Discord user: TypeError: Failed to fetch
+    at Home.useEffect.fetchDiscordUser (webpack-internal:///(pages-dir-browser)/./pages/index.tsx:73:48)
+    at Home.useEffect (webpack-internal:///(pages-dir-browser)/./pages/index.tsx:97:13)
+    at commitHookEffectListMount (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:23184:26)
+    at commitPassiveMountOnFiber (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:24960:13)
+    at commitPassiveMountEffects_complete (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:24925:9)
+    at commitPassiveMountEffects_begin (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:24912:7)
+    at commitPassiveMountEffects (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:24900:3)
+    at flushPassiveEffectsImpl (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:27073:3)
+    at flushPassiveEffects (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:27018:14)
+    at eval (webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom.development.js:26803:9)
+    at workLoop (webpack-internal:///(pages-dir-browser)/./node_modules/scheduler/cjs/scheduler.development.js:266:34)
+    at flushWork (webpack-internal:///(pages-dir-browser)/./node_modules/scheduler/cjs/scheduler.development.js:239:14)
+    at MessagePort.performWorkUntilDeadline (webpack-internal:///(pages-dir-browser)/./node_modules/scheduler/cjs/scheduler.development.js:533:21) @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup.js:76
+[   93034ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/discord-status:0

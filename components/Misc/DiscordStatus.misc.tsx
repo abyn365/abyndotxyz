@@ -35,7 +35,6 @@ type Slide = {
   accentColor: string;
   bgColor: string;
   borderColor: string;
-  glowColor: string;
 };
 
 const DiscordStatus: NextComponentType = () => {
@@ -77,7 +76,7 @@ const DiscordStatus: NextComponentType = () => {
     return [
       {
         key: 'discord',
-        icon: <FiActivity className="h-4 w-4" />,
+        icon: <FiActivity className="h-3 w-3" />,
         eyebrow: 'Discord Activity',
         title: status?.activity?.name || 'Not Active',
         subtitle: status?.activity?.details || 'Not doing anything right now',
@@ -89,13 +88,12 @@ const DiscordStatus: NextComponentType = () => {
               : 'Currently idle',
         image: status?.activity?.image || null,
         accentColor: 'text-indigo-400',
-        bgColor: 'from-indigo-500/10 via-indigo-500/5 to-transparent',
-        borderColor: 'border-indigo-500/30',
-        glowColor: 'shadow-indigo-500/10'
+        bgColor: 'from-indigo-500/[0.03] via-indigo-500/[0.02] to-transparent',
+        borderColor: 'border-indigo-500/20'
       },
       {
         key: 'spotify',
-        icon: <FiMusic className="h-4 w-4" />,
+        icon: <FiMusic className="h-3 w-3" />,
         eyebrow: 'Now Playing',
         title: nowPlaying.isPlaying ? nowPlaying.title || 'Unknown track' : 'Nothing playing',
         subtitle: nowPlaying.isPlaying
@@ -105,9 +103,8 @@ const DiscordStatus: NextComponentType = () => {
         image: nowPlaying.isPlaying ? nowPlaying.albumImageUrl || null : null,
         href: nowPlaying.isPlaying ? nowPlaying.songUrl : undefined,
         accentColor: 'text-emerald-400',
-        bgColor: 'from-emerald-500/10 via-emerald-500/5 to-transparent',
-        borderColor: 'border-emerald-500/30',
-        glowColor: 'shadow-emerald-500/10'
+        bgColor: 'from-emerald-500/[0.03] via-emerald-500/[0.02] to-transparent',
+        borderColor: 'border-emerald-500/20'
       }
     ];
   }, [status, nowPlaying]);
@@ -144,25 +141,25 @@ const DiscordStatus: NextComponentType = () => {
 
   const slideVariants = {
     enter: (dir: number) => ({
-      x: dir > 0 ? 300 : -300,
+      x: dir > 0 ? 200 : -200,
       opacity: 0,
-      scale: 0.95
+      scale: 0.98
     }),
     center: {
       x: 0,
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.4,
+        duration: 0.35,
         ease: [0.25, 0.1, 0.25, 1]
       }
     },
     exit: (dir: number) => ({
-      x: dir > 0 ? -300 : 300,
+      x: dir > 0 ? -200 : 200,
       opacity: 0,
-      scale: 0.95,
+      scale: 0.98,
       transition: {
-        duration: 0.4,
+        duration: 0.35,
         ease: [0.25, 0.1, 0.25, 1]
       }
     })
@@ -173,60 +170,54 @@ const DiscordStatus: NextComponentType = () => {
   const currentSlide = slides[activeSlide];
 
   const SlideContent = ({ slide }: { slide: Slide }) => (
-    <div className={`relative bg-gradient-to-br ${slide.bgColor} p-3 sm:p-4`}>
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/5 to-transparent rounded-bl-full pointer-events-none" />
-      
-      <div className="relative flex items-start gap-3 sm:gap-4">
-        {/* Image/Icon container */}
+    <div className={`relative bg-gradient-to-br ${slide.bgColor} p-2.5 sm:p-3`}>
+      <div className="relative flex items-center gap-2.5 sm:gap-3">
+        {/* Image/Icon container - smaller and proportional */}
         <motion.div 
           className="relative flex-shrink-0"
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.2 }}
         >
           {slide.image ? (
-            <div className="relative">
-              <Image
-                src={slide.image}
-                width={64}
-                height={64}
-                alt={slide.title}
-                className="h-14 w-14 rounded-lg border border-zinc-700/50 object-cover shadow-lg sm:h-16 sm:w-16"
-                unoptimized
-              />
-              <div className={`absolute -inset-1 rounded-xl bg-gradient-to-br ${slide.bgColor} -z-10 blur-md opacity-50`} />
-            </div>
+            <Image
+              src={slide.image}
+              width={40}
+              height={40}
+              alt={slide.title}
+              className="h-10 w-10 rounded-md border border-zinc-700/30 object-cover sm:h-11 sm:w-11"
+              unoptimized
+            />
           ) : (
-            <div className={`flex h-14 w-14 items-center justify-center rounded-lg border ${slide.borderColor} bg-zinc-800/80 sm:h-16 sm:w-16`}>
-              <FiDisc className={`h-6 w-6 ${slide.accentColor}`} />
+            <div className={`flex h-10 w-10 items-center justify-center rounded-md border ${slide.borderColor} bg-zinc-800/50 sm:h-11 sm:w-11`}>
+              <FiDisc className={`h-4 w-4 ${slide.accentColor}`} />
             </div>
           )}
         </motion.div>
 
-        {/* Text content */}
+        {/* Text content - more compact */}
         <div className="min-w-0 flex-1 py-0.5">
           {/* Eyebrow */}
-          <div className="mb-1 flex items-center gap-2">
-            <span className={`flex items-center gap-1.5 ${slide.accentColor}`}>
+          <div className="mb-0.5 flex items-center gap-1.5">
+            <span className={`${slide.accentColor}`}>
               {slide.icon}
             </span>
-            <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+            <span className="text-[9px] font-medium uppercase tracking-wider text-zinc-500">
               {slide.eyebrow}
             </span>
           </div>
 
           {/* Title */}
-          <p className="truncate text-sm font-semibold text-white sm:text-base leading-tight">
+          <p className="truncate text-xs font-medium text-white sm:text-sm leading-tight">
             {slide.title}
           </p>
 
           {/* Subtitle */}
-          <p className="truncate text-xs text-zinc-300 sm:text-sm mt-0.5">
+          <p className="truncate text-[11px] text-zinc-400 mt-0.5">
             {slide.subtitle}
           </p>
 
           {/* Meta */}
-          <p className="truncate text-[11px] text-zinc-500 sm:text-xs mt-1">
+          <p className="truncate text-[10px] text-zinc-600 mt-0.5">
             {slide.meta}
           </p>
         </div>
@@ -237,15 +228,15 @@ const DiscordStatus: NextComponentType = () => {
   return (
     <div className="w-full">
       <div
-        className="relative mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-zinc-700/50 bg-zinc-900/95 shadow-xl backdrop-blur-sm"
+        className="relative mx-auto w-full max-w-4xl overflow-hidden rounded-xl border border-zinc-700/30 bg-transparent shadow-lg"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Progress bar */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-zinc-800/80 z-20">
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-zinc-800/50 z-20">
           <motion.div
             className={`h-full ${
-              activeSlide === 0 ? 'bg-indigo-500' : 'bg-emerald-500'
+              activeSlide === 0 ? 'bg-indigo-500/70' : 'bg-emerald-500/70'
             }`}
             style={{ width: `${progress}%` }}
             transition={{ duration: 0.05 }}
@@ -283,40 +274,35 @@ const DiscordStatus: NextComponentType = () => {
           )}
         </AnimatePresence>
 
-        {/* Navigation footer */}
-        <div className="relative border-t border-zinc-800/70 bg-zinc-900/95 px-3 py-2 sm:px-4">
+        {/* Navigation footer - slimmer */}
+        <div className="relative border-t border-zinc-800/30 bg-transparent px-2.5 py-1.5 sm:px-3">
           <div className="flex items-center justify-between">
             {/* Navigation buttons */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => navigate(-1)}
-                className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors"
+                className="p-1 rounded text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800/30 transition-colors"
                 aria-label="Previous slide"
                 type="button"
               >
-                <FiChevronLeft className="h-4 w-4" />
+                <FiChevronLeft className="h-3.5 w-3.5" />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => navigate(1)}
-                className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors"
+                className="p-1 rounded text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800/30 transition-colors"
                 aria-label="Next slide"
                 type="button"
               >
-                <FiChevronRight className="h-4 w-4" />
+                <FiChevronRight className="h-3.5 w-3.5" />
               </motion.button>
             </div>
 
-            {/* Hint text */}
-            <span className="text-[10px] text-zinc-600 hidden sm:block">
-              Click arrows or wait for auto-play
-            </span>
-
-            {/* Dot indicators */}
-            <div className="flex items-center gap-2">
+            {/* Dot indicators - smaller */}
+            <div className="flex items-center gap-1.5">
               {slides.map((slide, index) => (
                 <motion.button
                   key={slide.key}
@@ -325,25 +311,16 @@ const DiscordStatus: NextComponentType = () => {
                     setActiveSlide(index);
                     setProgress(0);
                   }}
-                  className={`relative h-2 rounded-full transition-all duration-300 ${
+                  className={`relative h-1.5 rounded-full transition-all duration-300 ${
                     activeSlide === index 
-                      ? 'w-6 bg-gradient-to-r from-zinc-300 to-zinc-400' 
-                      : 'w-2 bg-zinc-700 hover:bg-zinc-600'
+                      ? 'w-4 bg-zinc-400' 
+                      : 'w-1.5 bg-zinc-700 hover:bg-zinc-600'
                   }`}
                   whileHover={{ scale: 1.2 }}
                   whileTap={{ scale: 0.9 }}
                   aria-label={`Go to ${slide.eyebrow}`}
                   type="button"
-                >
-                  {activeSlide === index && (
-                    <motion.div
-                      layoutId="activeIndicator"
-                      className="absolute inset-0 rounded-full"
-                      initial={false}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
-                </motion.button>
+                />
               ))}
             </div>
           </div>
