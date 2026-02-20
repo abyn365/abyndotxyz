@@ -237,7 +237,7 @@ const DiscordStatus: NextComponentType = () => {
   return (
     <div className="w-full">
       <div
-        className="relative mx-auto w-full max-w-4xl overflow-hidden rounded-xl border border-zinc-700/30 bg-transparent shadow-lg select-none"
+        className="relative mx-auto w-full overflow-hidden rounded-xl border border-zinc-700/30 bg-transparent shadow-lg select-none"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
