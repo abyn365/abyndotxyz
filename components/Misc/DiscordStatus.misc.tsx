@@ -314,11 +314,11 @@ const DiscordStatus: NextComponentType = () => {
           {/* Subtitle with progress bar for Spotify */}
           {slide.key === 'spotify' && slide.isPlaying && slide.durationMs ? (
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="truncate text-[11px] text-zinc-400 max-w-[45%]">
+              <span className="truncate text-[11px] text-zinc-400 min-w-0 flex-1">
                 {slide.subtitle}
               </span>
-              <div className="flex-1 flex items-center gap-1.5">
-                <div className="relative h-1 flex-1 rounded-full bg-zinc-700/50 overflow-hidden">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="relative h-1 w-16 rounded-full bg-zinc-700/50 overflow-hidden">
                   <motion.div
                     className="h-full bg-emerald-500/70 rounded-full"
                     style={{ 
@@ -327,7 +327,7 @@ const DiscordStatus: NextComponentType = () => {
                     transition={{ duration: 0.3 }}
                   />
                 </div>
-                <span className="text-[9px] text-zinc-500 tabular-nums">
+                <span className="text-[9px] text-zinc-500 tabular-nums w-[70px] text-right">
                   {formatTime(songProgress)}/{formatTime(slide.durationMs)}
                 </span>
               </div>
