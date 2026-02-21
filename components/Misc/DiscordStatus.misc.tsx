@@ -311,32 +311,31 @@ const DiscordStatus: NextComponentType = () => {
             {slide.title}
           </p>
 
-          {/* Subtitle */}
-          <p className="truncate text-[11px] text-zinc-400 mt-0.5">
-            {slide.subtitle}
-          </p>
-
-          {/* Song progress bar for Spotify */}
-          {slide.key === 'spotify' && slide.isPlaying && slide.durationMs && (
-            <div className="mt-2">
-              <div className="relative h-1 w-full rounded-full bg-zinc-700/50 overflow-hidden">
-                <motion.div
-                  className="h-full bg-emerald-500/70 rounded-full"
-                  style={{ 
-                    width: `${Math.min((songProgress / slide.durationMs) * 100, 100)}%` 
-                  }}
-                  transition={{ duration: 0.3 }}
-                />
-              </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-[9px] text-zinc-500">
-                  {formatTime(songProgress)}
-                </span>
-                <span className="text-[9px] text-zinc-500">
-                  {formatTime(slide.durationMs)}
+          {/* Subtitle with progress bar for Spotify */}
+          {slide.key === 'spotify' && slide.isPlaying && slide.durationMs ? (
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="truncate text-[11px] text-zinc-400 max-w-[45%]">
+                {slide.subtitle}
+              </span>
+              <div className="flex-1 flex items-center gap-1.5">
+                <div className="relative h-1 flex-1 rounded-full bg-zinc-700/50 overflow-hidden">
+                  <motion.div
+                    className="h-full bg-emerald-500/70 rounded-full"
+                    style={{ 
+                      width: `${Math.min((songProgress / slide.durationMs) * 100, 100)}%` 
+                    }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </div>
+                <span className="text-[9px] text-zinc-500 tabular-nums">
+                  {formatTime(songProgress)}/{formatTime(slide.durationMs)}
                 </span>
               </div>
             </div>
+          ) : (
+            <p className="truncate text-[11px] text-zinc-400 mt-0.5">
+              {slide.subtitle}
+            </p>
           )}
         </div>
       </div>
