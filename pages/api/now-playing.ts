@@ -67,7 +67,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       title,
       popularity: song.item.popularity,
       genre: artistGenres,
-      isArtistGenre
+      isArtistGenre,
+      progressMs: song.progress_ms || 0,
+      durationMs: song.item.duration_ms || 0
     });
 
   } catch (error) {
