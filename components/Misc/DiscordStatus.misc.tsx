@@ -81,7 +81,7 @@ const Visualizer = ({ isPlaying, barCount = 4, className = '' }: { isPlaying: bo
       {barHeights.map((height, index) => (
         <motion.div
           key={index}
-          className="w-1 rounded-full bg-emerald-400"
+          className={`w-1 rounded-full ${isPlaying ? 'bg-emerald-400' : 'bg-transparent'}`}
           animate={{ height: `${height}%` }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
         />
@@ -293,17 +293,15 @@ const DiscordStatus: NextComponentType = () => {
         {/* Text content - compact */}
         <div className="min-w-0 flex-1 select-none">
           {/* Eyebrow with visualizer for Spotify */}
-          <div className="mb-0.5 flex items-center gap-1.5">
+          <div className="mb-0.5 flex items-center gap-1.5 h-4">
             <span className={`${slide.accentColor}`}>
               {slide.icon}
             </span>
             <span className="text-[9px] font-medium uppercase tracking-wider text-zinc-500">
               {slide.eyebrow}
             </span>
-            {/* Visualizer for Spotify slide */}
-            {slide.key === 'spotify' && slide.isPlaying && (
-              <Visualizer isPlaying={slide.isPlaying} />
-            )}
+            {/* Visualizer - always show placeholder for consistent height */}
+            <Visualizer isPlaying={slide.key === 'spotify' && slide.isPlaying} />
           </div>
 
           {/* Title */}
