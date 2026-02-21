@@ -311,7 +311,7 @@ const DiscordStatus: NextComponentType = () => {
             {slide.title}
           </p>
 
-          {/* Subtitle with progress bar for Spotify */}
+          {/* Subtitle with progress bar for Spotify, or placeholder for Discord */}
           {slide.key === 'spotify' && slide.isPlaying && slide.durationMs ? (
             <div className="flex items-center gap-2 mt-0.5">
               <span className="truncate text-[11px] text-zinc-400 flex-shrink-0 max-w-[30%]">
@@ -333,9 +333,18 @@ const DiscordStatus: NextComponentType = () => {
               </div>
             </div>
           ) : (
-            <p className="truncate text-[11px] text-zinc-400 mt-0.5">
-              {slide.subtitle}
-            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="truncate text-[11px] text-zinc-400">
+                {slide.subtitle}
+              </p>
+              {/* Placeholder for consistent height */}
+              <div className="flex items-center gap-1.5 min-w-0 flex-1 invisible">
+                <div className="relative h-1 flex-1 rounded-full bg-zinc-700/50 overflow-hidden">
+                  <div className="h-full w-0 rounded-full" />
+                </div>
+                <span className="text-[9px] text-zinc-500 tabular-nums flex-shrink-0">0:00/0:00</span>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -352,9 +361,7 @@ const DiscordStatus: NextComponentType = () => {
         {/* Progress bar */}
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-zinc-800/50 z-20">
           <motion.div
-            className={`h-full ${
-              activeSlide === 0 ? 'bg-indigo-500/70' : 'bg-emerald-500/70'
-            }`}
+            className="h-full bg-zinc-500/50"
             style={{ width: `${progress}%` }}
             transition={{ duration: 0.05 }}
           />
