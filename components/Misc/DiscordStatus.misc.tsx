@@ -21,6 +21,8 @@ type NowPlaying = {
   album?: string;
   albumImageUrl?: string;
   songUrl?: string;
+  progressMs?: number;
+  durationMs?: number;
 };
 
 type Slide = {
@@ -35,6 +37,57 @@ type Slide = {
   accentColor: string;
   bgColor: string;
   borderColor: string;
+  isPlaying?: boolean;
+  progressMs?: number;
+  durationMs?: number;
+};
+
+const formatTime = (ms: number): string => {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+const Visualizer = ({ isPlaying, barCount = 4, className = '' }: { isPlaying: boolean; barCount?: number; className?: string }) => {
+  const [barHeights, setBarHeights] = useState<number[]>(Array(barCount).fill(30));
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (isPlaying) {
+      intervalRef.current = setInterval(() => {
+        setBarHeights(
+          Array(barCount)
+            .fill(0)
+            .map(() => Math.random() * 70 + 30)
+        );
+      }, 150);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      setBarHeights(Array(barCount).fill(30));
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [isPlaying, barCount]);
+
+  return (
+    <div className={`flex items-end h-4 gap-0.5 ${className}`}>
+      {barHeights.map((height, index) => (
+        <motion.div
+          key={index}
+          className="w-1 rounded-full bg-emerald-400"
+          animate={{ height: `${height}%` }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
+        />
+      ))}
+    </div>
+  );
 };
 
 const DiscordStatus: NextComponentType = () => {
@@ -46,7 +99,9 @@ const DiscordStatus: NextComponentType = () => {
   const [direction, setDirection] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [songProgress, setSongProgress] = useState(0);
   const progressRef = useRef<NodeJS.Timeout | null>(null);
+  const songProgressRef = useRef<NodeJS.Timeout | null>(null);
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-100, 0, 100], [0.5, 1, 0.5]);
 
@@ -63,6 +118,9 @@ const DiscordStatus: NextComponentType = () => {
 
         setStatus(statusData);
         setNowPlaying(nowData);
+        if (nowData.progressMs !== undefined) {
+          setSongProgress(nowData.progressMs);
+        }
       } catch (error) {
         console.error('Failed to fetch activity data:', error);
       } finally {
@@ -74,6 +132,29 @@ const DiscordStatus: NextComponentType = () => {
     const poll = setInterval(fetchAll, 10000);
     return () => clearInterval(poll);
   }, []);
+
+  useEffect(() => {
+    if (nowPlaying.isPlaying && nowPlaying.durationMs) {
+      songProgressRef.current = setInterval(() => {
+        setSongProgress((prev) => {
+          if (prev >= nowPlaying.durationMs!) {
+            return prev;
+          }
+          return prev + 1000;
+        });
+      }, 1000);
+    } else {
+      if (songProgressRef.current) {
+        clearInterval(songProgressRef.current);
+      }
+    }
+
+    return () => {
+      if (songProgressRef.current) {
+        clearInterval(songProgressRef.current);
+      }
+    };
+  }, [nowPlaying.isPlaying, nowPlaying.durationMs]);
 
   const slides = useMemo<Slide[]>(() => {
     return [
@@ -107,10 +188,13 @@ const DiscordStatus: NextComponentType = () => {
         href: nowPlaying.isPlaying ? nowPlaying.songUrl : undefined,
         accentColor: 'text-emerald-400',
         bgColor: 'from-emerald-500/[0.03] via-emerald-500/[0.02] to-transparent',
-        borderColor: 'border-emerald-500/20'
+        borderColor: 'border-emerald-500/20',
+        isPlaying: nowPlaying.isPlaying,
+        progressMs: songProgress,
+        durationMs: nowPlaying.durationMs
       }
     ];
-  }, [status, nowPlaying]);
+  }, [status, nowPlaying, songProgress]);
 
   const AUTOPLAY_INTERVAL = 10000; // Changed to 10 seconds
 
@@ -163,8 +247,7 @@ const DiscordStatus: NextComponentType = () => {
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.35,
-        ease: [0.25, 0.1, 0.25, 1]
+        duration: 0.35
       }
     },
     exit: (dir: number) => ({
@@ -172,8 +255,7 @@ const DiscordStatus: NextComponentType = () => {
       opacity: 0,
       scale: 0.98,
       transition: {
-        duration: 0.35,
-        ease: [0.25, 0.1, 0.25, 1]
+        duration: 0.35
       }
     })
   };
@@ -210,7 +292,7 @@ const DiscordStatus: NextComponentType = () => {
 
         {/* Text content - compact */}
         <div className="min-w-0 flex-1 select-none">
-          {/* Eyebrow */}
+          {/* Eyebrow with visualizer for Spotify */}
           <div className="mb-0.5 flex items-center gap-1.5">
             <span className={`${slide.accentColor}`}>
               {slide.icon}
@@ -218,6 +300,10 @@ const DiscordStatus: NextComponentType = () => {
             <span className="text-[9px] font-medium uppercase tracking-wider text-zinc-500">
               {slide.eyebrow}
             </span>
+            {/* Visualizer for Spotify slide */}
+            {slide.key === 'spotify' && slide.isPlaying && (
+              <Visualizer isPlaying={slide.isPlaying} />
+            )}
           </div>
 
           {/* Title */}
@@ -229,6 +315,29 @@ const DiscordStatus: NextComponentType = () => {
           <p className="truncate text-[11px] text-zinc-400 mt-0.5">
             {slide.subtitle}
           </p>
+
+          {/* Song progress bar for Spotify */}
+          {slide.key === 'spotify' && slide.isPlaying && slide.durationMs && (
+            <div className="mt-2">
+              <div className="relative h-1 w-full rounded-full bg-zinc-700/50 overflow-hidden">
+                <motion.div
+                  className="h-full bg-emerald-500/70 rounded-full"
+                  style={{ 
+                    width: `${Math.min((songProgress / slide.durationMs) * 100, 100)}%` 
+                  }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+              <div className="flex justify-between mt-1">
+                <span className="text-[9px] text-zinc-500">
+                  {formatTime(songProgress)}
+                </span>
+                <span className="text-[9px] text-zinc-500">
+                  {formatTime(slide.durationMs)}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
