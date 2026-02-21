@@ -243,10 +243,10 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/instagram"
-                    className="w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-pink-500/40 hover:bg-pink-500/5"
+                    className="group w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-pink-500/40 hover:bg-pink-500/5"
                   >
                     <svg
-                      className="social-icon fill-current text-pink-400 h-5 w-5"
+                      className="social-icon fill-current text-pink-400 h-5 w-5 group-hover:-translate-y-0.5"
                       role="img"
                       viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
@@ -260,10 +260,10 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/github"
-                    className="w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-zinc-500/40 hover:bg-zinc-500/5"
+                    className="group w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-zinc-500/40 hover:bg-zinc-500/5"
                   >
                     <svg
-                      className="social-icon fill-current text-zinc-300 h-5 w-5"
+                      className="social-icon fill-current text-zinc-300 h-5 w-5 group-hover:-translate-y-0.5"
                       role="img"
                       viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
@@ -277,10 +277,10 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/spotify"
-                    className="w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/5"
+                    className="group w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/5"
                   >
                     <svg
-                      className="social-icon fill-current text-emerald-400 h-5 w-5"
+                      className="social-icon fill-current text-emerald-400 h-5 w-5 group-hover:-translate-y-0.5"
                       role="img"
                       viewBox="0 0 64 64"
                       xmlns="http://www.w3.org/2000/svg"
@@ -294,10 +294,10 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/pinterest"
-                    className="w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-rose-500/40 hover:bg-rose-500/5"
+                    className="group w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-rose-500/40 hover:bg-rose-500/5"
                   >
                     <svg
-                      className="social-icon h-5 w-5"
+                      className="social-icon h-5 w-5 group-hover:-translate-y-0.5"
                       viewBox="0 0 32 32"
                       xmlns="http://www.w3.org/2000/svg"
                     >
@@ -313,11 +313,11 @@ export default function Home() {
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                     href="/discord"
-                    className="w-full flex items-center justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/5"
+                    className="group w-full flex items-center justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/5"
                   >
                     <div className="flex items-center justify-center space-x-1.5">
                       <svg
-                        className="social-icon h-5 w-5 fill-current text-indigo-400"
+                        className="social-icon h-5 w-5 fill-current text-indigo-400 group-hover:-translate-y-0.5"
                         role="img"
                         viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg"
