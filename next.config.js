@@ -51,6 +51,11 @@ module.exports = {
         permanent: true,
       },
       {
+        source: '/tiktok',
+        destination: 'https://www.tiktok.com/@abyb.1',
+        permanent: true,
+      },
+      {
         source: '/github',
         destination: 'https://github.com/abyn365',
         permanent: true,
