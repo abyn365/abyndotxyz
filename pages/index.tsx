@@ -259,17 +259,17 @@ export default function Home() {
                   <a
                     rel="noopener noreferrer nofollow"
                     target="_blank"
-                    href="/github"
-                    className="group w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-zinc-500/40 hover:bg-zinc-500/5"
+                    href="/tiktok"
+                    className="group w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-rose-500/40 hover:bg-rose-500/5"
                   >
                     <svg
-                      className="social-icon fill-current text-zinc-300 h-5 w-5 group-hover:-translate-y-0.5"
-                      role="img"
-                      viewBox="0 0 24 24"
+                      className="social-icon h-5 w-5 group-hover:-translate-y-0.5"
                       xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      id="Tiktok-Logo--Streamline-Logos-Block"
                     >
-                      <title>GitHub</title>
-                      <path d="M12 0C5.4 0 0 5.4 0 12c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.3-1.3-1.6-1.3-1.6-1.1-.7.1-.7.1-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.9 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.5-.3-5-1.3-5-5.8 0-1.3.5-2.4 1.3-3.2-.1-.3-.6-1.5.1-3.1 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.2-1.5 3.2-1.2 3.2-1.2.7 1.6.2 2.8.1 3.1.8.8 1.3 1.9 1.3 3.2 0 4.6-2.5 5.5-4.9 5.8.4.4.7 1.1.7 2.2v3.3c0 .4.2.7.8.6 4.7-1.6 8.1-6.1 8.1-11.4C24 5.4 18.6 0 12 0z" />
+                      <path fill="white" fillRule="evenodd" d="M5 1a4 4 0 0 0 -4 4v14a4 4 0 0 0 4 4h14a4 4 0 0 0 4 -4V5a4 4 0 0 0 -4 -4H5Zm7.34 3.5h2.387c0 1.6 1.352 3.41 3.41 3.41v2.386c-1.417 -0.098 -2.628 -0.33 -3.41 -1.023v6.136c0 1.705 -1.348 4.091 -4.431 4.091 -3.766 0 -4.432 -3.41 -4.432 -4.432 0 -1.022 0.6 -4.432 4.772 -4.432v2.387c-1.091 -0.231 -2.386 0.681 -2.386 2.045 0 1.705 1.023 2.046 2.046 2.046 1.022 0 2.045 -1.023 2.045 -2.046V4.5Z" clipRule="evenodd" strokeWidth="1"></path>
                     </svg>
                   </a>
 
@@ -463,7 +463,9 @@ export default function Home() {
         </span>
       </span>
       <a 
-        href="https://abyn.xyz"
+        href="https://github.com/abyn365"
+        target="_blank"
+        rel="noopener noreferrer"
         className="hover:text-[#ff6347] transition-colors"
       >
         abyn.xyz
