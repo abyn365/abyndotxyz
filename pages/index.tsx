@@ -259,17 +259,23 @@ export default function Home() {
                   <a
                     rel="noopener noreferrer nofollow"
                     target="_blank"
-                    href="/github"
-                    className="group w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-zinc-500/40 hover:bg-zinc-500/5"
+                    href="https://www.tiktok.com/@abyb.1"
+                    className="group w-full flex justify-center rounded-lg border border-zinc-700/30 bg-transparent p-2 text-zinc-200 transition-all hover:border-rose-500/40 hover:bg-rose-500/5"
                   >
                     <svg
-                      className="social-icon fill-current text-zinc-300 h-5 w-5 group-hover:-translate-y-0.5"
-                      role="img"
+                      className="social-icon h-5 w-5 group-hover:-translate-y-0.5"
                       viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <title>GitHub</title>
-                      <path d="M12 0C5.4 0 0 5.4 0 12c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.3-1.3-1.6-1.3-1.6-1.1-.7.1-.7.1-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.9 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.5-.3-5-1.3-5-5.8 0-1.3.5-2.4 1.3-3.2-.1-.3-.6-1.5.1-3.1 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.2-1.5 3.2-1.2 3.2-1.2.7 1.6.2 2.8.1 3.1.8.8 1.3 1.9 1.3 3.2 0 4.6-2.5 5.5-4.9 5.8.4.4.7 1.1.7 2.2v3.3c0 .4.2.7.8.6 4.7-1.6 8.1-6.1 8.1-11.4C24 5.4 18.6 0 12 0z" />
+                      <path
+                        d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93v6.16c0 2.52-1.12 4.84-2.9 6.16-1.73 1.27-3.82 2.07-5.96 2.16-2.15.08-4.27-.55-5.97-1.58C2.37 19.64 1.5 17.1 1.5 14.38c0-2.68.99-5.17 2.78-7.06 1.69-1.78 4.13-2.85 6.54-2.85.5 1.84.78 3.73.84 5.64V.02z"
+                        className="fill-[#ff0050] group-hover:fill-[#fe2c55]"
+                      />
+                      <path
+                        d="M10.99 2.48c.59 0 1.07.48 1.07 1.07v1.24c0 .59-.48 1.07-1.07 1.07-.59 0-1.07-.48-1.07-1.07V3.55c0-.59.48-1.07 1.07-1.07zM15.24 6.59c.59 0 1.07.48 1.07 1.07v9.63c0 .59-.48 1.07-1.07 1.07-.59 0-1.07-.48-1.07-1.07V7.66c0-.59.48-1.07 1.07-1.07z"
+                        className="fill-[#25F4EE]"
+                      />
+                      <title>TikTok</title>
                     </svg>
                   </a>
 
