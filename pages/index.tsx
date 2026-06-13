@@ -164,8 +164,8 @@ export default function Home() {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-6 gap-3 md:gap-4 auto-rows-min"
           >
-            {/* Profile Card - Spans 2 cols */}
-            <motion.div variants={itemVariants} className="bento-spotlight md:col-span-2">
+            {/* Profile Card - Spans 4 cols */}
+            <motion.div variants={itemVariants} className="bento-spotlight md:col-span-4">
               <div className="bento-card flex flex-col items-center gap-4 p-5 sm:p-6">
                 {/* Visitor Stats */}
                 <div className="self-start">
@@ -252,20 +252,30 @@ export default function Home() {
 
             {/* Discord Status Card - Spans 2 cols */}
             <motion.div variants={itemVariants} className="md:col-span-2">
-              <div className="bento-card h-full">
+              <div className="bento-card h-full flex flex-col justify-between">
                 <DiscordStatus />
+              </div>
+            </motion.div>
+
+            {/* Projects - Spans 4 cols */}
+            <motion.div variants={itemVariants} className="md:col-span-4">
+              <div className="bento-card h-full">
+                <Projects />
               </div>
             </motion.div>
 
             {/* Social Links Card - Spans 2 cols */}
             <motion.div variants={itemVariants} className="md:col-span-2">
-              <div className="bento-card flex flex-col gap-2.5">
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
+              <div className="bento-card flex flex-col gap-3 h-full justify-between">
+                <div className="flex flex-col gap-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
                     Social Links
                   </p>
+                  <p className="text-[11px] text-[var(--text-secondary)]">
+                    Connect with me across different platforms.
+                  </p>
                 </div>
-                <div className="grid grid-cols-5 gap-1.5">
+                <div className="grid grid-cols-5 gap-2 pt-2 border-t border-[var(--card-border)] border-dashed">
                   <a
                     rel="noopener noreferrer nofollow"
                     target="_blank"
@@ -273,7 +283,7 @@ export default function Home() {
                     className="social-link"
                     title="Instagram"
                   >
-                    <FiInstagram className="h-3.5 w-3.5 text-pink-400" />
+                    <FiInstagram className="h-4 w-4 text-pink-500" />
                   </a>
 
                   <a
@@ -283,7 +293,7 @@ export default function Home() {
                     className="social-link"
                     title="TikTok"
                   >
-                    <SiTiktok className="h-3 w-3 text-[var(--text-primary)]" />
+                    <SiTiktok className="h-4 w-4 text-[var(--text-primary)]" />
                   </a>
 
                   <a
@@ -293,7 +303,7 @@ export default function Home() {
                     className="social-link"
                     title="Spotify"
                   >
-                    <SiSpotify className="h-3.5 w-3.5 text-emerald-400" />
+                    <SiSpotify className="h-4 w-4 text-emerald-500" />
                   </a>
 
                   <a
@@ -303,7 +313,7 @@ export default function Home() {
                     className="social-link"
                     title="Pinterest"
                   >
-                    <SiPinterest className="h-3.5 w-3.5 text-red-500" />
+                    <SiPinterest className="h-4 w-4 text-red-500" />
                   </a>
 
                   <a
@@ -313,7 +323,7 @@ export default function Home() {
                     className="social-link"
                     title="Discord"
                   >
-                    <SiDiscord className="h-3.5 w-3.5 text-indigo-400" />
+                    <SiDiscord className="h-4 w-4 text-indigo-500" />
                   </a>
                 </div>
               </div>
@@ -434,94 +444,91 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* Projects - Spans 3 cols */}
-            <motion.div variants={itemVariants} className="md:col-span-3">
-              <div className="bento-card">
-                <Projects />
-              </div>
-            </motion.div>
-
-            {/* Music Page Link - Spans 3 cols */}
-            <motion.div variants={itemVariants} className="md:col-span-3">
-              <Link href="/music">
-                <div
-                  className="bento-card flex items-center justify-between gap-4 cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
+            {/* Stacked Links - Spans 3 cols */}
+            <div className="flex flex-col gap-3 md:col-span-3">
+              {/* Music Page Link */}
+              <motion.div variants={itemVariants} className="flex-1">
+                <Link href="/music">
+                  <div
+                    className="bento-card flex items-center justify-between gap-4 cursor-pointer group h-full"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0"
+                        style={{
+                          background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                          border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
+                        }}
+                      >
+                        <FiMusic className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+                          Music Library
+                        </p>
+                        <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                          Explore my top tracks and what&apos;s playing now
+                        </p>
+                      </div>
+                    </div>
                     <div
-                      className="flex h-10 w-10 items-center justify-center rounded-xl"
+                      className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 group-hover:scale-110 flex-shrink-0"
                       style={{
-                        background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
-                        border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
+                        background: 'color-mix(in srgb, var(--accent) 10%, transparent)',
                       }}
                     >
-                      <FiMusic className="h-5 w-5" style={{ color: 'var(--accent)' }} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
-                        Music Library
-                      </p>
-                      <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
-                        Explore my top tracks and what&apos;s playing now
-                      </p>
+                      <svg className="w-4 h-4" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
                   </div>
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 group-hover:scale-110"
-                    style={{
-                      background: 'color-mix(in srgb, var(--accent) 10%, transparent)',
-                    }}
-                  >
-                    <svg className="w-4 h-4" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
+                </Link>
+              </motion.div>
 
-            {/* GitHub Card - Spans 3 cols */}
-            <motion.div variants={itemVariants} className="md:col-span-3">
-              <a
-                href="https://github.com/abyn365"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <div
-                  className="bento-card flex items-center justify-between gap-4 cursor-pointer group"
+              {/* GitHub Card */}
+              <motion.div variants={itemVariants} className="flex-1">
+                <a
+                  href="https://github.com/abyn365"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block h-full"
                 >
-                  <div className="flex items-center gap-3">
+                  <div
+                    className="bento-card flex items-center justify-between gap-4 cursor-pointer group h-full"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0"
+                        style={{
+                          background: 'color-mix(in srgb, var(--text-primary) 6%, transparent)',
+                          border: '1px solid var(--card-border)',
+                        }}
+                      >
+                        <FiGithub className="h-5 w-5 text-[var(--text-primary)]" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+                          GitHub
+                        </p>
+                        <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                          Check out my open source work @abyn365
+                        </p>
+                      </div>
+                    </div>
                     <div
-                      className="flex h-10 w-10 items-center justify-center rounded-xl"
+                      className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 group-hover:scale-110 flex-shrink-0"
                       style={{
                         background: 'color-mix(in srgb, var(--text-primary) 6%, transparent)',
-                        border: '1px solid var(--card-border)',
                       }}
                     >
-                      <FiGithub className="h-5 w-5 text-[var(--text-primary)]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
-                        GitHub
-                      </p>
-                      <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
-                        Check out my open source work @abyn365
-                      </p>
+                      <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
                     </div>
                   </div>
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 group-hover:scale-110"
-                    style={{
-                      background: 'color-mix(in srgb, var(--text-primary) 6%, transparent)',
-                    }}
-                  >
-                    <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </div>
-                </div>
-              </a>
-            </motion.div>
+                </a>
+              </motion.div>
+            </div>
           </motion.div>
 
           {/* Footer */}

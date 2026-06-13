@@ -251,12 +251,35 @@ const DiscordStatus: NextComponentType = () => {
     }),
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="w-full h-full flex flex-col justify-between animate-pulse">
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-xl bg-zinc-300 dark:bg-zinc-800 flex-shrink-0" />
+          <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+            <div className="h-3 bg-zinc-200 dark:bg-zinc-900 rounded w-1/4" />
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-900 rounded w-3/4" />
+            <div className="h-3 bg-zinc-200 dark:bg-zinc-900 rounded w-1/2" />
+          </div>
+        </div>
+        <div className="flex items-center justify-between border-t border-[var(--card-border)] border-dashed pt-3 mt-3">
+          <div className="flex gap-1.5">
+            <div className="h-5 w-5 rounded bg-zinc-200 dark:bg-zinc-800" />
+            <div className="h-5 w-5 rounded bg-zinc-200 dark:bg-zinc-800" />
+          </div>
+          <div className="flex gap-1">
+            <div className="h-1.5 w-1.5 rounded-full bg-zinc-200 dark:bg-zinc-800" />
+            <div className="h-1.5 w-1.5 rounded-full bg-zinc-200 dark:bg-zinc-800" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const currentSlide = slides[activeSlide];
 
   const SlideContent = ({ slide }: { slide: Slide }) => (
-    <div className="p-2.5 sm:p-3">
+    <div className="w-full">
       <div className="relative flex items-center gap-2.5 sm:gap-3">
         {/* Image/Icon container */}
         <motion.div
@@ -299,7 +322,7 @@ const DiscordStatus: NextComponentType = () => {
           </div>
 
           {/* Title */}
-          <p className="truncate text-xs font-medium text-[var(--text-primary)] sm:text-sm leading-tight">
+          <p className="truncate text-xs font-semibold text-[var(--text-primary)] sm:text-sm leading-tight group-hover:text-[var(--accent)] transition-colors">
             {slide.title}
           </p>
 
@@ -335,26 +358,22 @@ const DiscordStatus: NextComponentType = () => {
   );
 
   return (
-    <div className="w-full">
-      <div
-        className="relative mx-auto w-full overflow-hidden rounded-xl border select-none"
-        style={{
-          borderColor: 'var(--card-border)',
-          background: 'var(--card-bg)',
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {/* Progress bar */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 z-20" style={{ backgroundColor: 'color-mix(in srgb, var(--text-primary) 8%, transparent)' }}>
-          <motion.div
-            className="h-full"
-            style={{ width: `${progress}%`, backgroundColor: 'var(--accent)' }}
-            transition={{ duration: 0.05 }}
-          />
-        </div>
+    <div
+      className="w-full h-full flex flex-col justify-between"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Progress bar */}
+      <div className="absolute top-0 left-0 right-0 h-0.5 z-20" style={{ backgroundColor: 'color-mix(in srgb, var(--text-primary) 8%, transparent)' }}>
+        <motion.div
+          className="h-full"
+          style={{ width: `${progress}%`, backgroundColor: 'var(--accent)' }}
+          transition={{ duration: 0.05 }}
+        />
+      </div>
 
-        {/* Main content */}
+      {/* Main content slider */}
+      <div className="relative mx-auto w-full overflow-hidden select-none flex-1 flex items-center">
         <AnimatePresence mode="wait" custom={direction}>
           {currentSlide.href ? (
             <motion.a
@@ -373,7 +392,7 @@ const DiscordStatus: NextComponentType = () => {
               dragElastic={0.2}
               onDragStart={() => setIsDragging(true)}
               onDragEnd={handleDragEnd}
-              className="block cursor-grab active:cursor-grabbing"
+              className="block cursor-grab active:cursor-grabbing w-full"
             >
               <SlideContent slide={currentSlide} />
             </motion.a>
@@ -391,64 +410,63 @@ const DiscordStatus: NextComponentType = () => {
               dragElastic={0.2}
               onDragStart={() => setIsDragging(true)}
               onDragEnd={handleDragEnd}
-              className="cursor-grab active:cursor-grabbing"
+              className="cursor-grab active:cursor-grabbing w-full"
             >
               <SlideContent slide={currentSlide} />
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
 
-        {/* Navigation footer */}
-        <div
-          className="relative flex items-center justify-between border-t px-2.5 py-1.5 sm:px-3"
-          style={{ borderColor: 'var(--card-border)' }}
-        >
-          {/* Navigation buttons */}
-          <div className="flex items-center gap-0.5">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => navigate(-1)}
-              className="p-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-              aria-label="Previous slide"
-              type="button"
-            >
-              <FiChevronLeft className="h-3.5 w-3.5" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => navigate(1)}
-              className="p-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-              aria-label="Next slide"
-              type="button"
-            >
-              <FiChevronRight className="h-3.5 w-3.5" />
-            </motion.button>
-          </div>
+      {/* Navigation footer */}
+      <div
+        className="relative flex items-center justify-between border-t border-[var(--card-border)] border-dashed pt-3 mt-3 sm:px-1"
+      >
+        {/* Navigation buttons */}
+        <div className="flex items-center gap-0.5">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => navigate(-1)}
+            className="p-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            aria-label="Previous slide"
+            type="button"
+          >
+            <FiChevronLeft className="h-4 w-4" />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => navigate(1)}
+            className="p-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            aria-label="Next slide"
+            type="button"
+          >
+            <FiChevronRight className="h-4 w-4" />
+          </motion.button>
+        </div>
 
-          {/* Dot indicators */}
-          <div className="flex items-center gap-1.5">
-            {slides.map((slide, index) => (
-              <motion.button
-                key={slide.key}
-                onClick={() => {
-                  setDirection(index > activeSlide ? 1 : -1);
-                  setActiveSlide(index);
-                  setProgress(0);
-                }}
-                className="relative h-1.5 rounded-full transition-all duration-300"
-                style={{
-                  width: activeSlide === index ? '1rem' : '0.375rem',
-                  backgroundColor: activeSlide === index ? 'var(--text-primary)' : 'color-mix(in srgb, var(--text-primary) 20%, transparent)',
-                }}
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
-                aria-label={`Go to ${slide.eyebrow}`}
-                type="button"
-              />
-            ))}
-          </div>
+        {/* Dot indicators */}
+        <div className="flex items-center gap-1.5">
+          {slides.map((slide, index) => (
+            <motion.button
+              key={slide.key}
+              onClick={() => {
+                setDirection(index > activeSlide ? 1 : -1);
+                setActiveSlide(index);
+                setProgress(0);
+              }}
+              className="relative h-1.5 rounded-full transition-all duration-300"
+              style={{
+                width: activeSlide === index ? '1rem' : '0.375rem',
+                backgroundColor: activeSlide === index ? 'var(--text-primary)' : 'color-mix(in srgb, var(--text-primary) 20%, transparent)',
+              }}
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+              aria-label={`Go to ${slide.eyebrow}`}
+              type="button"
+            />
+          ))}
         </div>
       </div>
     </div>
