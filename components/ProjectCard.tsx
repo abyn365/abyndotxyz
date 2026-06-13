@@ -13,44 +13,46 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
       href={project.github || project.link}
       target="_blank"
       rel="noopener noreferrer"
-      initial={{ y: 20, opacity: 0 }}
+      initial={{ y: 12, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ delay: index * 0.05, duration: 0.3 }}
-      className="bento-card group block cursor-pointer"
+      transition={{ delay: index * 0.04, duration: 0.25 }}
+      className="group block cursor-pointer rounded-xl p-3.5 transition-all duration-200 hover:-translate-y-0.5"
+      style={{
+        border: '1px solid var(--card-border)',
+        background: 'color-mix(in srgb, var(--text-primary) 3%, transparent)',
+      }}
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors truncate">
-              {project.name}
-            </h3>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-[13px] font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+            {project.name}
+          </h3>
+          <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
             {project.github && (
-              <FiGithub className="h-4 w-4 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
+              <FiGithub className="h-3.5 w-3.5 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
             )}
             {project.link && (
-              <FiExternalLink className="h-4 w-4 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
+              <FiExternalLink className="h-3.5 w-3.5 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
             )}
           </div>
         </div>
 
         {/* Description */}
-        <p className="text-xs leading-relaxed text-[var(--text-secondary)] line-clamp-2">
+        <p className="text-[11px] leading-relaxed text-[var(--text-secondary)] line-clamp-2">
           {project.description}
         </p>
 
         {/* Tech Stack */}
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           {project.tech.slice(0, 4).map((tech) => (
             <span
               key={tech}
-              className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium"
+              className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[9px] font-medium"
               style={{
-                background: 'color-mix(in srgb, var(--accent) 10%, transparent)',
+                background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
                 color: 'var(--accent)',
-                border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--accent) 15%, transparent)',
               }}
             >
               {tech}

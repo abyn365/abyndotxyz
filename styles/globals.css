@@ -9,7 +9,7 @@
   --text-primary: #18181b;
   --text-secondary: #71717a;
   --border-color: #e4e4e7;
-  --card-bg: #f4f4f5;
+  --card-bg: rgba(255, 255, 255, 0.7);
   --card-border: #e4e4e7;
   --accent: #ff6347;
   --accent-glow: rgba(255, 99, 71, 0.15);
@@ -17,12 +17,12 @@
 
 .dark {
   --bg-primary: #09090b;
-  --bg-secondary: #18181b;
+  --bg-secondary: #111113;
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --border-color: #27272a;
-  --card-bg: #18181b;
-  --card-border: #27272a;
+  --card-bg: rgba(24, 24, 27, 0.5);
+  --card-border: rgba(39, 39, 42, 0.6);
   --accent: #ff6347;
   --accent-glow: rgba(255, 99, 71, 0.15);
 }
@@ -71,13 +71,13 @@ click-spark {
   @apply relative overflow-hidden rounded-2xl border p-4 sm:p-6 transition-all duration-300;
   background: var(--card-bg);
   border-color: var(--card-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .bento-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: color-mix(in srgb, var(--accent) 20%, var(--card-border));
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--card-border));
 }
 
 .bento-card::before {
@@ -87,7 +87,7 @@ click-spark {
   border-radius: inherit;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--accent) 5%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 4%, transparent) 0%,
     transparent 50%
   );
   opacity: 0;
@@ -102,16 +102,16 @@ click-spark {
 /* Bento card variants */
 .bento-card-accent {
   @apply bento-card;
-  border-color: color-mix(in srgb, var(--accent) 30%, var(--card-border));
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--card-border));
 }
 
 .bento-card-accent::before {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--accent) 10%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 8%, transparent) 0%,
     transparent 60%
   );
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 /* Gradient borders for spotlight cards */
@@ -126,18 +126,24 @@ click-spark {
   @apply rounded-2xl;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--accent) 40%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 30%, transparent) 0%,
     transparent 40%,
-    color-mix(in srgb, var(--accent) 10%, transparent) 80%
+    color-mix(in srgb, var(--accent) 8%, transparent) 80%
   );
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: -1;
-  filter: blur(4px);
+  filter: blur(6px);
 }
 
 .bento-spotlight:hover::after {
-  opacity: 0.4;
+  opacity: 0.3;
+}
+
+/* Modified bento-card for nested use (inside spotlight) */
+.bento-spotlight .bento-card {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 /* Animations */
@@ -159,8 +165,8 @@ click-spark {
 
 /* Enhanced social icon hover */
 .social-link {
-  @apply inline-flex items-center justify-center rounded-xl p-3 transition-all duration-300;
-  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  @apply inline-flex items-center justify-center rounded-xl p-2.5 transition-all duration-300;
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
   border: 1px solid var(--card-border);
 }
 
@@ -168,7 +174,6 @@ click-spark {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   border-color: color-mix(in srgb, var(--accent) 30%, var(--card-border));
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--accent-glow);
 }
 
 /* Typing animation */
@@ -206,7 +211,7 @@ click-spark {
 /* Conditional hover effects only on non-touch devices */
 @media (hover: hover) {
   .bento-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
 
   .social-link:hover {
@@ -214,13 +219,14 @@ click-spark {
   }
 
   .bento-spotlight:hover::after {
-    opacity: 0.4;
+    opacity: 0.3;
   }
 }
 
 /* Optimize mobile performance */
 @media (max-width: 640px) {
-  .bento-card {
+  .bento-card,
+  .bento-spotlight .bento-card {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -235,15 +241,15 @@ click-spark {
 
 /* Tag / Badge styles */
 .badge-tag {
-  @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all duration-300;
-  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all duration-300;
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
   border: 1px solid var(--card-border);
   color: var(--text-secondary);
 }
 
 .badge-tag:hover {
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
   color: var(--accent);
   transform: translateY(-1px);
 }
