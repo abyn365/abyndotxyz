@@ -259,65 +259,62 @@ export default function Home() {
 
             {/* Social Links Card - Spans 2 cols */}
             <motion.div variants={itemVariants} className="md:col-span-2">
-              <div className="bento-card h-full flex flex-col justify-center">
-                <div className="flex flex-col gap-3">
+              <div className="bento-card flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
                   <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                     Social Links
                   </p>
-                  <div className="grid grid-cols-5 gap-2">
-                    <a
-                      rel="noopener noreferrer nofollow"
-                      target="_blank"
-                      href="/instagram"
-                      className="social-link"
-                      title="Instagram"
-                    >
-                      <FiInstagram className="h-4 w-4 text-pink-400" />
-                    </a>
+                </div>
+                <div className="grid grid-cols-5 gap-1.5">
+                  <a
+                    rel="noopener noreferrer nofollow"
+                    target="_blank"
+                    href="/instagram"
+                    className="social-link"
+                    title="Instagram"
+                  >
+                    <FiInstagram className="h-3.5 w-3.5 text-pink-400" />
+                  </a>
 
-                    <a
-                      rel="noopener noreferrer nofollow"
-                      target="_blank"
-                      href="/tiktok"
-                      className="social-link"
-                      title="TikTok"
-                    >
-                      <SiTiktok className="h-3.5 w-3.5 text-[var(--text-primary)]" />
-                    </a>
+                  <a
+                    rel="noopener noreferrer nofollow"
+                    target="_blank"
+                    href="/tiktok"
+                    className="social-link"
+                    title="TikTok"
+                  >
+                    <SiTiktok className="h-3 w-3 text-[var(--text-primary)]" />
+                  </a>
 
-                    <a
-                      rel="noopener noreferrer nofollow"
-                      target="_blank"
-                      href="/spotify"
-                      className="social-link"
-                      title="Spotify"
-                    >
-                      <SiSpotify className="h-4 w-4 text-emerald-400" />
-                    </a>
+                  <a
+                    rel="noopener noreferrer nofollow"
+                    target="_blank"
+                    href="/spotify"
+                    className="social-link"
+                    title="Spotify"
+                  >
+                    <SiSpotify className="h-3.5 w-3.5 text-emerald-400" />
+                  </a>
 
-                    <a
-                      rel="noopener noreferrer nofollow"
-                      target="_blank"
-                      href="/pinterest"
-                      className="social-link"
-                      title="Pinterest"
-                    >
-                      <SiPinterest className="h-4 w-4 text-red-500" />
-                    </a>
+                  <a
+                    rel="noopener noreferrer nofollow"
+                    target="_blank"
+                    href="/pinterest"
+                    className="social-link"
+                    title="Pinterest"
+                  >
+                    <SiPinterest className="h-3.5 w-3.5 text-red-500" />
+                  </a>
 
-                    <a
-                      rel="noopener noreferrer nofollow"
-                      target="_blank"
-                      href="/discord"
-                      className="social-link"
-                      title="Discord"
-                    >
-                      <SiDiscord className="h-4 w-4 text-indigo-400" />
-                    </a>
-                  </div>
-                  <p className="text-[9px] text-center text-[var(--text-secondary)]">
-                    {username || 'user'} · {mounted ? new Date().getFullYear() : '----'}
-                  </p>
+                  <a
+                    rel="noopener noreferrer nofollow"
+                    target="_blank"
+                    href="/discord"
+                    className="social-link"
+                    title="Discord"
+                  >
+                    <SiDiscord className="h-3.5 w-3.5 text-indigo-400" />
+                  </a>
                 </div>
               </div>
             </motion.div>
