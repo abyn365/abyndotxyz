@@ -1,4 +1,5 @@
 module.exports = {
+  darkMode: 'class',
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
@@ -6,8 +7,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        banner: "#c5a78b", // also for below tags (keep the contrast ratio in mind)
-        primary: "#121212", // Dont change this one
+        banner: "#c5a78b",
+        primary: "#121212",
+        surface: {
+          light: '#ffffff',
+          dark: '#09090b',
+        },
+        card: {
+          light: '#f4f4f5',
+          dark: '#18181b',
+        },
+        border: {
+          light: '#e4e4e7',
+          dark: '#27272a',
+        }
       },
       fontFamily: {
         jost: ["Jost", "sans-serif"],
@@ -15,6 +28,20 @@ module.exports = {
       },
       screens: {
         custom: "400px",
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.5s ease-out',
+        'slide-up': 'slideUp 0.5s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
     },
   },
