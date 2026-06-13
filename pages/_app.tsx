@@ -4,6 +4,8 @@ import { Analytics } from "@vercel/analytics/react";
 import { NextSeo } from "next-seo";
 import Head from "next/head";
 import Script from "next/script";
+import { ThemeProvider } from "../components/ThemeProvider";
+import ThemeToggle from "../components/ThemeToggle";
 
 import "../styles/globals.css";
 import "@fontsource/jost/400.css";
@@ -36,86 +38,89 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    <>
-      {/* Google Analytics */}
-      <Script
-        strategy="lazyOnload"
-        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}`}
-      />
-      <Script id="google-analytics" strategy="lazyOnload">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}', {
-            page_path: window.location.pathname,
-          });
-        `}
-      </Script>
-
-      <Analytics />
-
-      {/* ================= SEO & OPEN GRAPH ================= */}
-      <NextSeo
-        title="abyn | biolink"
-        description="Abyn's biolink."
-        canonical="https://abyn.xyz"
-        openGraph={{
-          type: "website",
-          locale: "en_US",
-          url: "https://abyn.xyz",
-          siteName: "abyn | biolink",
-          title: "abyn | biolink",
-          description:
-            "Abyn's biolink.",
-          images: [
-            {
-              url: "https://abyn.xyz/banner.png",
-              width: 1200,
-              height: 630,
-              alt: "abyn | biolink",
-              type: "image/gif",
-            },
-          ],
-        }}
-        twitter={{
-          cardType: "summary_large_image",
-          handle: "@abyn_1",
-          site: "@abyn_1",
-        }}
-        additionalMetaTags={[
-          {
-            name: "keywords",
-            content:
-              "abyn, biolink, software developer, cloud developer, portfolio, web developer, programming, coding",
-          },
-          {
-            name: "author",
-            content: "abyn",
-          },
-          {
-            name: "theme-color",
-            content: "#000000",
-          },
-        ]}
-      />
-
-      {/* ======= HARD FALLBACK (IMPORTANT FOR WHATSAPP) ======= */}
-      <Head>
-        <link rel="icon" type="image/png" href="/favicon.png" />
-
-        <meta property="og:title" content="abyn | biolink" />
-        <meta
-          property="og:description"
-          content="Abyn's biolink."
+    <ThemeProvider>
+      <>
+        {/* Google Analytics */}
+        <Script
+          strategy="lazyOnload"
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}`}
         />
-        <meta property="og:image" content="https://abyn.xyz/banner.png" />
-        <meta property="og:url" content="https://abyn.xyz" />
-        <meta property="og:type" content="website" />
-      </Head>
+        <Script id="google-analytics" strategy="lazyOnload">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}', {
+              page_path: window.location.pathname,
+            });
+          `}
+        </Script>
 
-      <Component {...pageProps} />
-    </>
+        <Analytics />
+
+        {/* ================= SEO & OPEN GRAPH ================= */}
+        <NextSeo
+          title="abyn | biolink"
+          description="Abyn's biolink."
+          canonical="https://abyn.xyz"
+          openGraph={{
+            type: "website",
+            locale: "en_US",
+            url: "https://abyn.xyz",
+            siteName: "abyn | biolink",
+            title: "abyn | biolink",
+            description:
+              "Abyn's biolink.",
+            images: [
+              {
+                url: "https://abyn.xyz/banner.png",
+                width: 1200,
+                height: 630,
+                alt: "abyn | biolink",
+                type: "image/gif",
+              },
+            ],
+          }}
+          twitter={{
+            cardType: "summary_large_image",
+            handle: "@abyn_1",
+            site: "@abyn_1",
+          }}
+          additionalMetaTags={[
+            {
+              name: "keywords",
+              content:
+                "abyn, biolink, software developer, cloud developer, portfolio, web developer, programming, coding",
+            },
+            {
+              name: "author",
+              content: "abyn",
+            },
+            {
+              name: "theme-color",
+              content: "#000000",
+            },
+          ]}
+        />
+
+        {/* ======= HARD FALLBACK (IMPORTANT FOR WHATSAPP) ======= */}
+        <Head>
+          <link rel="icon" type="image/png" href="/favicon.png" />
+
+          <meta property="og:title" content="abyn | biolink" />
+          <meta
+            property="og:description"
+            content="Abyn's biolink."
+          />
+          <meta property="og:image" content="https://abyn.xyz/banner.png" />
+          <meta property="og:url" content="https://abyn.xyz" />
+          <meta property="og:type" content="website" />
+        </Head>
+
+        <Component {...pageProps} />
+        <ThemeToggle />
+      </>
+    </ThemeProvider>
   );
 }
 

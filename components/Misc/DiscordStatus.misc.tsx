@@ -35,8 +35,6 @@ type Slide = {
   image: string | null;
   href?: string;
   accentColor: string;
-  bgColor: string;
-  borderColor: string;
   isPlaying?: boolean;
   progressMs?: number;
   durationMs?: number;
@@ -172,8 +170,7 @@ const DiscordStatus: NextComponentType = () => {
               : 'Currently idle',
         image: status?.activity?.image || null,
         accentColor: 'text-indigo-400',
-        bgColor: 'from-indigo-500/[0.03] via-indigo-500/[0.02] to-transparent',
-        borderColor: 'border-indigo-500/20'
+        isPlaying: false,
       },
       {
         key: 'spotify',
@@ -187,16 +184,14 @@ const DiscordStatus: NextComponentType = () => {
         image: nowPlaying.isPlaying ? nowPlaying.albumImageUrl || null : null,
         href: nowPlaying.isPlaying ? nowPlaying.songUrl : undefined,
         accentColor: 'text-emerald-400',
-        bgColor: 'from-emerald-500/[0.03] via-emerald-500/[0.02] to-transparent',
-        borderColor: 'border-emerald-500/20',
         isPlaying: nowPlaying.isPlaying,
         progressMs: songProgress,
-        durationMs: nowPlaying.durationMs
+        durationMs: nowPlaying.durationMs,
       }
     ];
   }, [status, nowPlaying, songProgress]);
 
-  const AUTOPLAY_INTERVAL = 10000; // Changed to 10 seconds
+  const AUTOPLAY_INTERVAL = 10000;
 
   useEffect(() => {
     if (isHovered || isDragging) {
@@ -240,24 +235,20 @@ const DiscordStatus: NextComponentType = () => {
     enter: (dir: number) => ({
       x: dir > 0 ? 200 : -200,
       opacity: 0,
-      scale: 0.98
+      scale: 0.98,
     }),
     center: {
       x: 0,
       opacity: 1,
       scale: 1,
-      transition: {
-        duration: 0.35
-      }
+      transition: { duration: 0.35 },
     },
     exit: (dir: number) => ({
       x: dir > 0 ? -200 : 200,
       opacity: 0,
       scale: 0.98,
-      transition: {
-        duration: 0.35
-      }
-    })
+      transition: { duration: 0.35 },
+    }),
   };
 
   if (loading) return null;
@@ -265,10 +256,10 @@ const DiscordStatus: NextComponentType = () => {
   const currentSlide = slides[activeSlide];
 
   const SlideContent = ({ slide }: { slide: Slide }) => (
-    <div className={`relative bg-gradient-to-br ${slide.bgColor} p-2.5 sm:p-3`}>
+    <div className="p-2.5 sm:p-3">
       <div className="relative flex items-center gap-2.5 sm:gap-3">
-        {/* Image/Icon container - smaller and proportional */}
-        <motion.div 
+        {/* Image/Icon container */}
+        <motion.div
           className="relative flex-shrink-0"
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.2 }}
@@ -276,72 +267,66 @@ const DiscordStatus: NextComponentType = () => {
           {slide.image ? (
             <Image
               src={slide.image}
-              width={40}
-              height={40}
+              width={44}
+              height={44}
               alt={slide.title}
-              className="h-10 w-10 rounded-md border border-zinc-700/30 object-cover sm:h-11 sm:w-11"
+              className="h-11 w-11 rounded-xl border border-[var(--card-border)] object-cover sm:h-12 sm:w-12"
               unoptimized
               draggable={false}
             />
           ) : (
-            <div className={`flex h-10 w-10 items-center justify-center rounded-md border ${slide.borderColor} bg-zinc-800/50 sm:h-11 sm:w-11`}>
-              <FiDisc className={`h-4 w-4 ${slide.accentColor}`} />
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-xl border sm:h-12 sm:w-12"
+              style={{
+                background: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                borderColor: 'var(--card-border)',
+              }}
+            >
+              <FiDisc className={`h-5 w-5 ${slide.accentColor}`} />
             </div>
           )}
         </motion.div>
 
-        {/* Text content - compact */}
+        {/* Text content */}
         <div className="min-w-0 flex-1 select-none">
-          {/* Eyebrow with visualizer for Spotify */}
+          {/* Eyebrow with visualizer */}
           <div className="mb-0.5 flex items-center gap-1.5 h-4">
-            <span className={`${slide.accentColor}`}>
-              {slide.icon}
-            </span>
-            <span className="text-[9px] font-medium uppercase tracking-wider text-zinc-500">
+            <span className={slide.accentColor}>{slide.icon}</span>
+            <span className="text-[9px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
               {slide.eyebrow}
             </span>
-            {/* Visualizer - always show placeholder for consistent height */}
             <Visualizer isPlaying={slide.key === 'spotify' && slide.isPlaying} />
           </div>
 
           {/* Title */}
-          <p className="truncate text-xs font-medium text-white sm:text-sm leading-tight">
+          <p className="truncate text-xs font-medium text-[var(--text-primary)] sm:text-sm leading-tight">
             {slide.title}
           </p>
 
-          {/* Subtitle with progress bar for Spotify, or placeholder for Discord */}
+          {/* Subtitle with progress bar for Spotify */}
           {slide.key === 'spotify' && slide.isPlaying && slide.durationMs ? (
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="truncate text-[11px] text-zinc-400 flex-shrink-0 max-w-[30%]">
+              <span className="truncate text-[11px] text-[var(--text-secondary)] flex-shrink-0 max-w-[30%]">
                 {slide.subtitle}
               </span>
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                <div className="relative h-1 flex-1 rounded-full bg-zinc-700/50 overflow-hidden">
+                <div className="relative h-1 flex-1 rounded-full overflow-hidden" style={{ backgroundColor: 'color-mix(in srgb, var(--text-primary) 10%, transparent)' }}>
                   <motion.div
-                    className="h-full bg-emerald-500/70 rounded-full"
-                    style={{ 
-                      width: `${Math.min((songProgress / slide.durationMs) * 100, 100)}%` 
-                    }}
+                    className="h-full rounded-full progress-active"
+                    style={{ backgroundColor: 'var(--accent)', width: `${Math.min((songProgress / slide.durationMs) * 100, 100)}%` }}
                     transition={{ duration: 0.3 }}
                   />
                 </div>
-                <span className="text-[9px] text-zinc-500 tabular-nums flex-shrink-0">
+                <span className="text-[9px] text-[var(--text-secondary)] tabular-nums flex-shrink-0">
                   {formatTime(songProgress)}/{formatTime(slide.durationMs)}
                 </span>
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-2 mt-0.5">
-              <p className="truncate text-[11px] text-zinc-400">
+              <p className="truncate text-[11px] text-[var(--text-secondary)]">
                 {slide.subtitle}
               </p>
-              {/* Placeholder for consistent height */}
-              <div className="flex items-center gap-1.5 min-w-0 flex-1 invisible">
-                <div className="relative h-1 flex-1 rounded-full bg-zinc-700/50 overflow-hidden">
-                  <div className="h-full w-0 rounded-full" />
-                </div>
-                <span className="text-[9px] text-zinc-500 tabular-nums flex-shrink-0">0:00/0:00</span>
-              </div>
             </div>
           )}
         </div>
@@ -352,20 +337,24 @@ const DiscordStatus: NextComponentType = () => {
   return (
     <div className="w-full">
       <div
-        className="relative mx-auto w-full overflow-hidden rounded-xl border border-zinc-700/30 bg-transparent shadow-lg select-none"
+        className="relative mx-auto w-full overflow-hidden rounded-xl border select-none"
+        style={{
+          borderColor: 'var(--card-border)',
+          background: 'var(--card-bg)',
+        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Progress bar */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-zinc-800/50 z-20">
+        <div className="absolute top-0 left-0 right-0 h-0.5 z-20" style={{ backgroundColor: 'color-mix(in srgb, var(--text-primary) 8%, transparent)' }}>
           <motion.div
-            className="h-full bg-zinc-500/50"
-            style={{ width: `${progress}%` }}
+            className="h-full"
+            style={{ width: `${progress}%`, backgroundColor: 'var(--accent)' }}
             transition={{ duration: 0.05 }}
           />
         </div>
 
-        {/* Main content with AnimatePresence for smooth transitions */}
+        {/* Main content */}
         <AnimatePresence mode="wait" custom={direction}>
           {currentSlide.href ? (
             <motion.a
@@ -409,55 +398,56 @@ const DiscordStatus: NextComponentType = () => {
           )}
         </AnimatePresence>
 
-        {/* Navigation footer - slimmer */}
-        <div className="relative border-t border-zinc-800/30 bg-transparent px-2.5 py-1.5 sm:px-3">
-          <div className="flex items-center justify-between">
-            {/* Navigation buttons */}
-            <div className="flex items-center gap-0.5">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => navigate(-1)}
-                className="p-1 rounded text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800/30 transition-colors"
-                aria-label="Previous slide"
-                type="button"
-              >
-                <FiChevronLeft className="h-3.5 w-3.5" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => navigate(1)}
-                className="p-1 rounded text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800/30 transition-colors"
-                aria-label="Next slide"
-                type="button"
-              >
-                <FiChevronRight className="h-3.5 w-3.5" />
-              </motion.button>
-            </div>
+        {/* Navigation footer */}
+        <div
+          className="relative flex items-center justify-between border-t px-2.5 py-1.5 sm:px-3"
+          style={{ borderColor: 'var(--card-border)' }}
+        >
+          {/* Navigation buttons */}
+          <div className="flex items-center gap-0.5">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate(-1)}
+              className="p-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              aria-label="Previous slide"
+              type="button"
+            >
+              <FiChevronLeft className="h-3.5 w-3.5" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate(1)}
+              className="p-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              aria-label="Next slide"
+              type="button"
+            >
+              <FiChevronRight className="h-3.5 w-3.5" />
+            </motion.button>
+          </div>
 
-            {/* Dot indicators - smaller */}
-            <div className="flex items-center gap-1.5">
-              {slides.map((slide, index) => (
-                <motion.button
-                  key={slide.key}
-                  onClick={() => {
-                    setDirection(index > activeSlide ? 1 : -1);
-                    setActiveSlide(index);
-                    setProgress(0);
-                  }}
-                  className={`relative h-1.5 rounded-full transition-all duration-300 ${
-                    activeSlide === index 
-                      ? 'w-4 bg-zinc-400' 
-                      : 'w-1.5 bg-zinc-700 hover:bg-zinc-600'
-                  }`}
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label={`Go to ${slide.eyebrow}`}
-                  type="button"
-                />
-              ))}
-            </div>
+          {/* Dot indicators */}
+          <div className="flex items-center gap-1.5">
+            {slides.map((slide, index) => (
+              <motion.button
+                key={slide.key}
+                onClick={() => {
+                  setDirection(index > activeSlide ? 1 : -1);
+                  setActiveSlide(index);
+                  setProgress(0);
+                }}
+                className="relative h-1.5 rounded-full transition-all duration-300"
+                style={{
+                  width: activeSlide === index ? '1rem' : '0.375rem',
+                  backgroundColor: activeSlide === index ? 'var(--text-primary)' : 'color-mix(in srgb, var(--text-primary) 20%, transparent)',
+                }}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label={`Go to ${slide.eyebrow}`}
+                type="button"
+              />
+            ))}
           </div>
         </div>
       </div>

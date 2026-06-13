@@ -41,42 +41,40 @@ export default function MusicEmbed() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-zinc-900">
-      <div className="fixed inset-0 z-0 sm:block">
+    <div className="relative min-h-screen w-full overflow-hidden">
+      <div className="fixed inset-0 z-0">
         <Squares
-          speed={0.2}
+          speed={0.15}
           squareSize={40}
           direction="diagonal"
-          borderColor="rgba(255,255,255,0.1)"
-          hoverFillColor="rgba(255, 99, 71, 0.1)"
         />
       </div>
 
       <div className="relative z-10 min-h-screen w-full px-3 py-4 sm:px-6 sm:py-8">
-        <div className="mx-auto w-full max-w-6xl">
+        <div className="mx-auto w-full max-w-5xl">
           <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6">
             <Link href="/" passHref legacyBehavior>
-              <a className="inline-flex items-center text-zinc-400 transition-colors hover:text-white">
+              <a className="inline-flex items-center text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
                 <FiChevronLeft size={20} className="sm:h-6 sm:w-6" />
                 <span className="ml-2 text-sm sm:text-base">Back</span>
               </a>
             </Link>
-            <h1 className="text-right text-lg font-bold text-white sm:text-2xl">
+            <h1 className="text-right text-lg font-bold text-[var(--text-primary)] sm:text-2xl">
               <span className="inline-flex items-center gap-2 sm:gap-3">
-                <FiMusic className="h-5 w-5 text-[#ff6347] sm:h-6 sm:w-6" />
+                <FiMusic className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'var(--accent)' }} />
                 My Music
               </span>
             </h1>
           </div>
 
-          <div className="rounded-2xl border border-zinc-800/70 bg-zinc-900/70 p-3 shadow-xl sm:p-5">
+          <div className="bento-card">
             {/* Activity Carousel */}
             <div className="mb-4 sm:mb-5">
               <DiscordStatus />
             </div>
 
             <div className="mb-4 sm:mb-5">
-              <h2 className="text-sm font-semibold text-white sm:text-base">Top Tracks</h2>
+              <h2 className="text-sm font-semibold text-[var(--text-primary)] sm:text-base">Top Tracks</h2>
             </div>
 
             <motion.div
@@ -85,16 +83,29 @@ export default function MusicEmbed() {
               transition={{ duration: 0.25 }}
               className="mb-5 flex justify-center sm:mb-6"
             >
-              <div className="flex gap-1 rounded-full border border-white/10 bg-white/5 p-1">
+              <div
+                className="inline-flex rounded-full p-0.5 gap-0.5"
+                style={{
+                  background: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
+                  border: '1px solid var(--card-border)',
+                }}
+              >
                 {(["short", "medium", "long"] as Period[]).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPeriod(p)}
-                    className={`rounded-full px-3 py-1.5 text-xs transition sm:px-4 ${
+                    className="rounded-full px-3 py-1.5 text-xs transition sm:px-4 font-medium"
+                    style={
                       period === p
-                        ? "bg-[#ff6347] text-white"
-                        : "text-zinc-400 hover:text-zinc-200"
-                    }`}
+                        ? { background: 'var(--accent)', color: '#fff' }
+                        : { color: 'var(--text-secondary)' }
+                    }
+                    onMouseEnter={(e) => {
+                      if (period !== p) e.currentTarget.style.color = 'var(--text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (period !== p) e.currentTarget.style.color = 'var(--text-secondary)';
+                    }}
                   >
                     {p === "short" ? "1M" : p === "medium" ? "6M" : "1Y"}
                   </button>
@@ -104,7 +115,10 @@ export default function MusicEmbed() {
 
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="text-sm text-zinc-400">Loading tracks...</div>
+                <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                  <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent)' }} />
+                  Loading tracks...
+                </div>
               </div>
             ) : tracks.length > 0 ? (
               <motion.div
@@ -120,20 +134,27 @@ export default function MusicEmbed() {
                   return (
                     <motion.div
                       key={track.songUrl}
-                      initial={{ y: 20, opacity: 0 }}
+                      initial={{ y: 16, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: index * 0.03, duration: 0.25 }}
-                      className="group overflow-hidden rounded-xl border border-zinc-700/60 bg-zinc-900/80 shadow-[0_8px_20px_rgba(0,0,0,0.25)] transition-all hover:-translate-y-0.5 hover:border-zinc-500/70"
+                      className="group overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-0.5"
+                      style={{
+                        border: '1px solid var(--card-border)',
+                        background: 'color-mix(in srgb, var(--text-primary) 3%, transparent)',
+                      }}
                     >
-                      <div className="flex items-center justify-between border-b border-zinc-800/80 px-3 py-2">
-                        <p className="truncate text-xs font-medium text-zinc-300">{track.title}</p>
-                        <span className="text-[10px] uppercase tracking-wide text-zinc-500">Spotify</span>
+                      <div
+                        className="flex items-center justify-between border-b px-3 py-2"
+                        style={{ borderColor: 'var(--card-border)' }}
+                      >
+                        <p className="truncate text-xs font-medium text-[var(--text-primary)]">{track.title}</p>
+                        <span className="text-[9px] uppercase tracking-wide text-[var(--text-secondary)]">Spotify</span>
                       </div>
                       <iframe
                         style={{ borderRadius: "0 0 12px 12px" }}
                         src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=1`}
                         width="100%"
-                        height="180"
+                        height="152"
                         frameBorder="0"
                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                         loading="lazy"
@@ -144,7 +165,7 @@ export default function MusicEmbed() {
               </motion.div>
             ) : (
               <div className="flex items-center justify-center py-12">
-                <div className="text-sm text-zinc-400">No tracks found</div>
+                <div className="text-xs text-[var(--text-secondary)]">No tracks found</div>
               </div>
             )}
           </div>
