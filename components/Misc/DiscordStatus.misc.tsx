@@ -126,8 +126,8 @@ const TiltCard = ({ slide }: { slide: Slide }) => {
         transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
         transition: hovered ? 'none' : 'transform 0.4s ease-out, box-shadow 0.3s ease',
         boxShadow: hovered
-          ? `0 8px 30px color-mix(in srgb, var(--accent) 12%, transparent)`
-          : 'none',
+          ? `0 8px 30px color-mix(in srgb, var(--accent) 12%, transparent), var(--card-shadow)`
+          : 'var(--card-shadow)',
         cursor: slide.href ? 'pointer' : 'default',
       }}
       onMouseMove={handleMouseMove}
