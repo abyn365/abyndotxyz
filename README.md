@@ -7,10 +7,18 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/abyn365/abyndotxyz?label=Stars&style=flat-square">
-  <img src="https://img.shields.io/github/forks/abyn365/abyndotxyz?label=Forks&style=flat-square">
-  <img src="https://img.shields.io/github/license/abyn365/abyndotxyz?style=flat-square">
-  <img src="https://img.shields.io/github/last-commit/abyn365/abyndotxyz?style=flat-square">
+  <a href="https://github.com/abyn365/abyndotxyz/stargazers">
+    <img src="https://img.shields.io/github/stars/abyn365/abyndotxyz?style=social" alt="GitHub Stars">
+  </a>
+  <a href="https://github.com/abyn365/abyndotxyz/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/abyn365/abyndotxyz" alt="License">
+  </a>
+  <a href="https://github.com/abyn365/abyndotxyz/commits/main">
+    <img src="https://img.shields.io/github/last-commit/abyn365/abyndotxyz" alt="Last Commit">
+  </a>
+  <a href="https://github.com/abyn365/abyndotxyz">
+    <img src="https://img.shields.io/github/repo-size/abyn365/abyndotxyz" alt="Repo Size">
+  </a>
 </p>
 
 ## Preview
