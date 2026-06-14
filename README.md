@@ -3,7 +3,7 @@
 > Source code for my personal website and portfolio, powered by a custom API inspired by [personal-bio](https://github.com/lrmn7/personal-bio).
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Inter&pause=1000&center=true&vCenter=true&width=435&lines=Personal+Website;Portfolio;Built+with+Next.js" />
+  <img src="[https://readme-typing-svg.demolab.com?font=Inter&pause=1000&center=true&vCenter=true&width=435&lines=Personal+Website;Portfolio;Built+with+Next.js](https://readme-typing-svg.herokuapp.com/?font=Fira+Code&pause=1000&color=00F773&center=true&random=true&width=435&lines=Personal+website;Dev+protofolio;Open+source)" />
 </p>
 
 <p align="center">
