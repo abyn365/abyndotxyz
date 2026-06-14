@@ -4,15 +4,16 @@
 
 :root {
   --click-spark-color: #ff6347;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f8f8;
-  --text-primary: #000000;
-  --text-secondary: #666666;
-  --border-color: #e0e0e0;
-  --card-bg: rgba(255, 255, 255, 0.95);
-  --card-border: #e0e0e0;
-  --accent: #ff6347;
-  --accent-glow: rgba(255, 99, 71, 0.15);
+  --bg-primary: #fbfaf7;
+  --bg-secondary: #f5f1ea;
+  --text-primary: #26211c;
+  --text-secondary: #746d65;
+  --border-color: rgba(80, 70, 58, 0.14);
+  --card-bg: rgba(255, 253, 249, 0.72);
+  --card-border: rgba(80, 70, 58, 0.14);
+  --accent: #e85d42;
+  --accent-glow: rgba(232, 93, 66, 0.1);
+  --card-shadow: 0 1px 2px rgba(80, 70, 58, 0.04);
 }
 
 .dark {
@@ -25,6 +26,7 @@
   --card-border: rgba(39, 39, 42, 0.6);
   --accent: #ff6347;
   --accent-glow: rgba(255, 99, 71, 0.15);
+  --card-shadow: none;
 }
 
 body {
@@ -71,14 +73,15 @@ click-spark {
   @apply relative overflow-hidden rounded-2xl border p-4 sm:p-6 transition-all duration-300;
   background: var(--card-bg);
   border-color: var(--card-border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .bento-card:hover {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--accent) 25%, var(--card-border));
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 8%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
 .bento-card::before {
@@ -88,7 +91,7 @@ click-spark {
   border-radius: inherit;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--accent) 4%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 2.5%, transparent) 0%,
     transparent 50%
   );
   opacity: 0;

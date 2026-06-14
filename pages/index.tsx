@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { FiGithub, FiInstagram, FiExternalLink, FiMusic } from "react-icons/fi";
+import { FiGithub, FiInstagram, FiMusic } from "react-icons/fi";
 
 // Calculate age with decimal precision
 const calculateAge = (birthDate: string): number => {
@@ -34,6 +34,7 @@ import {
 } from "react-icons/si";
 import Projects from "../components/Projects";
 import VisitorStats from "../components/Misc/VisitorStats.misc";
+import DiscordStatus from "../components/Misc/DiscordStatus.misc";
 import TimeWeather from "../components/TimeWeather";
 import Squares from "../components/Squares";
 
@@ -46,22 +47,10 @@ type CustomStatus = {
   state?: string;
 };
 
-const bio = "The biolink of a dumbass 🗿";
-
 const getDiscordAvatar = (userId: string, avatarId: string) => {
   const isAnimated = avatarId.startsWith('a_');
   const extension = isAnimated ? 'gif' : 'png';
   return `https://cdn.discordapp.com/avatars/${userId}/${avatarId}.${extension}?size=256`;
-};
-
-const getStatusImage = (status: string) => {
-  const statusMap = {
-    online: 'https://cdn3.emoji.gg/emojis/1514-online-blank.png',
-    idle: 'https://cdn3.emoji.gg/emojis/5204-idle-blank.png',
-    dnd: 'https://cdn3.emoji.gg/emojis/4431-dnd-blank.png',
-    offline: 'https://cdn3.emoji.gg/emojis/6610-invisible-offline-blank.png'
-  };
-  return statusMap[status as keyof typeof statusMap] || statusMap.offline;
 };
 
 export default function Home() {
@@ -147,8 +136,8 @@ export default function Home() {
             className="mb-16"
           >
             {/* Header */}
-            <div className="flex items-start justify-between gap-6 mb-8">
-              <div className="flex-1">
+            <div className="mb-8 flex items-start justify-between gap-6 sm:gap-10">
+              <div className="min-w-0 flex-1 pt-1">
                 <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-2">
                   {username || 'Loading...'}
                 </h1>
@@ -158,13 +147,13 @@ export default function Home() {
               </div>
               {avatarUrl && (
                 <div className="flex-shrink-0">
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                  <div className="relative h-28 w-28 sm:h-36 sm:w-36">
                     <Image
-                      className="rounded-2xl border-2 border-[var(--card-border)] object-cover"
+                      className="rounded-[2rem] border border-[var(--card-border)] object-cover shadow-sm"
                       src={avatarUrl}
                       alt="profile"
                       fill
-                      sizes="(max-width: 640px) 80px, 96px"
+                      sizes="(max-width: 640px) 112px, 144px"
                       priority
                     />
                   </div>
@@ -195,14 +184,24 @@ export default function Home() {
               Hello! I'm Abyn, I'm a student with a passion for software development. I'm {age.toFixed(10)} years old
             </p>
 
-            {/* Music Button */}
-            <Link href="/music" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105"
-              style={{
-                background: 'var(--accent)',
-              }}>
-              <FiMusic className="h-4 w-4 text-white" />
-              <span className="text-sm font-medium text-white">My Music</span>
-            </Link>
+            {/* Music + live activity */}
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href="/music" className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 transition-all duration-300 hover:scale-105"
+                  style={{
+                    background: 'var(--accent)',
+                  }}>
+                  <FiMusic className="h-4 w-4 text-white" />
+                  <span className="text-sm font-medium text-white">My Music</span>
+                </Link>
+                <span className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">
+                  Live activity
+                </span>
+              </div>
+              <div className="mx-auto w-full max-w-md">
+                <DiscordStatus />
+              </div>
+            </div>
           </motion.div>
 
           {/* Projects Section */}
