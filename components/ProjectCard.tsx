@@ -22,7 +22,7 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
         className="block p-5 rounded-xl border transition-all duration-300"
         style={{
           border: '1px solid var(--card-border)',
-          background: 'color-mix(in srgb, var(--text-primary) 2%, transparent)',
+          background: 'var(--card-bg-mix)',
         }}
       >
         <div className="flex items-start justify-between gap-3 mb-3">

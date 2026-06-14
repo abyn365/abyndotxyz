@@ -155,7 +155,7 @@ export default function Home() {
                   {discordStatus && (
                     <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                       <div className="w-2 h-2 rounded-full" style={{
-                        backgroundColor: discordStatus === 'online' ? '#10b981' : discordStatus === 'idle' ? '#f59e0b' : '#ef4444'
+                        backgroundColor: discordStatus === 'online' ? '#10b981' : discordStatus === 'idle' ? '#f59e0b' : discordStatus === 'dnd' ? '#ef4444' : '#9ca3af'
                       }} />
                       <span className="capitalize">{discordStatus}</span>
                     </div>
@@ -243,7 +243,7 @@ export default function Home() {
                     rel={isExternal ? 'noopener noreferrer' : undefined}
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105"
                     style={{
-                      background: 'color-mix(in srgb, var(--text-primary) 4%, transparent)',
+                      background: 'var(--social-bg-mix)',
                       border: '1px solid var(--card-border)',
                     }}
                   >
