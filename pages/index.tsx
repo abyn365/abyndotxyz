@@ -185,7 +185,7 @@ export default function Home() {
 
             {/* Bio */}
             <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
-              Hello! I'm Abyan (/uh b−aî−a n), I'm a student with a passion for software development. I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary)]"></span> years old
+              Hello! I'm Abyan (/uh-bye-an/), I'm a student with a passion for software development. I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary)]"></span> years old
             </p>
 
             {/* Music + live activity */}
