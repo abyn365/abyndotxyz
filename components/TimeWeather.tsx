@@ -65,7 +65,7 @@ const TimeWeather = () => {
       <p ref={timeRef} className="font-medium text-[var(--text-primary)]"></p>
       {!loading && weather && (
         <p className="mt-1">
-          It's <span className="font-semibold text-[var(--text-primary)]">{weather.temperature}°F</span> with{' '}
+          It's <span className="font-semibold text-[var(--text-primary)]">{weather.temperature}°C</span> with{' '}
           <span className="text-[var(--text-secondary)]">{weather.weatherDescription.toLowerCase()}</span> in{' '}
           <span className="font-semibold text-[var(--text-primary)]">Yogyakarta</span>.
         </p>
