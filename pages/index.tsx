@@ -136,8 +136,8 @@ export default function Home() {
             className="mb-16"
           >
             {/* Header */}
-            <div className="flex items-start justify-between gap-6 mb-8">
-              <div className="flex-1">
+            <div className="mb-8 flex items-start justify-between gap-6 sm:gap-10">
+              <div className="min-w-0 flex-1 pt-1">
                 <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-2">
                   {username || 'Loading...'}
                 </h1>
@@ -147,13 +147,13 @@ export default function Home() {
               </div>
               {avatarUrl && (
                 <div className="flex-shrink-0">
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                  <div className="relative h-28 w-28 sm:h-36 sm:w-36">
                     <Image
-                      className="rounded-2xl border-2 border-[var(--card-border)] object-cover"
+                      className="rounded-[2rem] border border-[var(--card-border)] object-cover shadow-sm"
                       src={avatarUrl}
                       alt="profile"
                       fill
-                      sizes="(max-width: 640px) 80px, 96px"
+                      sizes="(max-width: 640px) 112px, 144px"
                       priority
                     />
                   </div>
@@ -198,7 +198,7 @@ export default function Home() {
                   Live activity
                 </span>
               </div>
-              <div className="max-w-xl">
+              <div className="mx-auto w-full max-w-md">
                 <DiscordStatus />
               </div>
             </div>
