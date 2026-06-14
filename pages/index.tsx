@@ -128,100 +128,88 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col">
-        <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
-          <section className="mb-14 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] lg:items-start">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="bento-card bento-spotlight p-5 sm:p-7 lg:min-h-[420px]"
-            >
-              <div className="flex flex-col gap-8">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-5">
-                  <div className="min-w-0 flex-1">
-                    <p className="mb-3 inline-flex rounded-full border border-[var(--card-border)] px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-secondary)]">
-                      Personal site
-                    </p>
-                    <h1 className="text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl lg:text-6xl">
-                      {username || 'Loading...'}
-                    </h1>
-                    <p className="mt-3 max-w-xl text-base leading-7 text-[var(--text-secondary)] sm:text-lg">
-                      Software developer, student, and builder making useful things for the web.
-                    </p>
-                  </div>
-                  {avatarUrl && (
-                    <div className="flex-shrink-0">
-                      <div className="relative h-20 w-20 sm:h-28 sm:w-28">
-                        <Image
-                          className="rounded-3xl border-2 border-[var(--card-border)] object-cover shadow-xl shadow-black/10"
-                          src={avatarUrl}
-                          alt="profile"
-                          fill
-                          sizes="(max-width: 640px) 80px, 112px"
-                          priority
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bio */}
-                <div className="space-y-4">
-                  <p className="max-w-2xl text-[var(--text-secondary)] leading-relaxed">
-                    Hello! I'm Abyn, a student with a passion for software development. I'm {age.toFixed(10)} years old.
-                  </p>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <VisitorStats />
-                    {discordStatus && (
-                      <div className="inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] bg-[color-mix(in_srgb,var(--text-primary)_4%,transparent)] px-3 py-1.5 text-sm text-[var(--text-secondary)]">
-                        <div className="h-2 w-2 rounded-full" style={{
-                          backgroundColor: discordStatus === 'online' ? '#10b981' : discordStatus === 'idle' ? '#f59e0b' : '#ef4444'
-                        }} />
-                        <span className="capitalize">{discordStatus}</span>
-                      </div>
-                    )}
+        <div className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-16"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between gap-6 mb-8">
+              <div className="flex-1">
+                <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-2">
+                  {username || 'Loading...'}
+                </h1>
+                <p className="text-lg text-[var(--text-secondary)]">
+                  Software developer & builder
+                </p>
+              </div>
+              {avatarUrl && (
+                <div className="flex-shrink-0">
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                    <Image
+                      className="rounded-2xl border-2 border-[var(--card-border)] object-cover"
+                      src={avatarUrl}
+                      alt="profile"
+                      fill
+                      sizes="(max-width: 640px) 80px, 96px"
+                      priority
+                    />
                   </div>
                 </div>
+              )}
+            </div>
 
-                <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
-                  <TimeWeather />
-                  <Link href="/music" className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-                    style={{
-                      background: 'var(--accent)',
-                    }}>
-                    <FiMusic className="h-4 w-4 text-white" />
-                    <span className="text-sm font-semibold text-white">Explore music</span>
-                  </Link>
+            {/* Stats & Status */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
+              <VisitorStats />
+              {discordStatus && (
+                <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                  <div className="w-2 h-2 rounded-full" style={{
+                    backgroundColor: discordStatus === 'online' ? '#10b981' : discordStatus === 'idle' ? '#f59e0b' : '#ef4444'
+                  }} />
+                  <span className="capitalize">{discordStatus}</span>
                 </div>
-              </div>
-            </motion.div>
+              )}
+            </div>
 
-            <motion.aside
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.08 }}
-              className="bento-card p-4 sm:p-5"
-            >
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-secondary)]">Live activity</p>
-                  <h2 className="mt-1 text-xl font-semibold text-[var(--text-primary)]">Discord & Spotify</h2>
-                </div>
-                <div className="rounded-full bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] px-3 py-1 text-xs font-medium text-[var(--accent)]">
-                  Live
-                </div>
+            {/* Time & Weather */}
+            <div className="mb-8">
+              <TimeWeather />
+            </div>
+
+            {/* Bio */}
+            <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
+              Hello! I'm Abyn, I'm a student with a passion for software development. I'm {age.toFixed(10)} years old
+            </p>
+
+            {/* Music + live activity */}
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href="/music" className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 transition-all duration-300 hover:scale-105"
+                  style={{
+                    background: 'var(--accent)',
+                  }}>
+                  <FiMusic className="h-4 w-4 text-white" />
+                  <span className="text-sm font-medium text-white">My Music</span>
+                </Link>
+                <span className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">
+                  Live activity
+                </span>
               </div>
-              <DiscordStatus />
-            </motion.aside>
-          </section>
+              <div className="max-w-xl">
+                <DiscordStatus />
+              </div>
+            </div>
+          </motion.div>
 
           {/* Projects Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-14"
+            className="mb-20"
           >
             <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-8">
               Projects
