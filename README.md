@@ -1,46 +1,50 @@
+<h1 align="center">abyndotxyz</h1>
 
-## Welcome to Bio With Spotify, the ultimate links manager!
+<p align="center">
+  My personal website and portfolio.
+  <br>
+  Built with ❤️ and powered by a custom API inspired by
+  <a href="https://github.com/lrmn7/personal-bio">lrmn7/personal-bio</a>.
+</p>
 
-> Note: This is a template, feel free to use it. And star it if you liked :P
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=600&pause=1000&center=true&vCenter=true&width=500&lines=Personal+Website;Developer+Portfolio;Open+Source+Projects" alt="Typing SVG" />
+</p>
 
-![image](/public/og-image.png)
+## Preview
 
-## Features
+<table>
+<tr>
+<td align="center">
+<b>Dark Theme</b><br><br>
+<img src="./public/Darktheme.png" alt="Dark Theme Preview" width="100%">
+</td>
+<td align="center">
+<b>Light Theme</b><br><br>
+<img src="./public/Lighttheme.png" alt="Light Theme Preview" width="100%">
+</td>
+</tr>
+</table>
 
-- Uses TypeScript, NextJS, TailwindCSS and Spotify API 😎
-- Profile Tags (To Show Your Interests ⭐ )
-- **Displays your current playing Spotify Song**
-- Fast, SEO Optimized, Responsive, Customizable **(Use your own Brand Colors)**
+> Replace the image paths above with your own screenshots.
 
+## Stats
 
-## :sparkles: [Live Demo](https://hi-lrmn.is-a.dev)
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=abyn365&show_icons=true&hide_border=true" height="160">
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=abyn365&layout=compact&hide_border=true" height="160">
+</p>
 
-- With bio-with-spotify, you can easily store and organize all your important links in one place. The app features a sleek and modern design, with customizable styling options to make it your own. (Read - [how to use it ?](https://github.com/lrmn7/personal-bio/blob/main/USING.md))
+<p align="center">
+  <img src="https://streak-stats.demolab.com?user=abyn365&hide_border=true" alt="GitHub Streak">
+</p>
 
-## Ussage
+## Metrics
 
-```sh
-git clone https://github.com/lrmn7/personal-bio.git
-```
-- Install the dependencies
+<p align="center">
+  <img src="https://github.com/abyn365/abyn365/blob/main/github-metrics.svg" alt="GitHub Metrics">
+</p>
 
-```
-npm install # for npm
-yarn install # for yarn
-pnpm install # for pnpm
-```
+## License
 
-- Start the server
-
-```
-npm run dev # for npm
-yarn dev # for yarn
-pnpm dev # for pnpm
-```
-
-# Using the template
-To use this template, read and follow the steps given in the [Using Guide](https://github.com/lrmn7/personal-bio/blob/main/USING.md)
-
-## 💌 Support Server
-
-[![DiscordBanner](https://invidget.switchblade.xyz/6EXgrmtkPX)](https://discord.gg/6EXgrmtkPX)
+MIT
