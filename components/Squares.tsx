@@ -40,8 +40,8 @@ const Squares: React.FC<SquaresProps> = ({
     return () => observer.disconnect();
   }, []);
 
-  const resolvedBorderColor = borderColor || (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(92, 78, 60, 0.035)');
-  const resolvedHoverFillColor = hoverFillColor || (isDark ? 'rgba(255, 99, 71, 0.08)' : 'rgba(232, 93, 66, 0.035)');
+  const resolvedBorderColor = borderColor || (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(24, 24, 27, 0.04)');
+  const resolvedHoverFillColor = hoverFillColor || (isDark ? 'rgba(255, 99, 71, 0.08)' : 'rgba(255, 99, 71, 0.03)');
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -94,8 +94,10 @@ const Squares: React.FC<SquaresProps> = ({
         canvas.height / 2,
         Math.sqrt(canvas.width ** 2 + canvas.height ** 2) / 2
       );
-      gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-      gradient.addColorStop(1, isDark ? "#060606" : "#fbfaf7");
+      const startColor = isDark ? "rgba(9, 9, 11, 0)" : "rgba(250, 250, 250, 0)";
+      const endColor = isDark ? "#09090b" : "#fafafa";
+      gradient.addColorStop(0, startColor);
+      gradient.addColorStop(1, endColor);
 
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);

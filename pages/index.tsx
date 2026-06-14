@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -59,17 +59,18 @@ export default function Home() {
   const [username, setUsername] = useState('');
   const [discordStatus, setDiscordStatus] = useState('');
   const [mounted, setMounted] = useState(false);
-  const [age, setAge] = useState(0);
+  const ageRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    // Update age calculation every second for decimal precision
-    const updateAge = () => {
-      const birthDate = '08/04/2009'; // Format: DD/MM/YYYY
-      setAge(calculateAge(birthDate));
+    // Direct DOM writing via ref for zero re-render overhead
+    const birthDate = '08/04/2009'; // Format: DD/MM/YYYY
+    const tick = () => {
+      if (ageRef.current) {
+        ageRef.current.textContent = calculateAge(birthDate).toFixed(10);
+      }
     };
-    
-    updateAge();
-    const ageInterval = setInterval(updateAge, 1000);
+    tick();
+    const ageInterval = setInterval(tick, 50);
     
     setMounted(true);
     return () => clearInterval(ageInterval);
@@ -128,25 +129,46 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col">
-        <div className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+        <div className="mx-auto w-full max-w-3xl px-4 pt-16 pb-8 sm:px-6 lg:px-8 lg:pt-24 lg:pb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-16"
+            className="mb-12"
           >
-            {/* Header */}
-            <div className="mb-8 flex items-start justify-between gap-6 sm:gap-10">
-              <div className="min-w-0 flex-1 pt-1">
-                <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-2">
-                  {username || 'Loading...'}
-                </h1>
-                <p className="text-lg text-[var(--text-secondary)]">
-                  Software developer & builder
-                </p>
+            {/* Header with nested left column grouping - prevents avatar height pushing content down */}
+            <div className="flex flex-col-reverse sm:flex-row items-start justify-between gap-6 sm:gap-10 mb-8">
+              {/* Nested Left Column Grouping */}
+              <div className="flex-1 min-w-0 space-y-4">
+                <div className="pt-1">
+                  <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-2">
+                    {username || 'Loading...'}
+                  </h1>
+                  <p className="text-lg text-[var(--text-secondary)]">
+                    Software developer & builder
+                  </p>
+                </div>
+
+                {/* Stats & Status nested inside the left column */}
+                <div className="flex flex-wrap items-center gap-4">
+                  <VisitorStats />
+                  {discordStatus && (
+                    <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                      <div className="w-2 h-2 rounded-full" style={{
+                        backgroundColor: discordStatus === 'online' ? '#10b981' : discordStatus === 'idle' ? '#f59e0b' : '#ef4444'
+                      }} />
+                      <span className="capitalize">{discordStatus}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Time & Weather directly in the left column */}
+                <TimeWeather />
               </div>
+
+              {/* Avatar on the right */}
               {avatarUrl && (
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 self-center sm:self-start">
                   <div className="relative h-28 w-28 sm:h-36 sm:w-36">
                     <Image
                       className="rounded-[2rem] border border-[var(--card-border)] object-cover shadow-sm"
@@ -161,27 +183,9 @@ export default function Home() {
               )}
             </div>
 
-            {/* Stats & Status */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
-              <VisitorStats />
-              {discordStatus && (
-                <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                  <div className="w-2 h-2 rounded-full" style={{
-                    backgroundColor: discordStatus === 'online' ? '#10b981' : discordStatus === 'idle' ? '#f59e0b' : '#ef4444'
-                  }} />
-                  <span className="capitalize">{discordStatus}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Time & Weather */}
-            <div className="mb-8">
-              <TimeWeather />
-            </div>
-
             {/* Bio */}
             <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
-              Hello! I'm Abyn, I'm a student with a passion for software development. I'm {age.toFixed(10)} years old
+              Hello! I'm Abyn, I'm a student with a passion for software development. I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary)]"></span> years old
             </p>
 
             {/* Music + live activity */}
@@ -198,9 +202,7 @@ export default function Home() {
                   Live activity
                 </span>
               </div>
-              <div className="mx-auto w-full max-w-md">
-                <DiscordStatus />
-              </div>
+              <DiscordStatus />
             </div>
           </motion.div>
 
@@ -209,7 +211,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-20"
+            className="mb-10"
           >
             <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-8">
               Projects
@@ -222,7 +224,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mb-16"
+            className="mb-10"
           >
             <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
               Connect
@@ -258,7 +260,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="pt-8 border-t border-[var(--card-border)] text-center text-sm text-[var(--text-secondary)]"
+            className="pt-6 border-t border-[var(--card-border)] text-center text-sm text-[var(--text-secondary)]"
           >
             <p>
               © {mounted ? new Date().getFullYear() : '2024'}{' '}
