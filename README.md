@@ -1,46 +1,41 @@
+# abyndotxyz
 
-## Welcome to Bio With Spotify, the ultimate links manager!
+> Source code for my personal website and portfolio.
+> Built with Next.js and deployed on Vercel, powered by a custom API inspired by [personal-bio](https://github.com/lrmn7/personal-bio).
 
-> Note: This is a template, feel free to use it. And star it if you liked :P
+<p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com/?font=Fira+Code&pause=1000&color=00F773&center=true&vCenter=true&width=435&lines=Personal+Website;Developer+Portfolio;Open+Source" alt="Typing SVG" />
+</p>
 
-![image](/public/og-image.png)
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white" alt="Next.js">
+  <img src="https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white" alt="Vercel">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Open_Source-❤️-success" alt="Open Source">
+</p>
 
-## Features
+<p align="center">
+  <a href="https://github.com/abyn365/abyndotxyz/stargazers">
+    <img src="https://img.shields.io/github/stars/abyn365/abyndotxyz?style=social" alt="GitHub Stars">
+  </a>
+  <a href="https://github.com/abyn365/abyndotxyz/network/members">
+    <img src="https://img.shields.io/github/forks/abyn365/abyndotxyz?style=social" alt="GitHub Forks">
+  </a>
+</p>
 
-- Uses TypeScript, NextJS, TailwindCSS and Spotify API 😎
-- Profile Tags (To Show Your Interests ⭐ )
-- **Displays your current playing Spotify Song**
-- Fast, SEO Optimized, Responsive, Customizable **(Use your own Brand Colors)**
+<p align="center">
+  <img src="https://img.shields.io/github/license/abyn365/abyndotxyz" alt="License">
+  <img src="https://img.shields.io/github/last-commit/abyn365/abyndotxyz" alt="Last Commit">
+  <img src="https://img.shields.io/github/repo-size/abyn365/abyndotxyz" alt="Repo Size">
+  <img src="https://img.shields.io/github/languages/top/abyn365/abyndotxyz" alt="Top Language">
+</p>
 
+## Preview
 
-## :sparkles: [Live Demo](https://hi-lrmn.is-a.dev)
+| Dark Theme | Light Theme |
+|------------|------------|
+| ![](public/Darktheme.png) | ![](public/Lighttheme.png) |
 
-- With bio-with-spotify, you can easily store and organize all your important links in one place. The app features a sleek and modern design, with customizable styling options to make it your own. (Read - [how to use it ?](https://github.com/lrmn7/personal-bio/blob/main/USING.md))
+## License
 
-## Ussage
-
-```sh
-git clone https://github.com/lrmn7/personal-bio.git
-```
-- Install the dependencies
-
-```
-npm install # for npm
-yarn install # for yarn
-pnpm install # for pnpm
-```
-
-- Start the server
-
-```
-npm run dev # for npm
-yarn dev # for yarn
-pnpm dev # for pnpm
-```
-
-# Using the template
-To use this template, read and follow the steps given in the [Using Guide](https://github.com/lrmn7/personal-bio/blob/main/USING.md)
-
-## 💌 Support Server
-
-[![DiscordBanner](https://invidget.switchblade.xyz/6EXgrmtkPX)](https://discord.gg/6EXgrmtkPX)
+MIT
