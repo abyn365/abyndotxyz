@@ -17,16 +17,6 @@ import "@fontsource/sen/700.css";
 import "../components/ClickSpark/ClickSpark";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  // Umami Analytics
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.async = true;
-    script.src = "https://cloud.umami.is/script.js";
-    script.dataset.websiteId =
-      process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID || "";
-    document.head.appendChild(script);
-  }, []);
-
   // Click Spark
   useEffect(() => {
     const clickSpark = document.createElement("click-spark");
@@ -40,6 +30,15 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider>
       <>
+        {/* Umami Analytics */}
+        {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
+          <Script
+            src="https://cloud.umami.is/script.js"
+            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+            strategy="afterInteractive"
+          />
+        )}
+
         {/* Google Analytics */}
         <Script
           strategy="lazyOnload"

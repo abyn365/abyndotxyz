@@ -6,6 +6,10 @@ export interface Project {
   link?: string;
   image?: string;
   featured?: boolean;
+  popular?: boolean;
+  stars?: number;
+  homepage?: string | null;
+  languages?: Array<{ name: string; percentage: number }>;
 }
 
 export const projects: Project[] = [
@@ -15,14 +19,16 @@ export const projects: Project[] = [
     tech: ["Next.js", "TypeScript", "TailwindCSS", "Framer Motion"],
     github: "https://github.com/abyn365/bio-with-spotify",
     link: "https://abyn.xyz",
-    featured: true,
+    featured: false,
+    popular: false,
+    stars: 72,
   },
   {
     name: "Cloud Infrastructure",
     description: "Scalable cloud infrastructure projects leveraging modern DevOps practices and automation tooling.",
     tech: ["AWS", "Terraform", "Docker", "CI/CD"],
     github: "https://github.com/abyn365",
-    featured: true,
+    featured: false,
   },
   {
     name: "Discord Bot Suite",
@@ -30,6 +36,7 @@ export const projects: Project[] = [
     tech: ["Node.js", "Discord.js", "Redis", "PostgreSQL"],
     github: "https://github.com/abyn365",
     featured: false,
+    popular: false,
   },
   {
     name: "Portfolio Site",

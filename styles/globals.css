@@ -4,13 +4,13 @@
 
 :root {
   --click-spark-color: #ff6347;
-  --bg-primary: #fafafa;
-  --bg-secondary: #ffffff;
-  --text-primary: #18181b;
-  --text-secondary: #71717a;
-  --border-color: #e4e4e7;
-  --card-bg: rgba(255, 255, 255, 0.7);
-  --card-border: #e4e4e7;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f8f8;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --border-color: #e0e0e0;
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --card-border: #e0e0e0;
   --accent: #ff6347;
   --accent-glow: rgba(255, 99, 71, 0.15);
 }
@@ -78,6 +78,7 @@ click-spark {
 .bento-card:hover {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--accent) 25%, var(--card-border));
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .bento-card::before {

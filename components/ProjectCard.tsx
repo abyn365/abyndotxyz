@@ -9,58 +9,92 @@ interface ProjectCardProps {
 
 const ProjectCard = ({ project, index }: ProjectCardProps) => {
   return (
-    <motion.a
-      href={project.github || project.link}
-      target="_blank"
-      rel="noopener noreferrer"
+    <motion.div
       initial={{ y: 12, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ delay: index * 0.04, duration: 0.25 }}
-      className="group block cursor-pointer rounded-xl p-3.5 transition-all duration-200 hover:-translate-y-0.5"
-      style={{
-        border: '1px solid var(--card-border)',
-        background: 'color-mix(in srgb, var(--text-primary) 3%, transparent)',
-      }}
+      transition={{ delay: index * 0.05, duration: 0.3 }}
+      className="group transition-all duration-300 hover:scale-105"
     >
-      <div className="flex flex-col gap-2.5">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-[13px] font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
-            {project.name}
-          </h3>
+      <a
+        href={project.github || project.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block p-5 rounded-xl border transition-all duration-300"
+        style={{
+          border: '1px solid var(--card-border)',
+          background: 'color-mix(in srgb, var(--text-primary) 2%, transparent)',
+        }}
+      >
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors truncate">
+              {project.name}
+            </h3>
+            {project.stars !== undefined && (
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                ⭐ {project.stars.toLocaleString()} stars
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
             {project.github && (
-              <FiGithub className="h-3.5 w-3.5 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
+              <FiGithub className="h-4 w-4 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
             )}
             {project.link && (
-              <FiExternalLink className="h-3.5 w-3.5 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
+              <FiExternalLink className="h-4 w-4 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
             )}
           </div>
         </div>
 
         {/* Description */}
-        <p className="text-[11px] leading-relaxed text-[var(--text-secondary)] line-clamp-2">
-          {project.description}
-        </p>
+        {project.description && (
+          <p className="text-sm leading-relaxed text-[var(--text-secondary)] line-clamp-3 mb-3">
+            {project.description}
+          </p>
+        )}
+
+        {/* Homepage / About Link */}
+        {project.homepage && (
+          <div className="text-xs mb-3">
+            <span className="text-[var(--accent)] break-all cursor-pointer hover:underline">
+              {project.homepage}
+            </span>
+          </div>
+        )}
+
+        {/* Languages */}
+        {project.languages && project.languages.length > 0 && (
+          <div className="text-xs text-[var(--text-secondary)] mb-3 space-y-1">
+            <div className="font-medium text-[var(--text-primary)]">Languages:</div>
+            <div className="flex flex-wrap gap-2">
+              {project.languages.slice(0, 3).map((lang) => (
+                <span key={lang.name} className="inline-flex">
+                  <span className="text-[var(--accent)]">{lang.name}</span>
+                  <span className="text-[var(--text-secondary)] ml-1">{lang.percentage}%</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Tech Stack */}
-        <div className="flex flex-wrap gap-1">
-          {project.tech.slice(0, 4).map((tech) => (
+        <div className="flex flex-wrap gap-1.5">
+          {project.tech.slice(0, 3).map((tech) => (
             <span
               key={tech}
-              className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[9px] font-medium"
+              className="inline-flex items-center rounded px-2 py-1 text-[11px] font-medium"
               style={{
-                background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
+                background: 'color-mix(in srgb, var(--accent) 10%, transparent)',
                 color: 'var(--accent)',
-                border: '1px solid color-mix(in srgb, var(--accent) 15%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
               }}
             >
               {tech}
             </span>
           ))}
         </div>
-      </div>
-    </motion.a>
+      </a>
+    </motion.div>
   );
 };
 

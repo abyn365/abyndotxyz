@@ -30,54 +30,73 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ).getTime();
 
     // =================== ACTIVE USERS ===================
-    const activeResponse = await fetch(
-      `https://api.umami.is/v1/websites/${WEBSITE_ID}/active`,
-      {
-        headers: {
-          Accept: "application/json",
-          "x-umami-api-key": API_KEY,
-        },
-      }
-    );
+    let activeData: any = { x: 0 };
+    try {
+      const activeResponse = await fetch(
+        `https://api.umami.is/websites/${WEBSITE_ID}/active`,
+        {
+          headers: {
+            Accept: "application/json",
+            "x-umami-api-key": API_KEY,
+          },
+        }
+      );
 
-    if (!activeResponse.ok) {
-      throw new Error("Failed to fetch active visitors");
+      if (activeResponse.ok) {
+        activeData = await activeResponse.json();
+      } else {
+        console.warn("Umami active endpoint failed:", activeResponse.status);
+      }
+    } catch (error) {
+      console.warn("Failed to fetch active visitors:", error);
     }
 
-    const activeData = await activeResponse.json();
+
 
     // =================== STATS ===================
-    const statsResponse = await fetch(
-      `https://api.umami.is/v1/websites/${WEBSITE_ID}/stats?startAt=${startAt}&endAt=${endAt}`,
-      {
-        headers: {
-          Accept: "application/json",
-          "x-umami-api-key": API_KEY,
-        },
+    let statsData: any = {};
+    try {
+      const statsResponse = await fetch(
+        `https://api.umami.is/v1/websites/${WEBSITE_ID}/stats?startAt=${startAt}&endAt=${endAt}`,
+        {
+          headers: {
+            Accept: "application/json",
+            "x-umami-api-key": API_KEY,
+          },
+        }
+      );
+
+      if (statsResponse.ok) {
+        statsData = await statsResponse.json();
+      } else {
+        console.warn("Umami stats endpoint failed:", statsResponse.status);
       }
-    );
-
-    if (!statsResponse.ok) {
-      throw new Error("Failed to fetch stats");
+    } catch (error) {
+      console.warn("Failed to fetch stats:", error);
     }
-
-    const statsData = await statsResponse.json();
 
     // ✅ Works for both API formats
     const pageviews =
-      statsData?.pageviews?.value ??
-      statsData?.pageviews ??
-      0;
+      typeof statsData?.pageviews === 'number'
+        ? statsData.pageviews
+        : Array.isArray(statsData?.pageviews)
+        ? statsData.pageviews.reduce((total: number, item: any) => total + (item?.y ?? 0), 0)
+        : statsData?.pageviews?.value ??
+          statsData?.pageviews ??
+          0;
 
     const uniques =
-      statsData?.visitors?.value ??
-      statsData?.uniques ??
-      statsData?.visitors ??
-      0;
+      typeof statsData?.visitors === 'number'
+        ? statsData.visitors
+        : statsData?.visitors?.value ??
+          statsData?.uniques ??
+          statsData?.visitors ??
+          0;
 
     const active =
       activeData?.visitors ??
       activeData?.active ??
+      activeData?.x ??
       0;
 
     return res.status(200).json({

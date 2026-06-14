@@ -1,30 +1,41 @@
 import { useEffect, useState } from 'react';
 import Image from "next/image";
-import Banners from "../components/Banner";
-import DiscordStatus from "../components/Misc/DiscordStatus.misc";
-import Squares from "../components/Squares";
-import VisitorStats from "../components/Misc/VisitorStats.misc";
-import Projects from "../components/Projects";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { FiMusic, FiGithub, FiInstagram } from "react-icons/fi";
+import { FiGithub, FiInstagram, FiExternalLink, FiMusic } from "react-icons/fi";
+
+// Calculate age with decimal precision
+const calculateAge = (birthDate: string): number => {
+  const [day, month, year] = birthDate.split('/').map(Number);
+  const birth = new Date(year, month - 1, day);
+  const now = new Date();
+  
+  let age = now.getFullYear() - birth.getFullYear();
+  const monthDiff = now.getMonth() - birth.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+    age--;
+  }
+  
+  // Calculate decimal precision (days into current year as fraction)
+  const currentYearStart = new Date(now.getFullYear(), 0, 1);
+  const nextYearStart = new Date(now.getFullYear() + 1, 0, 1);
+  const daysInYear = (nextYearStart.getTime() - currentYearStart.getTime()) / (1000 * 60 * 60 * 24);
+  const dayOfYear = (now.getTime() - currentYearStart.getTime()) / (1000 * 60 * 60 * 24);
+  const decimalPart = dayOfYear / daysInYear;
+  
+  return Math.floor((age + decimalPart) * 1000000000) / 1000000000; // Limit precision
+};
 import {
   SiTiktok,
   SiSpotify,
   SiPinterest,
   SiDiscord,
 } from "react-icons/si";
-
-type Track = {
-  artist: string;
-  title: string;
-  songUrl: string;
-  cover: string;
-  albumYear: string;
-  popularity: number;
-};
-
-type Period = "short" | "medium" | "long";
+import Projects from "../components/Projects";
+import VisitorStats from "../components/Misc/VisitorStats.misc";
+import TimeWeather from "../components/TimeWeather";
+import Squares from "../components/Squares";
 
 type CustomStatus = {
   emoji?: {
@@ -35,7 +46,6 @@ type CustomStatus = {
   state?: string;
 };
 
-const belowLink = "";
 const bio = "The biolink of a dumbass 🗿";
 
 const getDiscordAvatar = (userId: string, avatarId: string) => {
@@ -54,42 +64,26 @@ const getStatusImage = (status: string) => {
   return statusMap[status as keyof typeof statusMap] || statusMap.offline;
 };
 
-// Animation variants for staggered entrance
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { y: 12, opacity: 0 },
-  show: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      duration: 0.35,
-      ease: [0.25, 0.1, 0.25, 1],
-    },
-  },
-};
-
 export default function Home() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [customStatus, setCustomStatus] = useState<CustomStatus | null>(null);
   const [username, setUsername] = useState('');
   const [discordStatus, setDiscordStatus] = useState('');
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [period, setPeriod] = useState<Period>("short");
-  const [tracksLoading, setTracksLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [age, setAge] = useState(0);
 
   useEffect(() => {
+    // Update age calculation every second for decimal precision
+    const updateAge = () => {
+      const birthDate = '08/04/2009'; // Format: DD/MM/YYYY
+      setAge(calculateAge(birthDate));
+    };
+    
+    updateAge();
+    const ageInterval = setInterval(updateAge, 1000);
+    
     setMounted(true);
+    return () => clearInterval(ageInterval);
   }, []);
 
   // Fetch Discord user
@@ -123,29 +117,18 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch top tracks
-  useEffect(() => {
-    const fetchTracks = async () => {
-      setTracksLoading(true);
-      try {
-        const res = await fetch(`/api/top-tracks?period=${period}`);
-        const data = await res.json();
-        if (!data.error) setTracks(data.tracks);
-      } finally {
-        setTracksLoading(false);
-      }
-    };
-    fetchTracks();
-  }, [period]);
-
-  const getTrackIdFromUrl = (songUrl: string) => {
-    const match = songUrl.match(/track\/([a-zA-Z0-9]+)/);
-    return match ? match[1] : null;
-  };
+  const socialLinks = [
+    { icon: FiInstagram, href: '/instagram', label: 'Instagram', color: 'text-pink-400' },
+    { icon: SiTiktok, href: '/tiktok', label: 'TikTok', color: 'text-[var(--text-primary)]' },
+    { icon: SiSpotify, href: '/spotify', label: 'Spotify', color: 'text-emerald-400' },
+    { icon: SiPinterest, href: '/pinterest', label: 'Pinterest', color: 'text-red-500' },
+    { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-indigo-400' },
+    { icon: FiGithub, href: 'https://github.com/abyn365', label: 'GitHub', color: 'text-[var(--text-primary)]' },
+  ];
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Background squares effect */}
+      {/* Background effect */}
       <div className="fixed inset-0 z-0">
         <Squares
           speed={0.15}
@@ -156,416 +139,138 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col">
-        <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
-          {/* Bento Grid */}
+        <div className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-1 md:grid-cols-6 gap-3 md:gap-4 auto-rows-min"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-16"
           >
-            {/* Profile Card - Spans 2 cols */}
-            <motion.div variants={itemVariants} className="bento-spotlight md:col-span-2">
-              <div className="bento-card flex flex-col items-center gap-4 p-5 sm:p-6">
-                {/* Visitor Stats */}
-                <div className="self-start">
-                  <VisitorStats />
-                </div>
-
-                {/* Avatar with status indicators */}
-                <div className="relative w-24 h-24 sm:w-28 sm:h-28">
-                  <Image
-                    className="rounded-full border-2 border-[var(--card-border)] object-cover transition-transform hover:scale-105"
-                    src={avatarUrl || '/profile.png'}
-                    alt="profile"
-                    fill
-                    sizes="(max-width: 640px) 96px, 112px"
-                    priority
-                  />
-                  {/* Status indicators */}
-                  <div className="absolute -bottom-1 -right-1 flex items-center gap-1">
-                    {customStatus?.state && (
-                      <div
-                        className="rounded-full px-2 py-0.5 border max-w-[90px]"
-                        style={{
-                          background: 'var(--card-bg)',
-                          borderColor: 'var(--card-border)',
-                        }}
-                      >
-                        <span className="text-[9px] text-[var(--text-secondary)] block truncate">
-                          {customStatus.state}
-                        </span>
-                      </div>
-                    )}
-                    {customStatus?.emoji && (
-                      <div
-                        className="rounded-full p-0.5 border flex-shrink-0"
-                        style={{
-                          background: 'var(--card-bg)',
-                          borderColor: 'var(--card-border)',
-                        }}
-                      >
-                        <Image
-                          src={`https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${
-                            customStatus.emoji.animated ? 'gif' : 'png'
-                          }`}
-                          alt={customStatus.emoji.name}
-                          width={14}
-                          height={14}
-                          className="w-3.5 h-3.5"
-                        />
-                      </div>
-                    )}
-                    <div
-                      className="rounded-full p-0.5 border flex-shrink-0"
-                      style={{
-                        background: 'var(--card-bg)',
-                        borderColor: 'var(--card-border)',
-                      }}
-                    >
-                      <Image
-                        src={getStatusImage(discordStatus)}
-                        alt={discordStatus}
-                        width={14}
-                        height={14}
-                        className="rounded-full"
-                        unoptimized
-                      />
-                    </div>
+            {/* Header */}
+            <div className="flex items-start justify-between gap-6 mb-8">
+              <div className="flex-1">
+                <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-2">
+                  {username || 'Loading...'}
+                </h1>
+                <p className="text-lg text-[var(--text-secondary)]">
+                  Software developer & builder
+                </p>
+              </div>
+              {avatarUrl && (
+                <div className="flex-shrink-0">
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                    <Image
+                      className="rounded-2xl border-2 border-[var(--card-border)] object-cover"
+                      src={avatarUrl}
+                      alt="profile"
+                      fill
+                      sizes="(max-width: 640px) 80px, 96px"
+                      priority
+                    />
                   </div>
                 </div>
+              )}
+            </div>
 
-                <div className="text-center">
-                  <h1 className="text-lg font-bold text-[var(--text-primary)]">
-                    {username || 'Loading...'}
-                  </h1>
-                  {belowLink && (
-                    <p className="mt-0.5 text-xs text-[var(--text-secondary)] italic">{belowLink}</p>
-                  )}
-                  <p className="mt-1 text-xs text-[var(--text-secondary)]">{bio}</p>
+            {/* Stats & Status */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
+              <VisitorStats />
+              {discordStatus && (
+                <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                  <div className="w-2 h-2 rounded-full" style={{
+                    backgroundColor: discordStatus === 'online' ? '#10b981' : discordStatus === 'idle' ? '#f59e0b' : '#ef4444'
+                  }} />
+                  <span className="capitalize">{discordStatus}</span>
                 </div>
+              )}
+            </div>
 
-                {/* Banners / Tags */}
-                <Banners />
-              </div>
-            </motion.div>
+            {/* Time & Weather */}
+            <div className="mb-8">
+              <TimeWeather />
+            </div>
 
-            {/* Discord Status Card - Spans 2 cols */}
-            <motion.div variants={itemVariants} className="md:col-span-2">
-              <div className="bento-card h-full">
-                <DiscordStatus />
-              </div>
-            </motion.div>
+            {/* Bio */}
+            <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
+              Hello! I'm Abyn, I'm a student with a passion for software development. I'm {age.toFixed(10)} years old
+            </p>
 
-            {/* Social Links Card - Spans 2 cols */}
-            <motion.div variants={itemVariants} className="md:col-span-2">
-              <div className="bento-card flex flex-col gap-2.5">
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
-                    Social Links
-                  </p>
-                </div>
-                <div className="grid grid-cols-5 gap-1.5">
-                  <a
-                    rel="noopener noreferrer nofollow"
-                    target="_blank"
-                    href="/instagram"
-                    className="social-link"
-                    title="Instagram"
-                  >
-                    <FiInstagram className="h-3.5 w-3.5 text-pink-400" />
-                  </a>
+            {/* Music Button */}
+            <Link href="/music" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105"
+              style={{
+                background: 'var(--accent)',
+              }}>
+              <FiMusic className="h-4 w-4 text-white" />
+              <span className="text-sm font-medium text-white">My Music</span>
+            </Link>
+          </motion.div>
 
-                  <a
-                    rel="noopener noreferrer nofollow"
-                    target="_blank"
-                    href="/tiktok"
-                    className="social-link"
-                    title="TikTok"
-                  >
-                    <SiTiktok className="h-3 w-3 text-[var(--text-primary)]" />
-                  </a>
+          {/* Projects Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-20"
+          >
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-8">
+              Projects
+            </h2>
+            <Projects />
+          </motion.div>
 
-                  <a
-                    rel="noopener noreferrer nofollow"
-                    target="_blank"
-                    href="/spotify"
-                    className="social-link"
-                    title="Spotify"
-                  >
-                    <SiSpotify className="h-3.5 w-3.5 text-emerald-400" />
-                  </a>
+          {/* Social Links */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-16"
+          >
+            <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
+              Connect
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              {socialLinks.map((social) => {
+                const Icon = social.icon;
+                const isExternal = social.href.startsWith('http');
+                const Component = isExternal ? 'a' : Link;
 
-                  <a
-                    rel="noopener noreferrer nofollow"
-                    target="_blank"
-                    href="/pinterest"
-                    className="social-link"
-                    title="Pinterest"
-                  >
-                    <SiPinterest className="h-3.5 w-3.5 text-red-500" />
-                  </a>
-
-                  <a
-                    rel="noopener noreferrer nofollow"
-                    target="_blank"
-                    href="/discord"
-                    className="social-link"
-                    title="Discord"
-                  >
-                    <SiDiscord className="h-3.5 w-3.5 text-indigo-400" />
-                  </a>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Top Tracks - Spans 3 cols */}
-            <motion.div variants={itemVariants} className="md:col-span-3">
-              <div className="bento-card">
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FiMusic className="h-3.5 w-3.5" style={{ color: 'var(--accent)' }} />
-                      <h2 className="text-sm font-semibold text-[var(--text-primary)]">Top Tracks</h2>
-                    </div>
-                    <Link
-                      href="/music"
-                      className="text-[11px] font-medium transition-colors hover:opacity-80"
-                      style={{ color: 'var(--accent)' }}
-                    >
-                      View all →
-                    </Link>
-                  </div>
-
-                  {/* Period Selector */}
-                  <div className="flex justify-center">
-                    <div
-                      className="inline-flex rounded-lg p-0.5 gap-0.5"
-                      style={{
-                        background: 'color-mix(in srgb, var(--text-primary) 4%, transparent)',
-                        border: '1px solid var(--card-border)',
-                      }}
-                    >
-                      {(["short", "medium", "long"] as Period[]).map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => setPeriod(p)}
-                          className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200"
-                          style={
-                            period === p
-                              ? { background: 'var(--accent)', color: '#fff' }
-                              : { color: 'var(--text-secondary)' }
-                          }
-                          onMouseEnter={(e) => {
-                            if (period !== p) {
-                              e.currentTarget.style.color = 'var(--text-primary)';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (period !== p) {
-                              e.currentTarget.style.color = 'var(--text-secondary)';
-                            }
-                          }}
-                        >
-                          {p === "short" ? "1M" : p === "medium" ? "6M" : "1Y"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Tracks */}
-                  {tracksLoading ? (
-                    <div className="flex justify-center items-center py-5">
-                      <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-                        <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent)' }} />
-                        Loading tracks...
-                      </div>
-                    </div>
-                  ) : tracks.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {tracks.slice(0, 4).map((track, index) => {
-                        const trackId = getTrackIdFromUrl(track.songUrl);
-                        if (!trackId) return null;
-
-                        return (
-                          <motion.div
-                            key={track.songUrl}
-                            initial={{ y: 10, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: index * 0.04, duration: 0.25 }}
-                            className="group overflow-hidden rounded-xl transition-all duration-200 hover:-translate-y-0.5"
-                            style={{
-                              border: '1px solid var(--card-border)',
-                              background: 'color-mix(in srgb, var(--text-primary) 3%, transparent)',
-                            }}
-                          >
-                            <div
-                              className="flex items-center justify-between border-b px-3 py-1.5"
-                              style={{ borderColor: 'var(--card-border)' }}
-                            >
-                              <p className="truncate text-[11px] font-medium text-[var(--text-primary)]">
-                                {track.title}
-                              </p>
-                              <span className="text-[8px] uppercase tracking-wider text-[var(--text-secondary)]">
-                                Spotify
-                              </span>
-                            </div>
-                            <iframe
-                              style={{
-                                borderRadius: "0 0 12px 12px",
-                              }}
-                              src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`}
-                              width="100%"
-                              height="152"
-                              frameBorder="0"
-                              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                              loading="lazy"
-                            />
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="flex justify-center items-center py-5">
-                      <div className="text-xs text-[var(--text-secondary)]">No tracks found</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Projects - Spans 3 cols */}
-            <motion.div variants={itemVariants} className="md:col-span-3">
-              <div className="bento-card">
-                <Projects />
-              </div>
-            </motion.div>
-
-            {/* Music Page Link - Spans 3 cols */}
-            <motion.div variants={itemVariants} className="md:col-span-3">
-              <Link href="/music">
-                <div
-                  className="bento-card flex items-center justify-between gap-4 cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="flex h-10 w-10 items-center justify-center rounded-xl"
-                      style={{
-                        background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
-                        border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
-                      }}
-                    >
-                      <FiMusic className="h-5 w-5" style={{ color: 'var(--accent)' }} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
-                        Music Library
-                      </p>
-                      <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
-                        Explore my top tracks and what&apos;s playing now
-                      </p>
-                    </div>
-                  </div>
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 group-hover:scale-110"
+                return (
+                  <Component
+                    key={social.label}
+                    href={social.href}
+                    target={isExternal ? '_blank' : undefined}
+                    rel={isExternal ? 'noopener noreferrer' : undefined}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105"
                     style={{
-                      background: 'color-mix(in srgb, var(--accent) 10%, transparent)',
+                      background: 'color-mix(in srgb, var(--text-primary) 4%, transparent)',
+                      border: '1px solid var(--card-border)',
                     }}
                   >
-                    <svg className="w-4 h-4" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-
-            {/* GitHub Card - Spans 3 cols */}
-            <motion.div variants={itemVariants} className="md:col-span-3">
-              <a
-                href="https://github.com/abyn365"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <div
-                  className="bento-card flex items-center justify-between gap-4 cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="flex h-10 w-10 items-center justify-center rounded-xl"
-                      style={{
-                        background: 'color-mix(in srgb, var(--text-primary) 6%, transparent)',
-                        border: '1px solid var(--card-border)',
-                      }}
-                    >
-                      <FiGithub className="h-5 w-5 text-[var(--text-primary)]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
-                        GitHub
-                      </p>
-                      <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
-                        Check out my open source work @abyn365
-                      </p>
-                    </div>
-                  </div>
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 group-hover:scale-110"
-                    style={{
-                      background: 'color-mix(in srgb, var(--text-primary) 6%, transparent)',
-                    }}
-                  >
-                    <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </div>
-                </div>
-              </a>
-            </motion.div>
+                    <Icon className={`h-4 w-4 ${social.color}`} />
+                    <span className="text-sm font-medium text-[var(--text-primary)]">{social.label}</span>
+                  </Component>
+                );
+              })}
+            </div>
           </motion.div>
 
           {/* Footer */}
           <motion.footer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.4 }}
-            className="mt-10 text-center"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="pt-8 border-t border-[var(--card-border)] text-center text-sm text-[var(--text-secondary)]"
           >
-            <p className="text-xs text-[var(--text-secondary)]">
-              Copyright ©{' '}
-              <span className="inline-block mx-1 relative group cursor-help">
-                <span
-                  className="transition-colors hover:opacity-80"
-                  style={{ color: 'var(--accent)' }}
-                >
-                  {mounted ? new Date().getFullYear() : "----"}
-                </span>
-                <span
-                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border"
-                  style={{
-                    background: 'var(--card-bg)',
-                    color: 'var(--text-primary)',
-                    borderColor: 'var(--card-border)',
-                  }}
-                >
-                  {mounted
-                    ? new Date().toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })
-                    : 'Loading date...'}
-                </span>
-              </span>
+            <p>
+              © {mounted ? new Date().getFullYear() : '2024'}{' '}
               <a
                 href="https://github.com/abyn365"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition-colors hover:opacity-80"
+                className="transition-colors hover:text-[var(--accent)]"
                 style={{ color: 'var(--accent)' }}
               >
-                abyn.xyz
+                abyn
               </a>
             </p>
           </motion.footer>
