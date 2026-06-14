@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=600&pause=1000&center=true&vCenter=true&width=500&lines=Personal+Website;Developer+Portfolio;Open+Source+Projects" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.herokuapp.com/?font=Fira+Code&pause=1000&color=00F773&center=true&random=true&width=435&lines=Personal+website;Dev+protofolio;Open+source" alt="Typing SVG" />
 </p>
 
 ## Preview
