@@ -11,6 +11,19 @@
   <img src="https://readme-typing-svg.herokuapp.com/?font=Fira+Code&pause=1000&color=00F773&center=true&random=true&width=435&lines=Personal+website;Dev+protofolio;Open+source" alt="Typing SVG" />
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/github/stars/abyn365/abyndotxyz?style=for-the-badge" />
+  <img src="https://img.shields.io/github/forks/abyn365/abyndotxyz?style=for-the-badge" />
+  <img src="https://img.shields.io/github/license/abyn365/abyndotxyz?style=for-the-badge" />
+  <img src="https://img.shields.io/github/last-commit/abyn365/abyndotxyz?style=for-the-badge" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/github/languages/top/abyn365/abyndotxyz?style=for-the-badge" />
+  <img src="https://img.shields.io/github/repo-size/abyn365/abyndotxyz?style=for-the-badge" />
+  <img src="https://img.shields.io/github/deployments/abyn365/abyndotxyz/production?style=for-the-badge" />
+</p>
+
 ## Preview
 
 <table>
