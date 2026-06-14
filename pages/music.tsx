@@ -3,7 +3,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Squares from "../components/Squares";
 import { FiMusic, FiChevronLeft } from "react-icons/fi";
-import DiscordStatus from "../components/Misc/DiscordStatus.misc";
 
 type Track = {
   artist: string;
@@ -68,11 +67,6 @@ export default function MusicEmbed() {
           </div>
 
           <div className="bento-card">
-            {/* Activity Carousel */}
-            <div className="mb-4 sm:mb-5">
-              <DiscordStatus />
-            </div>
-
             <div className="mb-4 sm:mb-5">
               <h2 className="text-sm font-semibold text-[var(--text-primary)] sm:text-base">Top Tracks</h2>
             </div>
