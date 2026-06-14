@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white" alt="Next.js">
   <img src="https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white" alt="Vercel">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/Open_Source-❤️-" alt="Open Source">
+  <img src="https://img.shields.io/badge/Open_Source-❤️-success" alt="Open Source">
 </p>
 
 <p align="center">
