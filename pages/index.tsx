@@ -155,7 +155,7 @@ export default function Home() {
                   {discordStatus && (
                     <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                       <div className="w-2 h-2 rounded-full" style={{
-                        backgroundColor: discordStatus === 'online' ? '#10b981' : discordStatus === 'idle' ? '#f59e0b' : '#ef4444'
+                        backgroundColor: discordStatus === 'online' ? '#10b981' : discordStatus === 'idle' ? '#f59e0b' : discordStatus === 'dnd' ? '#ef4444' : '#9ca3af'
                       }} />
                       <span className="capitalize">{discordStatus}</span>
                     </div>
