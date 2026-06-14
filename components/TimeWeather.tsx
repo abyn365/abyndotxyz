@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 type WeatherData = {
   time: string;
@@ -38,12 +38,12 @@ const getWeatherDescription = (code: number): string => {
 };
 
 const TimeWeather = () => {
-  const [time, setTime] = useState('');
+  const timeRef = useRef<HTMLParagraphElement>(null);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Update time every second
+    // Direct DOM writing via ref for zero re-render overhead
     const updateTime = () => {
       const now = new Date();
       const gmt7Time = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' }));
@@ -58,7 +58,9 @@ const TimeWeather = () => {
         day: 'numeric',
         year: 'numeric',
       });
-      setTime(`${dateStr} · ${timeStr} GMT+7`);
+      if (timeRef.current) {
+        timeRef.current.textContent = `${dateStr} · ${timeStr} GMT+7`;
+      }
     };
 
     updateTime();
@@ -98,7 +100,7 @@ const TimeWeather = () => {
 
   return (
     <div className="text-sm text-[var(--text-secondary)]">
-      <p className="font-medium text-[var(--text-primary)]">{time}</p>
+      <p ref={timeRef} className="font-medium text-[var(--text-primary)]"></p>
       {!loading && weather && (
         <p className="mt-1">
           It's <span className="font-semibold text-[var(--text-primary)]">{weather.temperature}°F</span> with{' '}
