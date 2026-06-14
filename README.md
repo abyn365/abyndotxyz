@@ -26,7 +26,7 @@
 </tr>
 </table>
 
-> Replace the image paths above with your own screenshots.
+> visit https://abyn.xyz to see yourself
 
 ## Stats
 
