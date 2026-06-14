@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { FiClock, FiCloud } from 'react-icons/fi';
 
 type WeatherData = {
   time: string;
@@ -8,7 +9,7 @@ type WeatherData = {
 };
 
 const TimeWeather = () => {
-  const timeRef = useRef<HTMLParagraphElement>(null);
+  const timeRef = useRef<HTMLSpanElement>(null);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -61,14 +62,20 @@ const TimeWeather = () => {
   }, []);
 
   return (
-    <div className="text-sm text-[var(--text-secondary)]">
-      <p ref={timeRef} className="font-medium text-[var(--text-primary)]"></p>
+    <div className="text-sm text-[var(--text-secondary)] space-y-1">
+      <div className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
+        <FiClock className="h-3.5 w-3.5" />
+        <span ref={timeRef}></span>
+      </div>
       {!loading && weather && (
-        <p className="mt-1">
-          It's <span className="font-semibold text-[var(--text-primary)]">{weather.temperature}°C</span> with{' '}
-          <span className="text-[var(--text-secondary)]">{weather.weatherDescription.toLowerCase()}</span> in{' '}
-          <span className="font-semibold text-[var(--text-primary)]">Yogyakarta</span>.
-        </p>
+        <div className="flex items-center gap-1.5">
+          <FiCloud className="h-3.5 w-3.5" />
+          <p>
+            It's <span className="font-semibold text-[var(--text-primary)]">{weather.temperature}°C</span> with{' '}
+            <span className="text-[var(--text-secondary)]">{weather.weatherDescription.toLowerCase()}</span> in{' '}
+            <span className="font-semibold text-[var(--text-primary)]">Yogyakarta</span>.
+          </p>
+        </div>
       )}
     </div>
   );

@@ -243,7 +243,7 @@ export default function Home() {
                     rel={isExternal ? 'noopener noreferrer' : undefined}
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105"
                     style={{
-                      background: 'color-mix(in srgb, var(--text-primary) 4%, transparent)',
+                      background: 'var(--social-bg-mix)',
                       border: '1px solid var(--card-border)',
                     }}
                   >
