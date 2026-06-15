@@ -61,9 +61,9 @@ const TimeWeather = () => {
       }
 
       // Update day/night and awake status for Yogyakarta (GMT+7)
-      const hour = gmt7Time.getHours();
+      const hour = gmt7Time.getHours() + gmt7Time.getMinutes() / 60;
       setIsNight(hour >= 18 || hour < 6);
-      setIsAwake(hour >= 6 && hour < 21);
+      setIsAwake(hour >= 6 && hour < 22.5);
     };
 
     updateTime();
