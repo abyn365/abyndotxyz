@@ -1,7 +1,23 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
 const WEBSITE_ID = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
-const API_KEY = process.env.NEXT_PUBLIC_UMAMI_API_KEY;
+
+// Prefer a server-side env var for the token.
+// For self-hosted Umami, obtain this via POST /api/auth/login.
+const UMAMI_AUTH_TOKEN = process.env.UMAMI_AUTH_TOKEN;
+
+async function fetchUmami(url: string) {
+  if (!UMAMI_AUTH_TOKEN) {
+    throw new Error("Missing Umami auth token");
+  }
+
+  return fetch(url, {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${UMAMI_AUTH_TOKEN}`,
+    },
+  });
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -9,11 +25,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    if (!WEBSITE_ID || !API_KEY) {
+    if (!WEBSITE_ID || !UMAMI_AUTH_TOKEN) {
       throw new Error("Missing Umami ENV variables");
     }
 
-    // ✅ FIXED: Do NOT mutate the same date object
+    // Do not mutate the same date object.
     const now = new Date();
     const startAt = new Date(
       now.getFullYear(),
@@ -32,14 +48,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // =================== ACTIVE USERS ===================
     let activeData: any = { x: 0 };
     try {
-      const activeResponse = await fetch(
-        `https://api.umami.is/websites/${WEBSITE_ID}/active`,
-        {
-          headers: {
-            Accept: "application/json",
-            "x-umami-api-key": API_KEY,
-          },
-        }
+      const activeResponse = await fetchUmami(
+        `https://api.umami.is/websites/${WEBSITE_ID}/active`
       );
 
       if (activeResponse.ok) {
@@ -51,19 +61,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.warn("Failed to fetch active visitors:", error);
     }
 
-
-
     // =================== STATS ===================
     let statsData: any = {};
     try {
-      const statsResponse = await fetch(
-        `https://api.umami.is/v1/websites/${WEBSITE_ID}/stats?startAt=${startAt}&endAt=${endAt}`,
-        {
-          headers: {
-            Accept: "application/json",
-            "x-umami-api-key": API_KEY,
-          },
-        }
+      const statsResponse = await fetchUmami(
+        `https://api.umami.is/v1/websites/${WEBSITE_ID}/stats?startAt=${startAt}&endAt=${endAt}`
       );
 
       if (statsResponse.ok) {
@@ -75,9 +77,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.warn("Failed to fetch stats:", error);
     }
 
-    // ✅ Works for both API formats
+    // Works for both API formats
     const pageviews =
-      typeof statsData?.pageviews === 'number'
+      typeof statsData?.pageviews === "number"
         ? statsData.pageviews
         : Array.isArray(statsData?.pageviews)
         ? statsData.pageviews.reduce((total: number, item: any) => total + (item?.y ?? 0), 0)
@@ -86,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           0;
 
     const uniques =
-      typeof statsData?.visitors === 'number'
+      typeof statsData?.visitors === "number"
         ? statsData.visitors
         : statsData?.visitors?.value ??
           statsData?.uniques ??
@@ -104,7 +106,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       pageviews,
       uniques,
     });
-
   } catch (error) {
     console.error("Visitor API Error:", error);
 
