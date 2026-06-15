@@ -17,7 +17,6 @@ import "@fontsource/sen/700.css";
 import "../components/ClickSpark/ClickSpark";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  // Click Spark
   useEffect(() => {
     const clickSpark = document.createElement("click-spark");
     document.body.appendChild(clickSpark);
@@ -31,13 +30,14 @@ function MyApp({ Component, pageProps }: AppProps) {
     <ThemeProvider>
       <>
         {/* Umami Analytics */}
-        {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
-          <Script
-            src="https://cloud.umami.is/script.js"
-            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
-            strategy="afterInteractive"
-          />
-        )}
+        {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID &&
+          process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL && (
+            <Script
+              src={process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL}
+              data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+              strategy="afterInteractive"
+            />
+          )}
 
         {/* Google Analytics */}
         <Script
@@ -57,7 +57,6 @@ function MyApp({ Component, pageProps }: AppProps) {
 
         <Analytics />
 
-        {/* ================= SEO & OPEN GRAPH ================= */}
         <NextSeo
           title="abyn | biolink"
           description="Abyn's biolink."
@@ -68,8 +67,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             url: "https://abyn.xyz",
             siteName: "abyn | biolink",
             title: "abyn | biolink",
-            description:
-              "Abyn's biolink.",
+            description: "Abyn's biolink.",
             images: [
               {
                 url: "https://abyn.xyz/banner.png",
@@ -102,15 +100,11 @@ function MyApp({ Component, pageProps }: AppProps) {
           ]}
         />
 
-        {/* ======= HARD FALLBACK (IMPORTANT FOR WHATSAPP) ======= */}
         <Head>
           <link rel="icon" type="image/png" href="/favicon.png" />
 
           <meta property="og:title" content="abyn | biolink" />
-          <meta
-            property="og:description"
-            content="Abyn's biolink."
-          />
+          <meta property="og:description" content="Abyn's biolink." />
           <meta property="og:image" content="https://abyn.xyz/banner.png" />
           <meta property="og:url" content="https://abyn.xyz" />
           <meta property="og:type" content="website" />
