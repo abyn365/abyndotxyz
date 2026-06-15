@@ -113,7 +113,7 @@ export default function Home() {
   };
 
   const socialLinks = [
-    { icon: FiGithub, href: 'https://github.com/abyn365', label: 'GitHub', color: 'text-[var(--text-primary)]' },
+    { icon: FiGithub, href: '/github', label: 'GitHub', color: 'text-[var(--text-primary)]' },
     { icon: FiMail, href: '#', label: 'Email', color: 'text-amber-400', onClick: handleEmailClick },
     { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-indigo-400' },
     { icon: FiInstagram, href: '/instagram', label: 'Instagram', color: 'text-pink-400' },
@@ -218,21 +218,12 @@ I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary
             <div className="grid grid-cols-3 gap-3 justify-items-center sm:flex sm:flex-wrap sm:gap-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
-                const isExternal = social.href.startsWith('http');
-                const Component = isExternal ? 'a' : 'button';
+                const isEmail = social.label === 'Email';
 
-                return (
-                  <Component
+                return isEmail ? (
+                  <button
                     key={social.label}
-                    href={isExternal ? social.href : undefined}
-                    onClick={social.onClick || ((e: React.MouseEvent) => {
-                      if (social.href.startsWith('/')) {
-                        e.preventDefault();
-                        window.location.href = social.href;
-                      }
-                    })}
-                    target={isExternal ? '_blank' : undefined}
-                    rel={isExternal ? 'noopener noreferrer' : undefined}
+                    onClick={social.onClick}
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto justify-center"
                     style={{
                       background: 'var(--social-bg-mix)',
@@ -241,7 +232,22 @@ I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary
                   >
                     <Icon className={`h-4 w-4 ${social.color}`} />
                     <span className="text-sm font-medium text-[var(--text-primary)]">{social.label}</span>
-                  </Component>
+                  </button>
+                ) : (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto justify-center"
+                    style={{
+                      background: 'var(--social-bg-mix)',
+                      border: '1px solid var(--card-border)',
+                    }}
+                  >
+                    <Icon className={`h-4 w-4 ${social.color}`} />
+                    <span className="text-sm font-medium text-[var(--text-primary)]">{social.label}</span>
+                  </a>
                 );
               })}
             </div>
