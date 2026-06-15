@@ -234,7 +234,6 @@ const SpotifyPanel = ({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
             <ActionChip icon={<FiMusic className="h-3 w-3 text-emerald-400" />}>Spotify</ActionChip>
-            {spotify.trackId ? <ActionChip icon={null}>{spotify.trackId}</ActionChip> : null}
             {spotifyUrl ? (
               <ActionChip icon={<FiExternalLink className="h-3 w-3" />} href={spotifyUrl}>
                 Open track
