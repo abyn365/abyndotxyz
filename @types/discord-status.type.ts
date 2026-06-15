@@ -26,6 +26,12 @@ export interface DiscordStatus {
       album_art_url: string;
       artist: string;
       song: string;
+      track_id?: string;
+      songUrl?: string | null;
+      timestamps?: {
+        start: number;
+        end?: number;
+      };
     };
   };
 }

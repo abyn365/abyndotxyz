@@ -1,8 +1,9 @@
 import type { NextComponentType } from "next";
 import Image from "next/image";
-import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { FiActivity, FiDisc, FiMusic } from "react-icons/fi";
+import { FiActivity, FiDisc, FiExternalLink, FiMusic } from "react-icons/fi";
+import { useTheme } from "../ThemeProvider";
 
 type StatusData = {
   activity?: {
@@ -12,253 +13,304 @@ type StatusData = {
     image?: string | null;
   } | null;
   activeDevice?: string | null;
-};
-
-type NowPlaying = {
-  isPlaying: boolean;
-  title?: string;
-  artist?: string;
-  album?: string;
-  albumImageUrl?: string;
-  songUrl?: string;
-  progressMs?: number;
-  durationMs?: number;
-};
-
-type Slide = {
-  key: string;
-  icon: JSX.Element;
-  eyebrow: string;
-  title: string;
-  subtitle: string;
-  meta: string;
-  image: string | null;
-  href?: string;
-  accentColor: string;
-  isPlaying?: boolean;
-  progressMs?: number;
-  durationMs?: number;
+  spotify?: {
+    album: string;
+    albumArtUrl: string;
+    artist: string;
+    song: string;
+    trackId?: string | null;
+    songUrl?: string | null;
+    spotifyUrl?: string | null;
+    timestamps?: {
+      start: number;
+      end?: number;
+    } | null;
+  } | null;
 };
 
 const formatTime = (ms: number): string => {
   const totalSeconds = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
 
-const Visualizer = ({ isPlaying, barCount = 4, className = '' }: { isPlaying: boolean; barCount?: number; className?: string }) => {
-  const [barHeights, setBarHeights] = useState<number[]>(Array(barCount).fill(30));
+const buildSpotifyTrackUrl = (trackId?: string | null) => {
+  if (!trackId) return null;
+  return `https://open.spotify.com/track/${trackId}`;
+};
+
+const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
+  const [barHeights, setBarHeights] = useState<number[]>([38, 64, 48]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isPlaying) {
       intervalRef.current = setInterval(() => {
-        setBarHeights(
-          Array(barCount)
-            .fill(0)
-            .map(() => Math.random() * 70 + 30)
-        );
-      }, 150);
+        setBarHeights([0, 0, 0].map(() => Math.random() * 68 + 24));
+      }, 160);
     } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      setBarHeights(Array(barCount).fill(30));
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      setBarHeights([38, 64, 48]);
     }
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isPlaying, barCount]);
+  }, [isPlaying]);
 
   return (
-    <div className={`flex items-end h-3 gap-[1px] ${className}`}>
+    <div className="flex h-3 items-end gap-[2px]" aria-hidden="true">
       {barHeights.map((height, index) => (
-        <motion.div
+        <motion.span
           key={index}
-          className={`w-[2px] rounded-full ${isPlaying ? 'bg-emerald-400' : 'bg-transparent'}`}
+          className={`w-[2px] rounded-full ${isPlaying ? "bg-emerald-400" : "bg-[var(--card-border)]"}`}
           animate={{ height: `${height}%` }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
         />
       ))}
     </div>
   );
 };
 
-const TiltCard = ({ slide }: { slide: Slide }) => {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [hovered, setHovered] = useState(false);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    setTilt({
-      x: (y / (rect.height / 2)) * -8,
-      y: (x / (rect.width / 2)) * 8,
-    });
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setTilt({ x: 0, y: 0 });
-    setHovered(false);
-  }, []);
-
-  const handleMouseEnter = useCallback(() => {
-    setHovered(true);
-  }, []);
-
-  const handleClick = useCallback(() => {
-    if (slide.href) {
-      window.open(slide.href, '_blank', 'noopener,noreferrer');
-    }
-  }, [slide.href]);
+const ProgressBar = ({ current, total }: { current: number; total: number }) => {
+  const safeTotal = Math.max(total, 1);
+  const percent = Math.min(Math.max((current / safeTotal) * 100, 0), 100);
 
   return (
-    <motion.div
-      className="flex-1 min-w-0 rounded-xl border overflow-hidden transition-shadow duration-300"
-      style={{
-        borderColor: 'var(--card-border)',
-        background: 'var(--card-bg)',
-        transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-        transition: hovered ? 'none' : 'transform 0.4s ease-out, box-shadow 0.3s ease',
-        boxShadow: hovered
-          ? `0 8px 30px color-mix(in srgb, var(--accent) 12%, transparent), var(--card-shadow)`
-          : 'var(--card-shadow)',
-        cursor: slide.href ? 'pointer' : 'default',
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
-      whileTap={slide.href ? { scale: 0.98 } : undefined}
+    <div className="h-1 w-full overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
+      <div
+        className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-300"
+        style={{ width: `${percent}%` }}
+      />
+    </div>
+  );
+};
+
+const ActionChip = ({
+  icon,
+  children,
+  href,
+}: {
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  href?: string | null;
+}) => {
+  const classes =
+    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--hover-bg)]";
+
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={classes} style={{ borderColor: "var(--card-border)" }}>
+        {icon}
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <span className={classes} style={{ borderColor: "var(--card-border)" }}>
+      {icon}
+      {children}
+    </span>
+  );
+};
+
+const ActivityPanel = ({
+  activity,
+  activeDevice,
+  theme,
+}: {
+  activity: NonNullable<StatusData["activity"]>;
+  activeDevice: string | null | undefined;
+  theme: "light" | "dark";
+}) => {
+  const title = activity.name || "Not Active";
+  const subtitle = activity.details || "Not doing anything right now";
+  const overlayClass =
+    theme === "dark"
+      ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.06),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.03),transparent_32%)]"
+      : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.12),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.06),transparent_32%)]";
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+      style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
     >
-      <div className="p-2.5 sm:p-3">
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* Image/Icon container - smaller */}
-          <div className="relative flex-shrink-0">
-            {slide.image ? (
+      <div className={overlayClass} />
+      <div className="relative grid items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
+        <div className="relative shrink-0">
+          {activity.image ? (
+            <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-16 sm:w-16">
               <Image
-                src={slide.image}
-                width={36}
-                height={36}
-                alt={slide.title}
-                className="h-9 w-9 rounded-lg border border-[var(--card-border)] object-cover"
+                src={activity.image}
+                fill
+                sizes="64px"
+                alt={title}
+                className="object-cover"
+                unoptimized
+                draggable={false}
+              />
+            </div>
+          ) : (
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[var(--card-border)] bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] shadow-md sm:h-16 sm:w-16">
+              <FiDisc className="h-6 w-6 text-indigo-400" />
+            </div>
+          )}
+        </div>
+
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <ActionChip
+              icon={<FiActivity className="h-3 w-3 text-indigo-400" />}
+            >
+              Discord activity
+            </ActionChip>
+            {activeDevice ? <ActionChip icon={null}>{activeDevice}</ActionChip> : null}
+          </div>
+
+          <div className="mt-2 min-w-0">
+            <h3 className="truncate text-[15px] font-semibold leading-5 tracking-tight text-[var(--text-primary)] sm:text-base">
+              {title}
+            </h3>
+            <p className="mt-0.5 truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
+              {subtitle}
+            </p>
+            <div aria-hidden="true" className="h-5 sm:h-6" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SpotifyPanel = ({
+  spotify,
+  songProgress,
+  theme,
+}: {
+  spotify: NonNullable<StatusData["spotify"]>;
+  songProgress: number;
+  theme: "light" | "dark";
+}) => {
+  const spotifyUrl = spotify.spotifyUrl || spotify.songUrl || buildSpotifyTrackUrl(spotify.trackId);
+  const progressText = useMemo(() => {
+    if (!spotify.timestamps?.start) return "";
+    const elapsed = Math.max(songProgress, 0);
+    const total = spotify.timestamps.end ? Math.max(spotify.timestamps.end - spotify.timestamps.start, 0) : 0;
+    return total ? `${formatTime(elapsed)} / ${formatTime(total)}` : formatTime(elapsed);
+  }, [songProgress, spotify.timestamps]);
+  const overlayClass =
+    theme === "dark"
+      ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.08),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.04),transparent_34%)]"
+      : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.08),transparent_34%)]";
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+      style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
+    >
+      <div className={overlayClass} />
+      <div className="relative grid items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
+        <div className="relative shrink-0">
+          <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-16 sm:w-16">
+            {spotify.albumArtUrl ? (
+              <Image
+                src={spotify.albumArtUrl}
+                fill
+                sizes="64px"
+                alt={spotify.song}
+                className="object-cover"
                 unoptimized
                 draggable={false}
               />
             ) : (
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-lg border"
-                style={{
-                  background: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
-                  borderColor: 'var(--card-border)',
-                }}
-              >
-                <FiDisc className={`h-4 w-4 ${slide.accentColor}`} />
+              <div className="flex h-full w-full items-center justify-center bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]">
+                <FiMusic className="h-6 w-6 text-emerald-400" />
               </div>
-            )}
-          </div>
-
-          {/* Text content */}
-          <div className="min-w-0 flex-1 select-none">
-            {/* Eyebrow with visualizer */}
-            <div className="flex items-center gap-1 h-3.5">
-              <span className={`${slide.accentColor} flex-shrink-0`}>{slide.icon}</span>
-              <span className="text-[9px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
-                {slide.eyebrow}
-              </span>
-              <Visualizer isPlaying={slide.key === 'spotify' && !!slide.isPlaying} />
-            </div>
-
-            {/* Title */}
-            <p className="truncate text-xs font-medium text-[var(--text-primary)] leading-tight mt-0.5">
-              {slide.title}
-            </p>
-
-            {/* Subtitle with or without progress bar */}
-            {slide.key === 'spotify' && slide.isPlaying && slide.durationMs ? (
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="truncate text-[10px] text-[var(--text-secondary)] flex-shrink-0 max-w-[28%]">
-                  {slide.subtitle}
-                </span>
-                <div className="flex items-center gap-1 min-w-0 flex-1">
-                  <div className="relative h-[3px] flex-1 rounded-full overflow-hidden" style={{ backgroundColor: 'color-mix(in srgb, var(--text-primary) 10%, transparent)' }}>
-                    <motion.div
-                      className="h-full rounded-full progress-active"
-                      style={{ backgroundColor: 'var(--accent)', width: `${Math.min(((slide.progressMs || 0) / slide.durationMs) * 100, 100)}%` }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </div>
-                  <span className="text-[8px] text-[var(--text-secondary)] tabular-nums flex-shrink-0">
-                    {formatTime(slide.progressMs || 0)}/{formatTime(slide.durationMs)}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <p className="truncate text-[10px] text-[var(--text-secondary)] mt-0.5">
-                {slide.subtitle}
-              </p>
             )}
           </div>
         </div>
+
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <ActionChip icon={<FiMusic className="h-3 w-3 text-emerald-400" />}>Spotify</ActionChip>
+            {spotifyUrl ? (
+              <ActionChip icon={<FiExternalLink className="h-3 w-3" />} href={spotifyUrl}>
+                Open track
+              </ActionChip>
+            ) : null}
+          </div>
+
+          <div className="mt-2 min-w-0">
+            <h3 className="truncate text-[15px] font-semibold leading-5 tracking-tight text-[var(--text-primary)] sm:text-base">
+              {spotify.song || "Unknown track"}
+            </h3>
+            <p className="mt-0.5 truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
+              {spotify.artist || "Unknown artist"} · {spotify.album || "Listening now"}
+            </p>
+          </div>
+
+          <div className="mt-2 space-y-1.5">
+            <ProgressBar
+              current={Math.max(songProgress, 0)}
+              total={
+                spotify.timestamps?.end && spotify.timestamps.start
+                  ? Math.max(spotify.timestamps.end - spotify.timestamps.start, 1)
+                  : 1000
+              }
+            />
+            <div className="flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)]">
+              <Visualizer isPlaying={true} />
+              <span className="shrink-0 tabular-nums">{progressText || "Playing now"}</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
 const DiscordStatus: NextComponentType = () => {
+  const { theme } = useTheme();
   const [status, setStatus] = useState<StatusData | null>(null);
-  const [nowPlaying, setNowPlaying] = useState<NowPlaying>({ isPlaying: false });
   const [loading, setLoading] = useState(true);
   const [songProgress, setSongProgress] = useState(0);
   const songProgressRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const fetchAll = async () => {
+    const fetchStatus = async () => {
       try {
-        const [statusRes, nowRes] = await Promise.all([
-          fetch('/api/discord-status'),
-          fetch('/api/now-playing')
-        ]);
-
+        const statusRes = await fetch("/api/discord-status");
         const statusData = await statusRes.json();
-        const nowData = await nowRes.json();
-
         setStatus(statusData);
-        setNowPlaying(nowData);
-        if (nowData.progressMs !== undefined) {
-          setSongProgress(nowData.progressMs);
+        if (statusData.spotify?.timestamps?.start) {
+          setSongProgress(Math.max(Date.now() - statusData.spotify.timestamps.start, 0));
+        } else {
+          setSongProgress(0);
         }
       } catch (error) {
-        console.error('Failed to fetch activity data:', error);
+        console.error("Failed to fetch activity data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAll();
-    const poll = setInterval(fetchAll, 10000);
+    fetchStatus();
+    const poll = setInterval(fetchStatus, 10000);
     return () => clearInterval(poll);
   }, []);
 
   useEffect(() => {
-    if (nowPlaying.isPlaying && nowPlaying.durationMs) {
+    if (songProgressRef.current) {
+      clearInterval(songProgressRef.current);
+      songProgressRef.current = null;
+    }
+
+    if (status?.spotify?.timestamps?.start) {
       songProgressRef.current = setInterval(() => {
-        setSongProgress((prev) => {
-          if (prev >= nowPlaying.durationMs!) {
-            return prev;
-          }
-          return prev + 1000;
-        });
+        setSongProgress((prev) => prev + 1000);
       }, 1000);
-    } else {
-      if (songProgressRef.current) {
-        clearInterval(songProgressRef.current);
-      }
     }
 
     return () => {
@@ -266,52 +318,38 @@ const DiscordStatus: NextComponentType = () => {
         clearInterval(songProgressRef.current);
       }
     };
-  }, [nowPlaying.isPlaying, nowPlaying.durationMs]);
-
-  const slides = useMemo<Slide[]>(() => {
-    return [
-      {
-        key: 'discord',
-        icon: <FiActivity className="h-3 w-3" />,
-        eyebrow: 'Discord Activity',
-        title: status?.activity?.name || 'Not Active',
-        subtitle: status?.activity?.details || 'Not doing anything right now',
-        meta:
-          status?.activity?.name === 'YouTube' && status?.activity?.state
-            ? status.activity.state
-            : status?.activeDevice
-              ? `Active on ${status.activeDevice}`
-              : 'Currently idle',
-        image: status?.activity?.image || null,
-        accentColor: 'text-indigo-400',
-        isPlaying: false,
-      },
-      {
-        key: 'spotify',
-        icon: <FiMusic className="h-3 w-3" />,
-        eyebrow: 'Now Playing',
-        title: nowPlaying.isPlaying ? nowPlaying.title || 'Unknown track' : 'Nothing playing',
-        subtitle: nowPlaying.isPlaying
-          ? nowPlaying.artist || 'Unknown artist'
-          : 'Spotify is currently idle',
-        meta: nowPlaying.isPlaying ? nowPlaying.album || 'Unknown album' : 'Check back in a bit',
-        image: nowPlaying.isPlaying ? nowPlaying.albumImageUrl || null : null,
-        href: nowPlaying.isPlaying ? nowPlaying.songUrl : undefined,
-        accentColor: 'text-emerald-400',
-        isPlaying: nowPlaying.isPlaying,
-        progressMs: songProgress,
-        durationMs: nowPlaying.durationMs,
-      }
-    ];
-  }, [status, nowPlaying, songProgress]);
+  }, [status?.spotify?.timestamps?.start]);
 
   if (loading) return null;
 
+  const hasActivity = Boolean(status?.activity);
+  const hasSpotify = Boolean(status?.spotify);
+
   return (
-    <div className="w-full flex flex-col sm:flex-row gap-3" style={{ perspective: '1000px' }}>
-      {slides.map((slide) => (
-        <TiltCard key={slide.key} slide={slide} />
-      ))}
+    <div className="w-full" style={{ perspective: "1000px" }}>
+      <motion.div
+        className={hasActivity && hasSpotify ? "grid gap-2 md:grid-cols-2" : "grid gap-2"}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      >
+        {hasActivity ? <ActivityPanel activity={status!.activity!} activeDevice={status?.activeDevice} theme={theme} /> : null}
+
+        {hasSpotify ? <SpotifyPanel spotify={status!.spotify!} songProgress={songProgress} theme={theme} /> : null}
+
+        {!hasActivity && !hasSpotify ? (
+          <div
+            className="rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+            style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
+          >
+            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+              <FiActivity className="h-4 w-4 text-indigo-400" />
+              <span className="text-sm font-medium">Discord activity</span>
+            </div>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">Not doing anything right now.</p>
+          </div>
+        ) : null}
+      </motion.div>
     </div>
   );
 };
