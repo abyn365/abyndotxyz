@@ -123,9 +123,9 @@ const TimeWeather = () => {
             }}
           >
             {isAwake ? (
-              <span className="font-medium text-[var(--text-primary)]">I'm awake! Feel free to reach out.</span>
-            ) : (
-              <span className="font-medium text-[var(--text-primary)]">I'm dreaming right now... 😴</span>
+              <span className="font-medium text-[var(--text-primary)]">
+                  I'm {isAwake ? "probably awake right now." : "probably asleep right now... 😴"}
+              </span>
             )}
           </div>
           {/* Arrow */}
