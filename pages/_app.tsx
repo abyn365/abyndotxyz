@@ -59,22 +59,22 @@ function MyApp({ Component, pageProps }: AppProps) {
         <Analytics />
 
         <NextSeo
-          title="> abyn"
-          description="Abyn's biolink."
+          title="Abyan"
+          description="Abyan's portfolio."
           canonical="https://abyn.xyz"
           openGraph={{
             type: "website",
             locale: "en_US",
             url: "https://abyn.xyz",
-            siteName: "abyn | biolink",
-            title: "abyn | biolink",
+            siteName: "abyn.xyz | biolink | projects | portfolio",
+            title: "abyn.xyz",
             description: "Abyn's biolink.",
             images: [
               {
                 url: "https://abyn.xyz/Darktheme.png",
                 width: 1200,
                 height: 630,
-                alt: "abyn | biolink",
+                alt: "abyn.xyz",
                 type: "image/gif",
               },
             ],
@@ -88,11 +88,11 @@ function MyApp({ Component, pageProps }: AppProps) {
             {
               name: "keywords",
               content:
-                "abyn, biolink, software developer, cloud developer, portfolio, web developer, programming, coding",
+                "abyan, biolink, software developer, cloud developer, portfolio, web developer, programming, coding",
             },
             {
               name: "author",
-              content: "abyn",
+              content: "Abyan",
             },
             {
               name: "theme-color",
@@ -102,10 +102,8 @@ function MyApp({ Component, pageProps }: AppProps) {
         />
 
         <Head>
-          <link rel="icon" type="image/png" href="/favicon.png" />
-
-          <meta property="og:title" content="abyn | biolink" />
-          <meta property="og:description" content="Abyn's biolink." />
+          <meta property="og:title" content="Abyan | biolink" />
+          <meta property="og:description" content="Abyan's biolink." />
           <meta property="og:image" content="https://abyn.xyz/banner.png" />
           <meta property="og:url" content="https://abyn.xyz" />
           <meta property="og:type" content="website" />
