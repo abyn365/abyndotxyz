@@ -215,7 +215,7 @@ I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary
             <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
               Connect
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 justify-items-center">
+            <div className="grid grid-cols-3 gap-3 justify-items-center sm:flex sm:flex-wrap sm:gap-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
                 const isExternal = social.href.startsWith('http');
@@ -233,7 +233,7 @@ I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary
                     })}
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noopener noreferrer' : undefined}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 w-full justify-center sm:w-auto"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto justify-center"
                     style={{
                       background: 'var(--social-bg-mix)',
                       border: '1px solid var(--card-border)',
