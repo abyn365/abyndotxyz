@@ -70,12 +70,7 @@ module.exports = {
         destination: 'http://discord.com/users/abynb',
         permanent: true,
       },
-      {
-        source: '/email',
-        destination: 'mailto:abyn@abyn.xyz',
-        permanent: true,
-      },
-    ];
+      ];
   },
   trailingSlash: false
 };
