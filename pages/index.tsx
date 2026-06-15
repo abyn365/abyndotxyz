@@ -1,8 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
 import Image from "next/image";
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { FiGithub, FiInstagram, FiMusic } from "react-icons/fi";
+import { FiGithub, FiInstagram, FiMail } from "react-icons/fi";
+import {
+  SiTiktok,
+  SiSpotify,
+  SiDiscord,
+} from "react-icons/si";
+import VisitorStats from "../components/Misc/VisitorStats.misc";
+import DiscordStatus from "../components/Misc/DiscordStatus.misc";
+import TimeWeather from "../components/TimeWeather";
+import Squares from "../components/Squares";
 
 // Calculate age with decimal precision
 const calculateAge = (birthDate: string): number => {
@@ -26,17 +34,6 @@ const calculateAge = (birthDate: string): number => {
   
   return Math.floor((age + decimalPart) * 1000000000) / 1000000000; // Limit precision
 };
-import {
-  SiTiktok,
-  SiSpotify,
-  SiPinterest,
-  SiDiscord,
-} from "react-icons/si";
-import Projects from "../components/Projects";
-import VisitorStats from "../components/Misc/VisitorStats.misc";
-import DiscordStatus from "../components/Misc/DiscordStatus.misc";
-import TimeWeather from "../components/TimeWeather";
-import Squares from "../components/Squares";
 
 type CustomStatus = {
   emoji?: {
@@ -108,12 +105,12 @@ export default function Home() {
   }, []);
 
   const socialLinks = [
+    { icon: FiGithub, href: '/github', label: 'GitHub', color: 'text-[var(--text-primary)]' },
+    { icon: FiMail, href: 'mailto:abyn@abyn.xyz', label: 'Email', color: 'text-amber-400' },
+    { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-indigo-400' },
     { icon: FiInstagram, href: '/instagram', label: 'Instagram', color: 'text-pink-400' },
     { icon: SiTiktok, href: '/tiktok', label: 'TikTok', color: 'text-[var(--text-primary)]' },
     { icon: SiSpotify, href: '/spotify', label: 'Spotify', color: 'text-emerald-400' },
-    { icon: SiPinterest, href: '/pinterest', label: 'Pinterest', color: 'text-red-500' },
-    { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-indigo-400' },
-    { icon: FiGithub, href: 'https://github.com/abyn365', label: 'GitHub', color: 'text-[var(--text-primary)]' },
   ];
 
   return (
@@ -136,7 +133,7 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="mb-12"
           >
-            {/* Header with nested left column grouping - prevents avatar height pushing content down */}
+            {/* Header with nested left column grouping */}
             <div className="flex flex-col-reverse sm:flex-row items-start justify-between gap-6 sm:gap-10 mb-8">
               {/* Nested Left Column Grouping */}
               <div className="flex-1 min-w-0 space-y-4">
@@ -186,38 +183,42 @@ export default function Home() {
             {/* Bio */}
             <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
               Hello! I'm Abyan (/uh-bye-an/), a student with a passion for software development.
-I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary)]"></span> years old.
+I'm <span className="group relative font-mono font-medium text-[var(--text-primary)]">
+  <span ref={ageRef}></span>
+  {/* Age tooltip */}
+  <span className="absolute bottom-full left-0 mb-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 pointer-events-none origin-bottom-left">
+    <span className="whitespace-nowrap rounded-xl px-4 py-2.5 text-xs border shadow-lg backdrop-blur-xl"
+      style={{
+        background: 'var(--card-bg)',
+        borderColor: 'var(--card-border)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+      }}
+    >
+      <span className="font-medium text-[var(--text-primary)]">Born: April 8, 2009</span>
+    </span>
+    {/* Arrow */}
+    <span className="absolute left-3 top-full -mt-px"
+      style={{
+        width: 0,
+        height: 0,
+        borderLeft: '6px solid transparent',
+        borderRight: '6px solid transparent',
+        borderTop: '6px solid var(--card-border)',
+      }}
+    />
+  </span>
+</span> years old.
             </p>
 
-            {/* Music + live activity */}
+            {/* Live activity */}
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-3">
-                <Link href="/music" className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 transition-all duration-300 hover:scale-105"
-                  style={{
-                    background: 'var(--accent)',
-                  }}>
-                  <FiMusic className="h-4 w-4 text-white" />
-                  <span className="text-sm font-medium text-white">My Music</span>
-                </Link>
                 <span className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">
                   Live activity
                 </span>
               </div>
               <DiscordStatus />
             </div>
-          </motion.div>
-
-          {/* Projects Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-10"
-          >
-            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-8">
-              Projects
-            </h2>
-            <Projects />
           </motion.div>
 
           {/* Social Links */}
@@ -230,27 +231,25 @@ I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary
             <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
               Connect
             </h2>
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
-                const isExternal = social.href.startsWith('http');
-                const Component = isExternal ? 'a' : Link;
 
                 return (
-                  <Component
+                  <a
                     key={social.label}
                     href={social.href}
-                    target={isExternal ? '_blank' : undefined}
-                    rel={isExternal ? 'noopener noreferrer' : undefined}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto"
                     style={{
                       background: 'var(--social-bg-mix)',
                       border: '1px solid var(--card-border)',
                     }}
                   >
-                    <Icon className={`h-4 w-4 ${social.color}`} />
-                    <span className="text-sm font-medium text-[var(--text-primary)]">{social.label}</span>
-                  </Component>
+                    <Icon className={`h-4 w-4 sm:h-4 sm:w-4 ${social.color}`} />
+                    <span className="text-xs sm:text-sm font-medium text-[var(--text-primary)]">{social.label}</span>
+                  </a>
                 );
               })}
             </div>
@@ -264,7 +263,7 @@ I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary
             className="pt-6 border-t border-[var(--card-border)] text-center text-sm text-[var(--text-secondary)]"
           >
             <p>
-              © {mounted ? new Date().getFullYear() : '2024'}{' '}
+              &copy; {mounted ? new Date().getFullYear() : '2024'}{' '}
               <a
                 href="https://github.com/abyn365"
                 target="_blank"
