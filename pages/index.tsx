@@ -50,9 +50,6 @@ const getDiscordAvatar = (userId: string, avatarId: string) => {
   return `https://cdn.discordapp.com/avatars/${userId}/${avatarId}.${extension}?size=256`;
 };
 
-// Base64-encoded email for spam protection
-const encodedEmail = 'bWFpbHRvOmFieW5AYWJ5bi54eXo=';
-
 export default function Home() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [customStatus, setCustomStatus] = useState<CustomStatus | null>(null);
@@ -107,14 +104,9 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleEmailClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    window.location.href = atob(encodedEmail);
-  };
-
   const socialLinks = [
     { icon: FiGithub, href: '/github', label: 'GitHub', color: 'text-[var(--text-primary)]' },
-    { icon: FiMail, href: '#', label: 'Email', color: 'text-amber-400', onClick: handleEmailClick },
+    { icon: FiMail, href: 'mailto:abyn@abyn.xyz', label: 'Email', color: 'text-amber-400' },
     { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-indigo-400' },
     { icon: FiInstagram, href: '/instagram', label: 'Instagram', color: 'text-pink-400' },
     { icon: SiTiktok, href: '/tiktok', label: 'TikTok', color: 'text-[var(--text-primary)]' },
@@ -191,7 +183,31 @@ export default function Home() {
             {/* Bio */}
             <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
               Hello! I'm Abyan (/uh-bye-an/), a student with a passion for software development.
-I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary)]"></span> years old.
+I'm <span className="group relative font-mono font-medium text-[var(--text-primary)] cursor-help">
+  <span ref={ageRef}></span>
+  {/* Age tooltip */}
+  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 pointer-events-none origin-bottom">
+    <span className="whitespace-nowrap rounded-xl px-4 py-2.5 text-xs border shadow-lg backdrop-blur-xl"
+      style={{
+        background: 'var(--card-bg)',
+        borderColor: 'var(--card-border)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+      }}
+    >
+      <span className="font-medium text-[var(--text-primary)]">Born: August 4, 2009</span>
+    </span>
+    {/* Arrow centered */}
+    <span className="absolute left-1/2 -translate-x-1/2 top-full -mt-px"
+      style={{
+        width: 0,
+        height: 0,
+        borderLeft: '6px solid transparent',
+        borderRight: '6px solid transparent',
+        borderTop: '6px solid var(--card-border)',
+      }}
+    />
+  </span>
+</span> years old.
             </p>
 
             {/* Live activity */}
@@ -218,22 +234,8 @@ I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary
             <div className="grid grid-cols-3 gap-3 justify-items-center sm:flex sm:flex-wrap sm:gap-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
-                const isEmail = social.label === 'Email';
 
-                return isEmail ? (
-                  <button
-                    key={social.label}
-                    onClick={social.onClick}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto justify-center"
-                    style={{
-                      background: 'var(--social-bg-mix)',
-                      border: '1px solid var(--card-border)',
-                    }}
-                  >
-                    <Icon className={`h-4 w-4 ${social.color}`} />
-                    <span className="text-sm font-medium text-[var(--text-primary)]">{social.label}</span>
-                  </button>
-                ) : (
+                return (
                   <a
                     key={social.label}
                     href={social.href}

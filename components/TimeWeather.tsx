@@ -122,19 +122,11 @@ const TimeWeather = () => {
               boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
             }}
           >
-            <div className="flex items-center gap-2">
-              {isAwake ? (
-                <>
-                  <FiSun className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="font-medium text-[var(--text-primary)]">I'm awake! Feel free to reach out.</span>
-                </>
-              ) : (
-                <>
-                  <FiMoon className="h-3.5 w-3.5 text-indigo-300" />
-                  <span className="font-medium text-[var(--text-primary)]">I'm dreaming right now... 😴</span>
-                </>
-              )}
-            </div>
+            {isAwake ? (
+              <span className="font-medium text-[var(--text-primary)]">I'm awake! Feel free to reach out.</span>
+            ) : (
+              <span className="font-medium text-[var(--text-primary)]">I'm dreaming right now... 😴</span>
+            )}
           </div>
           {/* Arrow */}
           <div className="absolute left-3 top-full -mt-px"
