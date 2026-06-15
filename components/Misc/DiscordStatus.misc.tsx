@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { FiActivity, FiDisc, FiExternalLink, FiMusic } from "react-icons/fi";
+import { useTheme } from "../ThemeProvider";
 
 type StatusData = {
   activity?: {
@@ -118,33 +119,33 @@ const ActionChip = ({
 const ActivityPanel = ({
   activity,
   activeDevice,
+  theme,
 }: {
   activity: NonNullable<StatusData["activity"]>;
   activeDevice: string | null | undefined;
+  theme: "light" | "dark";
 }) => {
   const title = activity.name || "Not Active";
   const subtitle = activity.details || "Not doing anything right now";
-  const meta =
-    activity.name === "YouTube" && activity.state
-      ? activity.state
-      : activeDevice
-        ? `Active on ${activeDevice}`
-        : "Currently idle";
+  const overlayClass =
+    theme === "dark"
+      ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.06),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.03),transparent_32%)]"
+      : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.12),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.06),transparent_32%)]";
 
   return (
     <div
       className="relative overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
       style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.12),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.06),transparent_32%)]" />
+      <div className={overlayClass} />
       <div className="relative grid items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
         <div className="relative shrink-0">
           {activity.image ? (
-            <div className="relative h-16 w-16 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-[4.5rem] sm:w-[4.5rem]">
+            <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-16 sm:w-16">
               <Image
                 src={activity.image}
                 fill
-                sizes="72px"
+                sizes="64px"
                 alt={title}
                 className="object-cover"
                 unoptimized
@@ -152,8 +153,8 @@ const ActivityPanel = ({
               />
             </div>
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-[var(--card-border)] bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] shadow-md sm:h-[4.5rem] sm:w-[4.5rem]">
-              <FiDisc className="h-7 w-7 text-indigo-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[var(--card-border)] bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] shadow-md sm:h-16 sm:w-16">
+              <FiDisc className="h-6 w-6 text-indigo-400" />
             </div>
           )}
         </div>
@@ -176,13 +177,6 @@ const ActivityPanel = ({
               {subtitle}
             </p>
           </div>
-
-          <div className="mt-2 flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)]">
-            <span className="truncate">{meta}</span>
-            <span className="shrink-0 rounded-full border px-2 py-0.5" style={{ borderColor: "var(--card-border)" }}>
-              Live
-            </span>
-          </div>
         </div>
       </div>
     </div>
@@ -192,9 +186,11 @@ const ActivityPanel = ({
 const SpotifyPanel = ({
   spotify,
   songProgress,
+  theme,
 }: {
   spotify: NonNullable<StatusData["spotify"]>;
   songProgress: number;
+  theme: "light" | "dark";
 }) => {
   const spotifyUrl = spotify.spotifyUrl || spotify.songUrl || buildSpotifyTrackUrl(spotify.trackId);
   const progressText = useMemo(() => {
@@ -203,21 +199,25 @@ const SpotifyPanel = ({
     const total = spotify.timestamps.end ? Math.max(spotify.timestamps.end - spotify.timestamps.start, 0) : 0;
     return total ? `${formatTime(elapsed)} / ${formatTime(total)}` : formatTime(elapsed);
   }, [songProgress, spotify.timestamps]);
+  const overlayClass =
+    theme === "dark"
+      ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.08),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.04),transparent_34%)]"
+      : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.08),transparent_34%)]";
 
   return (
     <div
       className="relative overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
       style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.08),transparent_34%)]" />
+      <div className={overlayClass} />
       <div className="relative grid items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
         <div className="relative shrink-0">
-          <div className="relative h-16 w-16 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-[4.5rem] sm:w-[4.5rem]">
+          <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-16 sm:w-16">
             {spotify.albumArtUrl ? (
               <Image
                 src={spotify.albumArtUrl}
                 fill
-                sizes="72px"
+                sizes="64px"
                 alt={spotify.song}
                 className="object-cover"
                 unoptimized
@@ -225,7 +225,7 @@ const SpotifyPanel = ({
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]">
-                <FiMusic className="h-7 w-7 text-emerald-400" />
+                <FiMusic className="h-6 w-6 text-emerald-400" />
               </div>
             )}
           </div>
@@ -271,6 +271,7 @@ const SpotifyPanel = ({
 };
 
 const DiscordStatus: NextComponentType = () => {
+  const { theme } = useTheme();
   const [status, setStatus] = useState<StatusData | null>(null);
   const [loading, setLoading] = useState(true);
   const [songProgress, setSongProgress] = useState(0);
@@ -331,9 +332,9 @@ const DiscordStatus: NextComponentType = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
-        {hasActivity ? <ActivityPanel activity={status!.activity!} activeDevice={status?.activeDevice} /> : null}
+        {hasActivity ? <ActivityPanel activity={status!.activity!} activeDevice={status?.activeDevice} theme={theme} /> : null}
 
-        {hasSpotify ? <SpotifyPanel spotify={status!.spotify!} songProgress={songProgress} /> : null}
+        {hasSpotify ? <SpotifyPanel spotify={status!.spotify!} songProgress={songProgress} theme={theme} /> : null}
 
         {!hasActivity && !hasSpotify ? (
           <div
