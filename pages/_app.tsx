@@ -59,7 +59,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <Analytics />
 
         <NextSeo
-          title="abyn | biolink"
+          title="> abyn"
           description="Abyn's biolink."
           canonical="https://abyn.xyz"
           openGraph={{
@@ -71,7 +71,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             description: "Abyn's biolink.",
             images: [
               {
-                url: "https://abyn.xyz/banner.png",
+                url: "https://abyn.xyz/Darktheme.png",
                 width: 1200,
                 height: 630,
                 alt: "abyn | biolink",
