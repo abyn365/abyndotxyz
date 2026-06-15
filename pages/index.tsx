@@ -12,27 +12,16 @@ import DiscordStatus from "../components/Misc/DiscordStatus.misc";
 import TimeWeather from "../components/TimeWeather";
 import Squares from "../components/Squares";
 
-// Calculate age with decimal precision
+// Calculate age with decimal precision from the actual birth date
 const calculateAge = (birthDate: string): number => {
   const [day, month, year] = birthDate.split('/').map(Number);
-  const birth = new Date(year, month - 1, day);
+  const birth = new Date(Date.UTC(year, month - 1, day));
   const now = new Date();
-  
-  let age = now.getFullYear() - birth.getFullYear();
-  const monthDiff = now.getMonth() - birth.getMonth();
-  
-  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
-    age--;
-  }
-  
-  // Calculate decimal precision (days into current year as fraction)
-  const currentYearStart = new Date(now.getFullYear(), 0, 1);
-  const nextYearStart = new Date(now.getFullYear() + 1, 0, 1);
-  const daysInYear = (nextYearStart.getTime() - currentYearStart.getTime()) / (1000 * 60 * 60 * 24);
-  const dayOfYear = (now.getTime() - currentYearStart.getTime()) / (1000 * 60 * 60 * 24);
-  const decimalPart = dayOfYear / daysInYear;
-  
-  return Math.floor((age + decimalPart) * 1000000000) / 1000000000; // Limit precision
+
+  const elapsedMs = now.getTime() - birth.getTime();
+  const years = elapsedMs / (365.2425 * 24 * 60 * 60 * 1000);
+
+  return Math.floor(years * 1000000000) / 1000000000; // Limit precision
 };
 
 type CustomStatus = {
@@ -60,14 +49,14 @@ export default function Home() {
 
   useEffect(() => {
     // Direct DOM writing via ref for zero re-render overhead
-    const birthDate = '08/04/2009'; // Format: DD/MM/YYYY
+    const birthDate = '08/04/2009'; // Format: DD/MM/YYYY (8 April 2009)
     const tick = () => {
       if (ageRef.current) {
         ageRef.current.textContent = calculateAge(birthDate).toFixed(10);
       }
     };
     tick();
-    const ageInterval = setInterval(tick, 50);
+    const ageInterval = setInterval(tick, 1000);
     
     setMounted(true);
     return () => clearInterval(ageInterval);
@@ -231,7 +220,7 @@ I'm <span className="group relative font-mono font-medium text-[var(--text-prima
             <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
               Connect
             </h2>
-            <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+            <div className="grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:gap-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
 
@@ -241,14 +230,14 @@ I'm <span className="group relative font-mono font-medium text-[var(--text-prima
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+                    className="inline-flex flex-col items-center justify-center gap-2 px-2 py-3 min-h-24 rounded-2xl transition-all duration-300 hover:scale-105 w-full sm:w-auto sm:flex-row sm:min-h-0 sm:gap-2 sm:px-4 sm:py-2.5 sm:rounded-lg"
                     style={{
                       background: 'var(--social-bg-mix)',
                       border: '1px solid var(--card-border)',
                     }}
                   >
-                    <Icon className={`h-4 w-4 sm:h-4 sm:w-4 ${social.color}`} />
-                    <span className="text-xs sm:text-sm font-medium text-[var(--text-primary)]">{social.label}</span>
+                    <Icon className={`h-6 w-6 sm:h-4 sm:w-4 ${social.color}`} />
+                    <span className="text-[10px] leading-none sm:text-sm font-medium text-[var(--text-primary)] text-center">{social.label}</span>
                   </a>
                 );
               })}
