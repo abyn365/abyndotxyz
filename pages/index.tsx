@@ -1,8 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
 import Image from "next/image";
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { FiGithub, FiInstagram, FiMusic } from "react-icons/fi";
+import { FiGithub, FiInstagram, FiMail } from "react-icons/fi";
+import {
+  SiTiktok,
+  SiSpotify,
+  SiDiscord,
+} from "react-icons/si";
+import VisitorStats from "../components/Misc/VisitorStats.misc";
+import DiscordStatus from "../components/Misc/DiscordStatus.misc";
+import TimeWeather from "../components/TimeWeather";
+import Squares from "../components/Squares";
 
 // Calculate age with decimal precision
 const calculateAge = (birthDate: string): number => {
@@ -26,17 +34,6 @@ const calculateAge = (birthDate: string): number => {
   
   return Math.floor((age + decimalPart) * 1000000000) / 1000000000; // Limit precision
 };
-import {
-  SiTiktok,
-  SiSpotify,
-  SiPinterest,
-  SiDiscord,
-} from "react-icons/si";
-import Projects from "../components/Projects";
-import VisitorStats from "../components/Misc/VisitorStats.misc";
-import DiscordStatus from "../components/Misc/DiscordStatus.misc";
-import TimeWeather from "../components/TimeWeather";
-import Squares from "../components/Squares";
 
 type CustomStatus = {
   emoji?: {
@@ -52,6 +49,9 @@ const getDiscordAvatar = (userId: string, avatarId: string) => {
   const extension = isAnimated ? 'gif' : 'png';
   return `https://cdn.discordapp.com/avatars/${userId}/${avatarId}.${extension}?size=256`;
 };
+
+// Base64-encoded email for spam protection
+const encodedEmail = 'bWFpbHRvOmFieW5AYWJ5bi54eXo=';
 
 export default function Home() {
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -107,13 +107,18 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleEmailClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.location.href = atob(encodedEmail);
+  };
+
   const socialLinks = [
+    { icon: FiGithub, href: 'https://github.com/abyn365', label: 'GitHub', color: 'text-[var(--text-primary)]' },
+    { icon: FiMail, href: '#', label: 'Email', color: 'text-amber-400', onClick: handleEmailClick },
+    { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-indigo-400' },
     { icon: FiInstagram, href: '/instagram', label: 'Instagram', color: 'text-pink-400' },
     { icon: SiTiktok, href: '/tiktok', label: 'TikTok', color: 'text-[var(--text-primary)]' },
     { icon: SiSpotify, href: '/spotify', label: 'Spotify', color: 'text-emerald-400' },
-    { icon: SiPinterest, href: '/pinterest', label: 'Pinterest', color: 'text-red-500' },
-    { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-indigo-400' },
-    { icon: FiGithub, href: 'https://github.com/abyn365', label: 'GitHub', color: 'text-[var(--text-primary)]' },
   ];
 
   return (
@@ -136,7 +141,7 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="mb-12"
           >
-            {/* Header with nested left column grouping - prevents avatar height pushing content down */}
+            {/* Header with nested left column grouping */}
             <div className="flex flex-col-reverse sm:flex-row items-start justify-between gap-6 sm:gap-10 mb-8">
               {/* Nested Left Column Grouping */}
               <div className="flex-1 min-w-0 space-y-4">
@@ -189,35 +194,15 @@ export default function Home() {
 I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary)]"></span> years old.
             </p>
 
-            {/* Music + live activity */}
+            {/* Live activity */}
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-3">
-                <Link href="/music" className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 transition-all duration-300 hover:scale-105"
-                  style={{
-                    background: 'var(--accent)',
-                  }}>
-                  <FiMusic className="h-4 w-4 text-white" />
-                  <span className="text-sm font-medium text-white">My Music</span>
-                </Link>
                 <span className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">
                   Live activity
                 </span>
               </div>
               <DiscordStatus />
             </div>
-          </motion.div>
-
-          {/* Projects Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-10"
-          >
-            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-8">
-              Projects
-            </h2>
-            <Projects />
           </motion.div>
 
           {/* Social Links */}
@@ -234,12 +219,18 @@ I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary
               {socialLinks.map((social) => {
                 const Icon = social.icon;
                 const isExternal = social.href.startsWith('http');
-                const Component = isExternal ? 'a' : Link;
+                const Component = isExternal ? 'a' : 'button';
 
                 return (
                   <Component
                     key={social.label}
-                    href={social.href}
+                    href={isExternal ? social.href : undefined}
+                    onClick={social.onClick || ((e: React.MouseEvent) => {
+                      if (social.href.startsWith('/')) {
+                        e.preventDefault();
+                        window.location.href = social.href;
+                      }
+                    })}
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noopener noreferrer' : undefined}
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105"
@@ -264,7 +255,7 @@ I'm <span ref={ageRef} className="font-mono font-medium text-[var(--text-primary
             className="pt-6 border-t border-[var(--card-border)] text-center text-sm text-[var(--text-secondary)]"
           >
             <p>
-              © {mounted ? new Date().getFullYear() : '2024'}{' '}
+              &copy; {mounted ? new Date().getFullYear() : '2024'}{' '}
               <a
                 href="https://github.com/abyn365"
                 target="_blank"

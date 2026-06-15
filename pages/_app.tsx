@@ -6,6 +6,7 @@ import Head from "next/head";
 import Script from "next/script";
 import { ThemeProvider } from "../components/ThemeProvider";
 import ThemeToggle from "../components/ThemeToggle";
+import Navbar from "../components/Navbar";
 
 import "../styles/globals.css";
 import "@fontsource/jost/400.css";
@@ -110,6 +111,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <meta property="og:type" content="website" />
         </Head>
 
+        <Navbar />
         <Component {...pageProps} />
         <ThemeToggle />
       </>

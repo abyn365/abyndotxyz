@@ -66,11 +66,6 @@ module.exports = {
         permanent: true,
       },
       {
-        source: '/pinterest',
-        destination: 'https://id.pinterest.com/abynabb',
-        permanent: true,
-      },
-      {
         source: '/discord',
         destination: 'http://discord.com/users/abynb',
         permanent: true,
