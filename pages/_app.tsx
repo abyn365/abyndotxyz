@@ -59,22 +59,22 @@ function MyApp({ Component, pageProps }: AppProps) {
         <Analytics />
 
         <NextSeo
-          title="Abyan — Software Developer & Builder"
-          description="Abyan (/uh-bye-an/) — student and software developer building web projects, tools, and experiments. Portfolio, projects, and contact links."
+          title="Abyan - Software Developer & Builder"
+          description="Abyan (/uh-bye-an/) - student and software developer building web projects, tools, and experiments. Portfolio, projects, and contact links."
           canonical="https://abyn.xyz"
           openGraph={{
             type: "website",
             locale: "en_US",
             url: "https://abyn.xyz",
-            siteName: "abyn.xyz — Portfolio & Projects",
-            title: "Abyan — Software Developer & Builder",
-            description: "Abyan (/uh-bye-an/) — student and software developer building web projects, tools, and experiments.",
+            siteName: "abyn.xyz - Portfolio & Projects",
+            title: "Abyan - Software Developer & Builder",
+            description: "Abyan (/uh-bye-an/) - student and software developer building web projects, tools, and experiments.",
             images: [
               {
                 url: "https://abyn.xyz/banner.png",
                 width: 1200,
                 height: 630,
-                alt: "Abyan — software developer",
+                alt: "Abyan - software developer",
                 type: "image/png",
               },
             ],
@@ -102,8 +102,8 @@ function MyApp({ Component, pageProps }: AppProps) {
         />
 
         <Head>
-          <meta property="og:title" content="Abyan — Software Developer & Builder" />
-          <meta property="og:description" content="Abyan (/uh-bye-an/) — student and software developer building web projects, tools, and experiments." />
+          <meta property="og:title" content="Abyan - Software Developer & Builder" />
+          <meta property="og:description" content="Abyan (/uh-bye-an/) - student and software developer building web projects, tools, and experiments." />
           <meta property="og:image" content="https://abyn.xyz/banner.png" />
           <meta property="og:url" content="https://abyn.xyz" />
           <meta property="og:type" content="website" />
