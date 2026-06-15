@@ -183,10 +183,10 @@ export default function Home() {
             {/* Bio */}
             <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
               Hello! I'm Abyan (/uh-bye-an/), a student with a passion for software development.
-I'm <span className="group relative font-mono font-medium text-[var(--text-primary)] cursor-help">
+I'm <span className="group relative font-mono font-medium text-[var(--text-primary)]">
   <span ref={ageRef}></span>
   {/* Age tooltip */}
-  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 pointer-events-none origin-bottom">
+  <span className="absolute bottom-full left-0 mb-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 pointer-events-none origin-bottom-left">
     <span className="whitespace-nowrap rounded-xl px-4 py-2.5 text-xs border shadow-lg backdrop-blur-xl"
       style={{
         background: 'var(--card-bg)',
@@ -196,8 +196,8 @@ I'm <span className="group relative font-mono font-medium text-[var(--text-prima
     >
       <span className="font-medium text-[var(--text-primary)]">Born: April 8, 2009</span>
     </span>
-    {/* Arrow centered */}
-    <span className="absolute left-1/2 -translate-x-1/2 top-full -mt-px"
+    {/* Arrow */}
+    <span className="absolute left-3 top-full -mt-px"
       style={{
         width: 0,
         height: 0,
@@ -231,7 +231,7 @@ I'm <span className="group relative font-mono font-medium text-[var(--text-prima
             <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
               Connect
             </h2>
-            <div className="grid grid-cols-3 gap-3 justify-items-center sm:flex sm:flex-wrap sm:gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
 
@@ -241,14 +241,14 @@ I'm <span className="group relative font-mono font-medium text-[var(--text-prima
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto justify-center"
+                    className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto"
                     style={{
                       background: 'var(--social-bg-mix)',
                       border: '1px solid var(--card-border)',
                     }}
                   >
-                    <Icon className={`h-4 w-4 ${social.color}`} />
-                    <span className="text-sm font-medium text-[var(--text-primary)]">{social.label}</span>
+                    <Icon className={`h-4 w-4 sm:h-4 sm:w-4 ${social.color}`} />
+                    <span className="text-xs sm:text-sm font-medium text-[var(--text-primary)]">{social.label}</span>
                   </a>
                 );
               })}
