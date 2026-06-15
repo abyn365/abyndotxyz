@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from "next";
 
 const DISCORD_ID = "877018055815868426";
 
@@ -15,7 +15,6 @@ export const getStatusImage = (status: string, isActive: boolean) => {
 };
 
 export const getActiveDevice = (data: any) => {
-  // Priority order: desktop > web > mobile
   if (data.active_on_discord_desktop) return 'Desktop';
   if (data.active_on_discord_web) return 'Web';
   if (data.active_on_discord_mobile) return 'Mobile';
@@ -24,16 +23,14 @@ export const getActiveDevice = (data: any) => {
 
 const getImageUrl = (activity: any) => {
   if (!activity) return null;
-  
-  // Handle PreMiD format
+
   if (activity.assets?.large_image?.startsWith('mp:external/')) {
     try {
-      // Extract image URL from PreMiD format and fix URL encoding
       const imageUrl = activity.assets.large_image
         .split('/https/')[1]
-        ?.replace(/%25/g, '%')  // Fix double encoding
-        ?.replace(/\/assets\/\d+\.png$/, '/assets/logo.png'); // Replace numbered assets with logo.png
-      
+        ?.replace(/%25/g, '%')
+        ?.replace(/\/assets\/\d+\.png$/, '/assets/logo.png');
+
       if (imageUrl) {
         return `https://${imageUrl}`;
       }
@@ -41,14 +38,18 @@ const getImageUrl = (activity: any) => {
       console.error('Error processing PreMiD image:', error);
     }
   }
-  
-  // Handle Spotify
+
   if (activity.name === 'Spotify' && activity.assets?.large_image) {
     const spotifyImageId = activity.assets.large_image.replace('spotify:', '');
     return `https://i.scdn.co/image/${spotifyImageId}`;
   }
-  
+
   return null;
+};
+
+const buildSpotifyLink = (trackId?: string) => {
+  if (!trackId) return null;
+  return `https://open.spotify.com/track/${trackId}`;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -64,15 +65,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Failed to fetch Discord status' });
     }
 
-    // Check active status with priority
     const device = getActiveDevice(data.data);
     const isActive = Boolean(device);
 
-    // Find activity that is not Spotify
-    const activity = data.data.activities?.find((a: any) => 
+    const activity = data.data.activities?.find((a: any) =>
       (a.type === 0 || a.type === 3) && a.name !== 'Spotify'
     );
-    
+
+    const spotify = data.data.spotify
+      ? {
+          album: data.data.spotify.album,
+          albumArtUrl: data.data.spotify.album_art_url,
+          artist: data.data.spotify.artist,
+          song: data.data.spotify.song,
+          timestamps: data.data.spotify.timestamps || null,
+          trackId: data.data.spotify.track_id || null,
+          songUrl: buildSpotifyLink(data.data.spotify.track_id),
+        }
+      : null;
+
     return res.status(200).json({
       isActive: Boolean(activity),
       status: data.data.discord_status,
@@ -82,10 +93,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         name: activity.name,
         details: activity.details,
         state: activity.state,
-        image: getImageUrl(activity)
-      } : null
+        image: getImageUrl(activity),
+      } : null,
+      spotify,
     });
-
   } catch (error) {
     console.error('Discord status error:', error);
     return res.status(500).json({ error: 'Failed to fetch Discord status' });
