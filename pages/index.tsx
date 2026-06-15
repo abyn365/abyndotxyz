@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { FiGithub, FiInstagram, FiMail } from "react-icons/fi";
@@ -12,16 +12,31 @@ import DiscordStatus from "../components/Misc/DiscordStatus.misc";
 import TimeWeather from "../components/TimeWeather";
 import Squares from "../components/Squares";
 
-// Calculate age with decimal precision from the actual birth date
-const calculateAge = (birthDate: string): number => {
-  const [day, month, year] = birthDate.split('/').map(Number);
-  const birth = new Date(Date.UTC(year, month - 1, day));
-  const now = new Date();
+const CurrentAge = () => {
+  const ref = useRef<HTMLSpanElement>(null);
 
-  const elapsedMs = now.getTime() - birth.getTime();
-  const years = elapsedMs / (365.2425 * 24 * 60 * 60 * 1000);
+  useEffect(() => {
+    const birth = new Date("2009-04-08T00:00:00Z").getTime();
+    let frame = 0;
 
-  return Math.floor(years * 1000000000) / 1000000000; // Limit precision
+    const update = () => {
+      const age = (
+        (Date.now() - birth) / (365.25 * 24 * 60 * 60 * 1000)
+      ).toFixed(10);
+
+      if (ref.current) {
+        ref.current.textContent = age;
+      }
+
+      frame = requestAnimationFrame(update);
+    };
+
+    frame = requestAnimationFrame(update);
+
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  return <span ref={ref} />;
 };
 
 type CustomStatus = {
@@ -45,21 +60,9 @@ export default function Home() {
   const [username, setUsername] = useState('');
   const [discordStatus, setDiscordStatus] = useState('');
   const [mounted, setMounted] = useState(false);
-  const ageRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    // Direct DOM writing via ref for zero re-render overhead
-    const birthDate = '08/04/2009'; // Format: DD/MM/YYYY (8 April 2009)
-    const tick = () => {
-      if (ageRef.current) {
-        ageRef.current.textContent = calculateAge(birthDate).toFixed(10);
-      }
-    };
-    tick();
-    const ageInterval = setInterval(tick, 1000);
-    
     setMounted(true);
-    return () => clearInterval(ageInterval);
   }, []);
 
   // Fetch Discord user
@@ -122,9 +125,8 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="mb-12"
           >
-            {/* Header with nested left column grouping */}
+            {/* Header */}
             <div className="flex flex-col-reverse sm:flex-row items-start justify-between gap-6 sm:gap-10 mb-8">
-              {/* Nested Left Column Grouping */}
               <div className="flex-1 min-w-0 space-y-4">
                 <div className="pt-1">
                   <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-2">
@@ -135,24 +137,31 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* Stats & Status nested inside the left column */}
                 <div className="flex flex-wrap items-center gap-4">
                   <VisitorStats />
                   {discordStatus && (
                     <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                      <div className="w-2 h-2 rounded-full" style={{
-                        backgroundColor: discordStatus === 'online' ? '#10b981' : discordStatus === 'idle' ? '#f59e0b' : discordStatus === 'dnd' ? '#ef4444' : '#9ca3af'
-                      }} />
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor:
+                            discordStatus === 'online'
+                              ? '#10b981'
+                              : discordStatus === 'idle'
+                              ? '#f59e0b'
+                              : discordStatus === 'dnd'
+                              ? '#ef4444'
+                              : '#9ca3af',
+                        }}
+                      />
                       <span className="capitalize">{discordStatus}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Time & Weather directly in the left column */}
                 <TimeWeather />
               </div>
 
-              {/* Avatar on the right */}
               {avatarUrl && (
                 <div className="flex-shrink-0 self-center sm:self-start">
                   <div className="relative h-28 w-28 sm:h-36 sm:w-36">
@@ -172,31 +181,35 @@ export default function Home() {
             {/* Bio */}
             <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
               Hello! I'm Abyan (/uh-bye-an/), a student with a passion for software development.
-I'm <span className="group relative font-mono font-medium text-[var(--text-primary)]">
-  <span ref={ageRef}></span>
-  {/* Age tooltip */}
-  <span className="absolute bottom-full left-0 mb-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 pointer-events-none origin-bottom-left">
-    <span className="whitespace-nowrap rounded-xl px-4 py-2.5 text-xs border shadow-lg backdrop-blur-xl"
-      style={{
-        background: 'var(--card-bg)',
-        borderColor: 'var(--card-border)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-      }}
-    >
-      <span className="font-medium text-[var(--text-primary)]">Born: April 8, 2009</span>
-    </span>
-    {/* Arrow */}
-    <span className="absolute left-3 top-full -mt-px"
-      style={{
-        width: 0,
-        height: 0,
-        borderLeft: '6px solid transparent',
-        borderRight: '6px solid transparent',
-        borderTop: '6px solid var(--card-border)',
-      }}
-    />
-  </span>
-</span> years old.
+              I'm{' '}
+              <span className="group relative font-mono font-medium text-[var(--text-primary)]">
+                <CurrentAge />
+                <span className="absolute bottom-full left-0 mb-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 pointer-events-none origin-bottom-left">
+                  <span
+                    className="whitespace-nowrap rounded-xl px-4 py-2.5 text-xs border shadow-lg backdrop-blur-xl"
+                    style={{
+                      background: 'var(--card-bg)',
+                      borderColor: 'var(--card-border)',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                    }}
+                  >
+                    <span className="font-medium text-[var(--text-primary)]">
+                      Born: April 8, 2009
+                    </span>
+                  </span>
+                  <span
+                    className="absolute left-3 top-full -mt-px"
+                    style={{
+                      width: 0,
+                      height: 0,
+                      borderLeft: '6px solid transparent',
+                      borderRight: '6px solid transparent',
+                      borderTop: '6px solid var(--card-border)',
+                    }}
+                  />
+                </span>
+              </span>{' '}
+              years old.
             </p>
 
             {/* Live activity */}
@@ -220,7 +233,8 @@ I'm <span className="group relative font-mono font-medium text-[var(--text-prima
             <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
               Connect
             </h2>
-            <div className="grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:gap-3">
+
+            <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:gap-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
 
@@ -230,14 +244,16 @@ I'm <span className="group relative font-mono font-medium text-[var(--text-prima
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex flex-col items-center justify-center gap-2 px-2 py-3 min-h-24 rounded-2xl transition-all duration-300 hover:scale-105 w-full sm:w-auto sm:flex-row sm:min-h-0 sm:gap-2 sm:px-4 sm:py-2.5 sm:rounded-lg"
+                    className="inline-flex flex-col items-center justify-center gap-1.5 px-2.5 py-2 min-h-16 rounded-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto sm:flex-row sm:gap-2 sm:px-4 sm:py-2.5 sm:min-h-0 sm:rounded-lg"
                     style={{
                       background: 'var(--social-bg-mix)',
                       border: '1px solid var(--card-border)',
                     }}
                   >
-                    <Icon className={`h-6 w-6 sm:h-4 sm:w-4 ${social.color}`} />
-                    <span className="text-[10px] leading-none sm:text-sm font-medium text-[var(--text-primary)] text-center">{social.label}</span>
+                    <Icon className={`h-5 w-5 sm:h-4 sm:w-4 ${social.color}`} />
+                    <span className="text-[9px] leading-none sm:text-sm font-medium text-[var(--text-primary)] text-center">
+                      {social.label}
+                    </span>
                   </a>
                 );
               })}
