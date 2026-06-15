@@ -106,7 +106,7 @@ export default function Home() {
 
   const socialLinks = [
     { icon: FiGithub, href: '/github', label: 'GitHub', color: 'text-[var(--text-primary)]' },
-    { icon: FiMail, href: 'mailto:abyn@abyn.xyz', label: 'Email', color: 'text-amber-400' },
+    { icon: FiMail, href: '/email', label: 'Email', color: 'text-amber-400' },
     { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-indigo-400' },
     { icon: FiInstagram, href: '/instagram', label: 'Instagram', color: 'text-pink-400' },
     { icon: SiTiktok, href: '/tiktok', label: 'TikTok', color: 'text-[var(--text-primary)]' },
@@ -194,7 +194,7 @@ I'm <span className="group relative font-mono font-medium text-[var(--text-prima
         boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
       }}
     >
-      <span className="font-medium text-[var(--text-primary)]">Born: August 4, 2009</span>
+      <span className="font-medium text-[var(--text-primary)]">Born: April 8, 2009</span>
     </span>
     {/* Arrow centered */}
     <span className="absolute left-1/2 -translate-x-1/2 top-full -mt-px"
