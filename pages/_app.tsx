@@ -33,7 +33,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         {/* Umami Analytics */}
         {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
           <Script
-            src="https://cloud.umami.is/script.js"
+            src="https://umami.abyn.xyz/script.js"
             data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
             strategy="afterInteractive"
           />
