@@ -176,6 +176,7 @@ const ActivityPanel = ({
             <p className="mt-0.5 truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
               {subtitle}
             </p>
+            <div aria-hidden="true" className="h-5 sm:h-6" />
           </div>
         </div>
       </div>
