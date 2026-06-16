@@ -3,6 +3,11 @@ import { kv } from '@vercel/kv';
 
 const CACHE_TTL = 60 * 10; // 10 minutes in seconds
 
+type CachedValue = {
+  weather: WeatherData;
+  fetchedAt: number; // epoch seconds
+};
+
 const getWeatherDescription = (code: number): string => {
   const weatherCodes: { [key: number]: string } = {
     0: 'Clear sky',
@@ -52,12 +57,51 @@ export default async function handler(
 
   const cacheKey = 'weather-yogyakarta';
 
-  // ---------- KV CACHE HIT ----------
+  // ---------- KV CACHE CHECK ----------
   try {
-    const cached = await kv.get<WeatherData>(cacheKey);
-    if (cached) {
-      res.setHeader('x-cache', 'KV_HIT');
-      return res.status(200).json(cached);
+    const cached = await kv.get<CachedValue>(cacheKey);
+    if (cached && cached.weather) {
+      const now = Math.floor(Date.now() / 1000);
+      const age = now - (cached.fetchedAt || 0);
+
+      // still fresh
+      if (age < CACHE_TTL) {
+        res.setHeader('x-cache', 'KV_HIT');
+        return res.status(200).json(cached.weather);
+      }
+
+      // cache expired -> attempt to fetch new data synchronously so client gets updated data
+      try {
+        const response = await fetch(
+          'https://api.open-meteo.com/v1/forecast?latitude=-7.8014&longitude=110.3647&current=temperature_2m,apparent_temperature,is_day,weather_code&temperature_unit=celsius&timezone=Asia%2FBangkok'
+        );
+        const data = await response.json();
+
+        if (data && data.current) {
+          const weather: WeatherData = {
+            time: data.current.time,
+            temperature: Math.round(data.current.temperature_2m),
+            feelsLike: Math.round(data.current.apparent_temperature),
+            weatherCode: data.current.weather_code,
+            weatherDescription: getWeatherDescription(data.current.weather_code),
+            isDay: data.current.is_day === 1,
+          };
+
+          // update KV
+          try {
+            await kv.set(cacheKey, { weather, fetchedAt: now }, { ex: CACHE_TTL });
+          } catch (err) {
+            console.warn('KV cache write failed while refreshing:', err);
+          }
+
+          res.setHeader('x-cache', 'KV_REFRESH');
+          return res.status(200).json(weather);
+        }
+      } catch (err) {
+        console.warn('Weather refresh failed, returning stale cache:', err);
+        res.setHeader('x-cache', 'KV_STALE');
+        return res.status(200).json(cached.weather);
+      }
     }
   } catch (err) {
     console.warn('KV cache read failed, proceeding without cache:', err);
@@ -84,7 +128,8 @@ export default async function handler(
 
     // ---------- STORE IN KV ----------
     try {
-      await kv.set(cacheKey, weather, { ex: CACHE_TTL });
+      const now = Math.floor(Date.now() / 1000);
+      await kv.set(cacheKey, { weather, fetchedAt: now }, { ex: CACHE_TTL });
     } catch (err) {
       console.warn('KV cache write failed:', err);
     }
@@ -96,10 +141,10 @@ export default async function handler(
 
     // ---------- STALE FALLBACK ----------
     try {
-      const cached = await kv.get<WeatherData>(cacheKey);
-      if (cached) {
+      const cached = await kv.get<CachedValue>(cacheKey);
+      if (cached && cached.weather) {
         res.setHeader('x-cache', 'KV_STALE');
-        return res.status(200).json(cached);
+        return res.status(200).json(cached.weather);
       }
     } catch (err) {
       console.warn('KV stale fallback failed:', err);
