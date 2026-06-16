@@ -35,7 +35,7 @@ const TimeWeather = () => {
   const timeRef = useRef<HTMLSpanElement>(null);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isNight, setIsNight] = useState(false);
+  const [timeIsNight, setTimeIsNight] = useState(false);
   const [isAwake, setIsAwake] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -68,7 +68,7 @@ const TimeWeather = () => {
       }
 
       const hour = gmt7Time.getHours() + gmt7Time.getMinutes() / 60;
-      setIsNight(hour >= 18 || hour < 6);
+      setTimeIsNight(hour >= 18 || hour < 6);
       setIsAwake(hour >= 6 && hour < 22.5);
     };
 
@@ -85,7 +85,10 @@ const TimeWeather = () => {
 
         if (data && data.temperature !== undefined) {
           setWeather(data);
-          setIsNight(data.isDay === false);
+          // Keep `timeIsNight` separately; prefer API `isDay` when rendering below
+          // but don't overwrite the client's local time state here to avoid
+          // rapid flipping while time updates run. We derive the effective
+          // `isNight` at render time using the fetched `weather` when present.
         }
       } catch (error) {
         console.error('Failed to fetch weather:', error);
@@ -99,6 +102,8 @@ const TimeWeather = () => {
     return () => clearInterval(weatherInterval);
   }, []);
 
+  // prefer API value when available, otherwise fall back to client's time
+  const isNight = weather ? !weather.isDay : timeIsNight;
   const WeatherIcon = weather ? getWeatherIcon(weather.weatherCode, isNight) : Cloud;
   const TimeIcon = isNight ? Moon : Sun;
 
@@ -117,6 +122,7 @@ const TimeWeather = () => {
     <div className="text-sm text-[var(--text-secondary)] space-y-1">
       <div className="group relative flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
         <TimeIcon
+          data-testid="time-icon"
           className={`h-3.5 w-3.5 ${
             !isNight ? 'text-amber-400 animate-spin-slow' : 'text-indigo-300'
           }`}
@@ -162,6 +168,7 @@ const TimeWeather = () => {
             }}
           >
             <WeatherIcon
+              data-testid="weather-icon"
               className={`h-3.5 w-3.5 ${
                 weather.weatherCode === 800 && weather.isDay ? 'text-amber-400' : ''
               }`}
