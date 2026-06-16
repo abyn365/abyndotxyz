@@ -60,7 +60,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
         <NextSeo
           title="Abyan - Software Developer & Builder"
-          description="Abyan (/uh-bye-an/) - student and software developer building web projects, tools, and experiments. Portfolio, projects, and contact links."
+          description="Abyan (/uh-bee-an/) - student and software developer building web projects, tools, and experiments. Portfolio, projects, and contact links."
           canonical="https://abyn.xyz"
           openGraph={{
             type: "website",
@@ -68,7 +68,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             url: "https://abyn.xyz",
             siteName: "abyn.xyz - Portfolio & Projects",
             title: "Abyan - Software Developer & Builder",
-            description: "Abyan (/uh-bye-an/) - student and software developer building web projects, tools, and experiments.",
+            description: "Abyan (/uh-bee-an/) - student and software developer building web projects, tools, and experiments.",
             images: [
               {
                 url: "https://abyn.xyz/banner.png",
@@ -103,7 +103,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
         <Head>
           <meta property="og:title" content="Abyan - Software Developer & Builder" />
-          <meta property="og:description" content="Abyan (/uh-bye-an/) - student and software developer building web projects, tools, and experiments." />
+          <meta property="og:description" content="Abyan (/uh-bee-an/) - student and software developer building web projects, tools, and experiments." />
           <meta property="og:image" content="https://abyn.xyz/banner.png" />
           <meta property="og:url" content="https://abyn.xyz" />
           <meta property="og:type" content="website" />

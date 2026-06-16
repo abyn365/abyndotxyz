@@ -28,8 +28,7 @@ const getImageUrl = (imageUrl: string | undefined) => {
     try {
       const url = imageUrl
         .split('/https/')[1]
-        ?.replace(/%25/g, '%')
-        ?.replace(/\/assets\/\d+\.png$/, '/assets/logo.png');
+        ?.replace(/%25/g, '%');
 
       if (url) {
         return `https://${url}`;

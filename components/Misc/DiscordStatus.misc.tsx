@@ -147,7 +147,10 @@ const ActivityPanel = ({
   }, [activity.timestamps?.start]);
 
   const title = activity.name || "Not Active";
-  const description = activity.smallText || activity.details || "Not doing anything right now";
+  const description =
+    activity.smallText && activity.smallText !== title
+      ? activity.smallText
+      : activity.details || "Not doing anything right now";
   const subtitle = activity.state;
   const elapsedText = elapsedTime > 0 ? `${Math.floor(elapsedTime / 60)}:${(elapsedTime % 60).toString().padStart(2, "0")} elapsed` : null;
 

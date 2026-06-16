@@ -176,7 +176,7 @@ export default function Home() {
 
             {/* Bio */}
             <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
-              Hello! I'm Abyan (/uh-bye-an/), a student with a passion for software development.
+              Hello! I'm Abyan (/uh-bee-an/), a student with a passion for software development.
               I'm{' '}
               <span className="group relative font-mono font-medium text-[var(--text-primary)]">
                 <CurrentAge />
