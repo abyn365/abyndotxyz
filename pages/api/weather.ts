@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { kv } from '@vercel/kv';
 
-const CACHE_TTL = 60 * 60; // 1 hour in seconds
+const CACHE_TTL = 60 * 10; // 10 minutes in seconds
 
 const getWeatherDescription = (code: number): string => {
   const weatherCodes: { [key: number]: string } = {
@@ -36,8 +36,10 @@ const getWeatherDescription = (code: number): string => {
 type WeatherData = {
   time: string;
   temperature: number;
+  feelsLike: number;
   weatherCode: number;
   weatherDescription: string;
+  isDay: boolean;
 };
 
 export default async function handler(
@@ -63,7 +65,7 @@ export default async function handler(
 
   try {
     const response = await fetch(
-      'https://api.open-meteo.com/v1/forecast?latitude=-7.7956&longitude=110.3695&current=temperature_2m,weather_code&temperature_unit=celsius&timezone=Asia/Jakarta'
+      'https://api.open-meteo.com/v1/forecast?latitude=-7.8014&longitude=110.3647&current=temperature_2m,apparent_temperature,is_day,weather_code&temperature_unit=celsius&timezone=Asia%2FBangkok'
     );
     const data = await response.json();
 
@@ -74,8 +76,10 @@ export default async function handler(
     const weather: WeatherData = {
       time: data.current.time,
       temperature: Math.round(data.current.temperature_2m),
+      feelsLike: Math.round(data.current.apparent_temperature),
       weatherCode: data.current.weather_code,
       weatherDescription: getWeatherDescription(data.current.weather_code),
+      isDay: data.current.is_day === 1,
     };
 
     // ---------- STORE IN KV ----------

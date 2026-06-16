@@ -3,7 +3,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import Squares from "../components/Squares";
 import Link from "next/link";
-import { FiArrowLeft } from "react-icons/fi";
+import { ArrowLeft } from "lucide-react";
 
 const ErrorPage: NextPage = () => {
   return (
@@ -60,7 +60,7 @@ const ErrorPage: NextPage = () => {
                 border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)',
               }}
             >
-              <FiArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" />
               Back to Home
             </motion.a>
           </Link>

@@ -1,4 +1,4 @@
-import { FiSun, FiMoon } from 'react-icons/fi';
+import { Sun, Moon } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
 const ThemeToggle = () => {
@@ -14,9 +14,9 @@ const ThemeToggle = () => {
       type="button"
     >
       {theme === 'dark' ? (
-        <FiSun className="h-5 w-5 text-amber-400" />
+        <Sun className="h-5 w-5 text-amber-400" />
       ) : (
-        <FiMoon className="h-5 w-5 text-indigo-400" />
+        <Moon className="h-5 w-5 text-indigo-400" />
       )}
     </button>
   );

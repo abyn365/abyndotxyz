@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { projects, type Project } from '../data/projects';
 import ProjectCard from './ProjectCard';
 
@@ -108,7 +108,7 @@ const Projects = () => {
               border: '1px solid var(--card-border)',
             }}
           >
-            <FiChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
 
           {/* Page numbers */}
@@ -148,7 +148,7 @@ const Projects = () => {
               border: '1px solid var(--card-border)',
             }}
           >
-            <FiChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       )}

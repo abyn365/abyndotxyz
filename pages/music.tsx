@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Squares from "../components/Squares";
-import { FiMusic, FiChevronLeft } from "react-icons/fi";
+import { Music, ChevronLeft } from "lucide-react";
 
 type Track = {
   artist: string;
@@ -54,13 +54,13 @@ export default function MusicEmbed() {
           <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6">
             <Link href="/" passHref legacyBehavior>
               <a className="inline-flex items-center text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
-                <FiChevronLeft size={20} className="sm:h-6 sm:w-6" />
+                <ChevronLeft size={20} className="sm:h-6 sm:w-6" />
                 <span className="ml-2 text-sm sm:text-base">Back</span>
               </a>
             </Link>
             <h1 className="text-right text-lg font-bold text-[var(--text-primary)] sm:text-2xl">
               <span className="inline-flex items-center gap-2 sm:gap-3">
-                <FiMusic className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'var(--accent)' }} />
+                <Music className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'var(--accent)' }} />
                 My Music
               </span>
             </h1>

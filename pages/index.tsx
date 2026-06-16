@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { FiGithub, FiInstagram, FiMail } from "react-icons/fi";
-import {
-  SiTiktok,
-  SiSpotify,
-  SiDiscord,
-} from "react-icons/si";
+import { FiGithub, FiMail, FiInstagram } from "react-icons/fi";
+import { SiDiscord, SiTiktok, SiSpotify } from "react-icons/si";
 import VisitorStats from "../components/Misc/VisitorStats.misc";
 import DiscordStatus from "../components/Misc/DiscordStatus.misc";
 import TimeWeather from "../components/TimeWeather";

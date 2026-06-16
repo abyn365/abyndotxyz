@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { FiHome, FiMusic, FiFolder, FiChevronRight } from 'react-icons/fi';
+import { Home, Music, Folder, ChevronRight } from 'lucide-react';
 
 const navItems = [
-  { icon: FiHome, label: 'Home', href: '/' },
-  { icon: FiFolder, label: 'Projects', href: '/projects' },
-  { icon: FiMusic, label: 'Music', href: '/music' },
+  { icon: Home, label: 'Home', href: '/' },
+  { icon: Folder, label: 'Projects', href: '/projects' },
+  { icon: Music, label: 'Music', href: '/music' },
 ];
 
 const Navbar = () => {
@@ -25,7 +25,7 @@ const Navbar = () => {
           href="/"
           className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)] transition-opacity hover:opacity-80"
         >
-          <FiChevronRight className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+          <ChevronRight className="h-4 w-4" style={{ color: 'var(--accent)' }} />
           abyn
         </Link>
 

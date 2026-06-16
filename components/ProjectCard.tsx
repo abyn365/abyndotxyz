@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FiGithub, FiExternalLink } from 'react-icons/fi';
+import { ExternalLink } from 'lucide-react';
 import type { Project } from '../data/projects';
 
 interface ProjectCardProps {
@@ -37,11 +37,8 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
             )}
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
-            {project.github && (
-              <FiGithub className="h-4 w-4 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
-            )}
-            {project.link && (
-              <FiExternalLink className="h-4 w-4 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
+            {(project.github || project.link) && (
+              <ExternalLink className="h-4 w-4 text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors" />
             )}
           </div>
         </div>

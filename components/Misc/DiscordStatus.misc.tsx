@@ -2,7 +2,7 @@ import type { NextComponentType } from "next";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { FiActivity, FiDisc, FiExternalLink, FiMusic } from "react-icons/fi";
+import { Activity, Disc3, ExternalLink, Music } from "lucide-react";
 import { useTheme } from "../ThemeProvider";
 
 type StatusData = {
@@ -154,7 +154,7 @@ const ActivityPanel = ({
             </div>
           ) : (
             <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[var(--card-border)] bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] shadow-md sm:h-16 sm:w-16">
-              <FiDisc className="h-6 w-6 text-indigo-400" />
+              <Disc3 className="h-6 w-6 text-indigo-400" />
             </div>
           )}
         </div>
@@ -162,7 +162,7 @@ const ActivityPanel = ({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
             <ActionChip
-              icon={<FiActivity className="h-3 w-3 text-indigo-400" />}
+              icon={<Activity className="h-3 w-3 text-indigo-400" />}
             >
               Discord activity
             </ActionChip>
@@ -226,7 +226,7 @@ const SpotifyPanel = ({
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]">
-                <FiMusic className="h-6 w-6 text-emerald-400" />
+                <Music className="h-6 w-6 text-emerald-400" />
               </div>
             )}
           </div>
@@ -234,9 +234,9 @@ const SpotifyPanel = ({
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <ActionChip icon={<FiMusic className="h-3 w-3 text-emerald-400" />}>Spotify</ActionChip>
+            <ActionChip icon={<Music className="h-3 w-3 text-emerald-400" />}>Spotify</ActionChip>
             {spotifyUrl ? (
-              <ActionChip icon={<FiExternalLink className="h-3 w-3" />} href={spotifyUrl}>
+              <ActionChip icon={<ExternalLink className="h-3 w-3" />} href={spotifyUrl}>
                 Open track
               </ActionChip>
             ) : null}
@@ -343,7 +343,7 @@ const DiscordStatus: NextComponentType = () => {
             style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
           >
             <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-              <FiActivity className="h-4 w-4 text-indigo-400" />
+              <Activity className="h-4 w-4 text-indigo-400" />
               <span className="text-sm font-medium">Discord activity</span>
             </div>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">Not doing anything right now.</p>

@@ -1,31 +1,34 @@
 import { useEffect, useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 import {
-  FiClock,
-  FiCloud,
-  FiCloudRain,
-  FiCloudLightning,
-  FiCloudSnow,
-  FiSun,
-  FiMoon,
-} from 'react-icons/fi';
+  Clock,
+  Cloud,
+  CloudRain,
+  CloudLightning,
+  CloudSnow,
+  Sun,
+  Moon,
+} from 'lucide-react';
 
 type WeatherData = {
   time: string;
   temperature: number;
+  feelsLike: number;
   weatherCode: number;
   weatherDescription: string;
+  isDay: boolean;
 };
 
 const getWeatherIcon = (code: number, isNight: boolean) => {
   // WMO Weather interpretation codes (https://open-meteo.com/en/docs)
-  if (code >= 200 && code < 300) return FiCloudLightning;
-  if (code >= 300 && code < 400) return FiCloudRain;
-  if (code >= 500 && code < 600) return FiCloudRain;
-  if (code >= 600 && code < 700) return FiCloudSnow;
-  if (code >= 700 && code < 800) return FiCloud;
-  if (code === 800) return isNight ? FiMoon : FiSun;
-  if (code > 800 && code < 900) return FiCloud;
-  return FiCloud;
+  if (code >= 200 && code < 300) return CloudLightning;
+  if (code >= 300 && code < 400) return CloudRain;
+  if (code >= 500 && code < 600) return CloudRain;
+  if (code >= 600 && code < 700) return CloudSnow;
+  if (code >= 700 && code < 800) return Cloud;
+  if (code === 800) return isNight ? Moon : Sun;
+  if (code > 800 && code < 900) return Cloud;
+  return Cloud;
 };
 
 const TimeWeather = () => {
@@ -82,6 +85,7 @@ const TimeWeather = () => {
 
         if (data && data.temperature !== undefined) {
           setWeather(data);
+          setIsNight(data.isDay === false);
         }
       } catch (error) {
         console.error('Failed to fetch weather:', error);
@@ -95,14 +99,14 @@ const TimeWeather = () => {
     return () => clearInterval(weatherInterval);
   }, []);
 
-  const WeatherIcon = weather ? getWeatherIcon(weather.weatherCode, isNight) : FiCloud;
-  const TimeIcon = isNight ? FiMoon : FiSun;
+  const WeatherIcon = weather ? getWeatherIcon(weather.weatherCode, isNight) : Cloud;
+  const TimeIcon = isNight ? Moon : Sun;
 
   if (!mounted) {
     return (
       <div className="text-sm text-[var(--text-secondary)] space-y-1">
         <div className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
-          <FiClock className="h-3.5 w-3.5" />
+          <Clock className="h-3.5 w-3.5" />
           <span ref={timeRef}></span>
         </div>
       </div>
@@ -148,15 +152,33 @@ const TimeWeather = () => {
 
       {!loading && weather && (
         <div className="flex items-center gap-1.5">
-          <WeatherIcon
-            className={`h-3.5 w-3.5 ${
-              weather.weatherCode === 800 && !isNight ? 'text-amber-400' : ''
-            }`}
-          />
+          <motion.div
+            className="inline-flex"
+            animate={weather.weatherCode === 800 ? { rotate: [0, 4, 0, -4, 0] } : { y: [0, -1, 0, 1, 0] }}
+            transition={{
+              duration: weather.weatherCode === 800 ? 4 : 2.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            <WeatherIcon
+              className={`h-3.5 w-3.5 ${
+                weather.weatherCode === 800 && weather.isDay ? 'text-amber-400' : ''
+              }`}
+            />
+          </motion.div>
           <p>
             It&apos;s{' '}
-            <span className="font-semibold text-[var(--text-primary)]">
-              {weather.temperature}°C
+            <span className="relative inline-flex items-center group">
+              <span className="font-semibold text-[var(--text-primary)]">
+                {weather.temperature}°C
+              </span>
+              <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover:block">
+                Feels like {weather.feelsLike}°C
+              </span>
+              <span
+                className="absolute left-1/2 top-full hidden -translate-x-1/2 -mt-px border-l-6 border-r-6 border-t-6 border-transparent border-t-[var(--card-border)] group-hover:block"
+              />
             </span>{' '}
             with{' '}
             <span className="text-[var(--text-secondary)]">
