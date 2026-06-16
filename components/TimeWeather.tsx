@@ -98,8 +98,27 @@ const TimeWeather = () => {
     };
 
     fetchWeather();
-    const weatherInterval = setInterval(fetchWeather, 600000);
-    return () => clearInterval(weatherInterval);
+
+    // Start periodic refresh only after the KV TTL has expired plus a small offset
+    // so that the client-triggered request will hit the stale path and allow the
+    // server to refresh KV in the background.
+    const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+    const START_OFFSET_MS = 5000; // 5 seconds after TTL
+    const POLL_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+
+    const startTimeout = setTimeout(() => {
+      // run once immediately when starting polling, then every POLL_INTERVAL_MS
+      fetchWeather();
+      const weatherInterval = setInterval(fetchWeather, POLL_INTERVAL_MS);
+      // store on window so cleanup closure can access it
+      (window as any)._weatherInterval = weatherInterval;
+    }, CACHE_TTL_MS + START_OFFSET_MS);
+
+    return () => {
+      clearTimeout(startTimeout);
+      const wi = (window as any)._weatherInterval;
+      if (wi) clearInterval(wi);
+    };
   }, []);
 
   // prefer API value when available, otherwise fall back to client's time
