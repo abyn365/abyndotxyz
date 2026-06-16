@@ -34,7 +34,7 @@
 
 | Dark Theme | Light Theme |
 |------------|------------|
-| ![](public/banner.png) | ![](public/Lighttheme.png) |
+| ![](public/Darktheme.png) | ![](public/Lighttheme.png) |
 
 ## License
 
