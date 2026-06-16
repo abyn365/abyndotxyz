@@ -10,8 +10,8 @@ export interface DiscordStatus {
       state?: string;
       details?: string;
       assets?: {
-        large_image: string;
-        large_text: string;
+        large_image?: string;
+        large_text?: string;
         small_image?: string;
         small_text?: string;
       };

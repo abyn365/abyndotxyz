@@ -11,6 +11,13 @@ type StatusData = {
     details?: string;
     state?: string;
     image?: string | null;
+    smallImage?: string | null;
+    largeText?: string;
+    smallText?: string;
+    timestamps?: {
+      start: number;
+      end?: number;
+    } | null;
   } | null;
   activeDevice?: string | null;
   spotify?: {
@@ -125,8 +132,25 @@ const ActivityPanel = ({
   activeDevice: string | null | undefined;
   theme: "light" | "dark";
 }) => {
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  useEffect(() => {
+    if (!activity.timestamps?.start) return;
+
+    const updateElapsed = () => {
+      setElapsedTime(Math.floor((Date.now() - activity.timestamps!.start) / 1000));
+    };
+
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 1000);
+    return () => clearInterval(interval);
+  }, [activity.timestamps?.start]);
+
   const title = activity.name || "Not Active";
-  const subtitle = activity.details || "Not doing anything right now";
+  const description = activity.smallText || activity.details || "Not doing anything right now";
+  const subtitle = activity.state;
+  const elapsedText = elapsedTime > 0 ? `${Math.floor(elapsedTime / 60)}:${(elapsedTime % 60).toString().padStart(2, "0")} elapsed` : null;
+
   const overlayClass =
     theme === "dark"
       ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.06),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.03),transparent_32%)]"
@@ -151,6 +175,19 @@ const ActivityPanel = ({
                 unoptimized
                 draggable={false}
               />
+              {activity.smallImage && (
+                <div className="absolute bottom-0 right-0 h-5 w-5 overflow-hidden rounded-full border-2 border-[var(--card-bg)] shadow-md sm:h-6 sm:w-6">
+                  <Image
+                    src={activity.smallImage}
+                    fill
+                    sizes="24px"
+                    alt={activity.smallText || title}
+                    className="object-cover"
+                    unoptimized
+                    draggable={false}
+                  />
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[var(--card-border)] bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] shadow-md sm:h-16 sm:w-16">
@@ -169,14 +206,18 @@ const ActivityPanel = ({
             {activeDevice ? <ActionChip icon={null}>{activeDevice}</ActionChip> : null}
           </div>
 
-          <div className="mt-2 min-w-0">
+          <div className="mt-2 min-w-0 space-y-0.5">
             <h3 className="truncate text-[15px] font-semibold leading-5 tracking-tight text-[var(--text-primary)] sm:text-base">
               {title}
             </h3>
-            <p className="mt-0.5 truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
-              {subtitle}
+            <p className="truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
+              {description}
             </p>
-            <div aria-hidden="true" className="h-5 sm:h-6" />
+            {(subtitle || elapsedText) && (
+              <p className="truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
+                {subtitle && elapsedText ? `${subtitle} · ${elapsedText}` : subtitle || elapsedText}
+              </p>
+            )}
           </div>
         </div>
       </div>

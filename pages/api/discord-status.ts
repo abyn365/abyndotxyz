@@ -21,26 +21,26 @@ export const getActiveDevice = (data: any) => {
   return null;
 };
 
-const getImageUrl = (activity: any) => {
-  if (!activity) return null;
+const getImageUrl = (imageUrl: string | undefined) => {
+  if (!imageUrl) return null;
 
-  if (activity.assets?.large_image?.startsWith('mp:external/')) {
+  if (imageUrl.startsWith('mp:external/')) {
     try {
-      const imageUrl = activity.assets.large_image
+      const url = imageUrl
         .split('/https/')[1]
         ?.replace(/%25/g, '%')
         ?.replace(/\/assets\/\d+\.png$/, '/assets/logo.png');
 
-      if (imageUrl) {
-        return `https://${imageUrl}`;
+      if (url) {
+        return `https://${url}`;
       }
     } catch (error) {
       console.error('Error processing PreMiD image:', error);
     }
   }
 
-  if (activity.name === 'Spotify' && activity.assets?.large_image) {
-    const spotifyImageId = activity.assets.large_image.replace('spotify:', '');
+  if (imageUrl.startsWith('spotify:')) {
+    const spotifyImageId = imageUrl.replace('spotify:', '');
     return `https://i.scdn.co/image/${spotifyImageId}`;
   }
 
@@ -93,7 +93,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         name: activity.name,
         details: activity.details,
         state: activity.state,
-        image: getImageUrl(activity),
+        image: getImageUrl(activity.assets?.large_image),
+        smallImage: getImageUrl(activity.assets?.small_image),
+        largeText: activity.assets?.large_text,
+        smallText: activity.assets?.small_text,
+        timestamps: activity.timestamps || null,
       } : null,
       spotify,
     });
