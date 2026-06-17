@@ -21,26 +21,50 @@ export const getActiveDevice = (data: any) => {
   return null;
 };
 
-const getImageUrl = (imageUrl: string | undefined) => {
-  if (!imageUrl) return null;
+const isPreMiDText = (text?: string) => typeof text === 'string' && /pre.?mid/i.test(text);
 
-  if (imageUrl.startsWith('mp:external/')) {
-    try {
-      const url = imageUrl
-        .split('/https/')[1]
-        ?.replace(/%25/g, '%');
+const sanitizeActivityText = (text?: string) => {
+  if (!text) return null;
+  return isPreMiDText(text) ? null : text;
+};
 
-      if (url) {
-        return `https://${url}`;
+const resolveDiscordAsset = (applicationId?: string, asset?: string) => {
+  if (!asset) {
+    if (applicationId) {
+      return `https://dcdn.dstn.to/app-icons/${applicationId}.webp?size=512`;
+    }
+    return null;
+  }
+
+  if (asset.startsWith('http://') || asset.startsWith('https://')) {
+    return asset;
+  }
+
+  const parts = asset.split(':');
+
+  if (parts.length > 1) {
+    switch (parts[0]) {
+      case 'spotify': {
+        const spotifyImageId = parts[1];
+        return spotifyImageId ? `https://i.scdn.co/image/${spotifyImageId}` : null;
       }
-    } catch (error) {
-      console.error('Error processing PreMiD image:', error);
+      case 'mp': {
+        const path = parts.slice(1).join(':');
+        return `https://media.discordapp.net/${path}`;
+      }
+      case 'twitch': {
+        return `https://static-cdn.jtvnw.net/previews-ttv/live_user_${parts[1]}.png`;
+      }
+      case 'youtube': {
+        return `https://i.ytimg.com/vi/${parts[1]}/hqdefault_live.jpg`;
+      }
+      default:
+        return null;
     }
   }
 
-  if (imageUrl.startsWith('spotify:')) {
-    const spotifyImageId = imageUrl.replace('spotify:', '');
-    return `https://i.scdn.co/image/${spotifyImageId}`;
+  if (applicationId) {
+    return `https://cdn.discordapp.com/app-assets/${applicationId}/${asset}.webp?size=512`;
   }
 
   return null;
@@ -67,9 +91,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const device = getActiveDevice(data.data);
     const isActive = Boolean(device);
 
-    const activity = data.data.activities?.find((a: any) =>
-      (a.type === 0 || a.type === 3) && a.name !== 'Spotify'
+    const activities = Array.isArray(data.data.activities) ? data.data.activities : [];
+    const activityCandidates = activities.filter(
+      (a: any) =>
+        [0, 2, 3].includes(a.type) &&
+        a.name !== 'Spotify' &&
+        !isPreMiDText(a.name)
     );
+
+    const activity =
+      activityCandidates.find(
+        (a: any) =>
+          !isPreMiDText(a.assets?.large_text) &&
+          !isPreMiDText(a.assets?.small_text)
+      ) || activityCandidates[0] || null;
 
     const spotify = data.data.spotify
       ? {
@@ -88,16 +123,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       status: data.data.discord_status,
       activeDevice: device,
       isOnline: isActive,
-      activity: activity ? {
-        name: activity.name,
-        details: activity.details,
-        state: activity.state,
-        image: getImageUrl(activity.assets?.large_image),
-        smallImage: getImageUrl(activity.assets?.small_image),
-        largeText: activity.assets?.large_text,
-        smallText: activity.assets?.small_text,
-        timestamps: activity.timestamps || null,
-      } : null,
+      activity: activity
+        ? {
+            name: activity.name,
+            type: activity.type,
+            details: sanitizeActivityText(activity.details),
+            state: sanitizeActivityText(activity.state),
+            image: resolveDiscordAsset(activity.application_id, activity.assets?.large_image),
+            smallImage: activity.assets?.small_image
+              ? resolveDiscordAsset(activity.application_id, activity.assets?.small_image)
+              : null,
+            largeText: sanitizeActivityText(activity.assets?.large_text),
+            smallText: sanitizeActivityText(activity.assets?.small_text),
+            timestamps: activity.timestamps || null,
+          }
+        : null,
       spotify,
     });
   } catch (error) {

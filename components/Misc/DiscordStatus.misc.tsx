@@ -8,6 +8,7 @@ import { useTheme } from "../ThemeProvider";
 type StatusData = {
   activity?: {
     name: string;
+    type?: number;
     details?: string;
     state?: string;
     image?: string | null;
@@ -71,7 +72,9 @@ const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
       {barHeights.map((height, index) => (
         <motion.span
           key={index}
-          className={`w-[2px] rounded-full ${isPlaying ? "bg-emerald-400" : "bg-[var(--card-border)]"}`}
+          className={`w-[2px] rounded-full ${
+            isPlaying ? "bg-emerald-400" : "bg-[var(--card-border)]"
+          }`}
           animate={{ height: `${height}%` }}
           transition={{ duration: 0.15, ease: "easeOut" }}
         />
@@ -80,18 +83,49 @@ const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
   );
 };
 
-const ProgressBar = ({ current, total }: { current: number; total: number }) => {
+const ProgressBar = ({
+  current,
+  total,
+  color = "emerald",
+}: {
+  current: number;
+  total: number;
+  color?: "emerald" | "indigo" | "violet";
+}) => {
   const safeTotal = Math.max(total, 1);
   const percent = Math.min(Math.max((current / safeTotal) * 100, 0), 100);
+  const gradientClass =
+    color === "indigo"
+      ? "from-indigo-400 to-indigo-500"
+      : color === "violet"
+      ? "from-violet-400 to-violet-500"
+      : "from-emerald-400 to-emerald-500";
 
   return (
     <div className="h-1 w-full overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
       <div
-        className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-300"
+        className={`h-full rounded-full bg-gradient-to-r ${gradientClass} transition-all duration-300`}
         style={{ width: `${percent}%` }}
       />
     </div>
   );
+};
+
+const stringFromType = (type?: number) => {
+  switch (type) {
+    case 0:
+      return "Playing";
+    case 1:
+      return "Streaming";
+    case 2:
+      return "Listening to";
+    case 3:
+      return "Watching";
+    case 4:
+      return "Custom status";
+    default:
+      return "Activity";
+  }
 };
 
 const ActionChip = ({
@@ -108,7 +142,13 @@ const ActionChip = ({
 
   if (href) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={classes} style={{ borderColor: "var(--card-border)" }}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={classes}
+        style={{ borderColor: "var(--card-border)" }}
+      >
         {icon}
         {children}
       </a>
@@ -138,7 +178,9 @@ const ActivityPanel = ({
     if (!activity.timestamps?.start) return;
 
     const updateElapsed = () => {
-      setElapsedTime(Math.floor((Date.now() - activity.timestamps!.start) / 1000));
+      setElapsedTime(
+        Math.floor((Date.now() - activity.timestamps!.start) / 1000)
+      );
     };
 
     updateElapsed();
@@ -147,17 +189,56 @@ const ActivityPanel = ({
   }, [activity.timestamps?.start]);
 
   const title =
-    activity.details?.trim() || activity.largeText?.trim() || activity.name || "Not Active";
-  const description =
-    activity.smallText && activity.smallText !== title
-      ? activity.smallText
-      : activity.details && activity.details !== title
-      ? activity.details
-      : activity.largeText && activity.largeText !== title
-      ? activity.largeText
-      : "Not doing anything right now";
-  const subtitle = activity.state;
-  const elapsedText = elapsedTime > 0 ? `${Math.floor(elapsedTime / 60)}:${(elapsedTime % 60).toString().padStart(2, "0")} elapsed` : null;
+    activity.details?.trim() ||
+    activity.largeText?.trim() ||
+    activity.name ||
+    "Not Active";
+  const activityLabel = activity.name
+    ? `${stringFromType(activity.type)} ${activity.name}`
+    : stringFromType(activity.type);
+  const activityDuration =
+    activity.timestamps?.end && activity.timestamps?.start
+      ? Math.max(activity.timestamps.end - activity.timestamps.start, 0)
+      : 0;
+  const elapsedText =
+    elapsedTime > 0
+      ? `${Math.floor(elapsedTime / 60)}:${(elapsedTime % 60)
+          .toString()
+          .padStart(2, "0")} elapsed`
+      : null;
+  const showProgress =
+    [2, 3].includes(activity.type ?? -1) &&
+    activity.timestamps?.start &&
+    activity.timestamps?.end;
+  const activityProgressText = showProgress
+    ? `${formatTime(
+        Math.min(Math.max(elapsedTime * 1000, 0), activityDuration)
+      )} / ${formatTime(activityDuration)}`
+    : "";
+  const subtitle =
+    activity.type === 2 || activity.type === 3 ? undefined : activity.state;
+  const details: string[] = [];
+  if (activity.type === 2 && activity.state) {
+    details.push(activity.state);
+  }
+  if (activity.type === 3 && activity.state) {
+    details.push(activity.state);
+  }
+  if (activity.type === 2 && activity.largeText) {
+    details.push(activity.largeText);
+  }
+  if (
+    activity.smallText &&
+    activity.smallText !== title &&
+    activity.smallText !== activity.state
+  ) {
+    details.push(activity.smallText);
+  }
+  const description = details.length
+    ? details.join(" · ")
+    : activity.smallText && activity.smallText !== title
+    ? activity.smallText
+    : "Not doing anything right now";
 
   const overlayClass =
     theme === "dark"
@@ -166,11 +247,14 @@ const ActivityPanel = ({
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
-      style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
+      className="flex h-full flex-col justify-between relative overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+      style={{
+        borderColor: "var(--card-border)",
+        background: "var(--card-bg)",
+      }}
     >
       <div className={overlayClass} />
-      <div className="relative grid items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
+      <div className="relative grid h-full items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
         <div className="relative shrink-0">
           {activity.image ? (
             <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-16 sm:w-16">
@@ -184,7 +268,8 @@ const ActivityPanel = ({
                 draggable={false}
               />
               {activity.smallImage && (
-                <div className="absolute bottom-0 right-0 h-5 w-5 overflow-hidden rounded-full border-2 border-[var(--card-bg)] shadow-md sm:h-6 sm:w-6">
+                <div className="absolute bottom-0 right-0 h-5 w-5 overflow-hidden rounded-full border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-md sm:h-6 sm:w-6">
+                  <div className="absolute inset-0 rounded-full bg-[rgba(0,0,0,0.18)]" />
                   <Image
                     src={activity.smallImage}
                     fill
@@ -206,26 +291,45 @@ const ActivityPanel = ({
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <ActionChip
-              icon={<Activity className="h-3 w-3 text-indigo-400" />}
-            >
+            <ActionChip icon={<Activity className="h-3 w-3 text-indigo-400" />}>
               Discord activity
             </ActionChip>
-            {activeDevice ? <ActionChip icon={null}>{activeDevice}</ActionChip> : null}
+            {activeDevice ? (
+              <ActionChip icon={null}>{activeDevice}</ActionChip>
+            ) : null}
           </div>
 
           <div className="mt-2 min-w-0 space-y-0.5">
+            <p className="truncate text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-secondary)] sm:text-[12px]">
+              {activityLabel}
+            </p>
             <h3 className="truncate text-[15px] font-semibold leading-5 tracking-tight text-[var(--text-primary)] sm:text-base">
               {title}
             </h3>
             <p className="truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
               {description}
             </p>
-            {(subtitle || elapsedText) && (
+            {(subtitle || elapsedText) && !details.length && (
               <p className="truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
-                {subtitle && elapsedText ? `${subtitle} · ${elapsedText}` : subtitle || elapsedText}
+                {subtitle && elapsedText
+                  ? `${subtitle} · ${elapsedText}`
+                  : subtitle || elapsedText}
               </p>
             )}
+            {showProgress ? (
+              <div className="mt-2 space-y-1.5">
+                <ProgressBar
+                  current={Math.max(elapsedTime * 1000, 0)}
+                  total={Math.max(activityDuration, 1)}
+                  color="indigo"
+                />
+                <div className="flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)]">
+                  <span className="shrink-0 tabular-nums">
+                    {activityProgressText}
+                  </span>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -242,12 +346,19 @@ const SpotifyPanel = ({
   songProgress: number;
   theme: "light" | "dark";
 }) => {
-  const spotifyUrl = spotify.spotifyUrl || spotify.songUrl || buildSpotifyTrackUrl(spotify.trackId);
+  const spotifyUrl =
+    spotify.spotifyUrl ||
+    spotify.songUrl ||
+    buildSpotifyTrackUrl(spotify.trackId);
   const progressText = useMemo(() => {
     if (!spotify.timestamps?.start) return "";
     const elapsed = Math.max(songProgress, 0);
-    const total = spotify.timestamps.end ? Math.max(spotify.timestamps.end - spotify.timestamps.start, 0) : 0;
-    return total ? `${formatTime(elapsed)} / ${formatTime(total)}` : formatTime(elapsed);
+    const total = spotify.timestamps.end
+      ? Math.max(spotify.timestamps.end - spotify.timestamps.start, 0)
+      : 0;
+    return total
+      ? `${formatTime(elapsed)} / ${formatTime(total)}`
+      : formatTime(elapsed);
   }, [songProgress, spotify.timestamps]);
   const overlayClass =
     theme === "dark"
@@ -256,11 +367,14 @@ const SpotifyPanel = ({
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
-      style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
+      className="flex h-full flex-col justify-between relative overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+      style={{
+        borderColor: "var(--card-border)",
+        background: "var(--card-bg)",
+      }}
     >
       <div className={overlayClass} />
-      <div className="relative grid items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
+      <div className="relative grid h-full items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
         <div className="relative shrink-0">
           <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-16 sm:w-16">
             {spotify.albumArtUrl ? (
@@ -283,9 +397,14 @@ const SpotifyPanel = ({
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <ActionChip icon={<Music className="h-3 w-3 text-emerald-400" />}>Spotify</ActionChip>
+            <ActionChip icon={<Music className="h-3 w-3 text-emerald-400" />}>
+              Spotify
+            </ActionChip>
             {spotifyUrl ? (
-              <ActionChip icon={<ExternalLink className="h-3 w-3" />} href={spotifyUrl}>
+              <ActionChip
+                icon={<ExternalLink className="h-3 w-3" />}
+                href={spotifyUrl}
+              >
                 Open track
               </ActionChip>
             ) : null}
@@ -296,7 +415,8 @@ const SpotifyPanel = ({
               {spotify.song || "Unknown track"}
             </h3>
             <p className="mt-0.5 truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
-              {spotify.artist || "Unknown artist"} · {spotify.album || "Listening now"}
+              {spotify.artist || "Unknown artist"} ·{" "}
+              {spotify.album || "Listening now"}
             </p>
           </div>
 
@@ -305,13 +425,18 @@ const SpotifyPanel = ({
               current={Math.max(songProgress, 0)}
               total={
                 spotify.timestamps?.end && spotify.timestamps.start
-                  ? Math.max(spotify.timestamps.end - spotify.timestamps.start, 1)
+                  ? Math.max(
+                      spotify.timestamps.end - spotify.timestamps.start,
+                      1
+                    )
                   : 1000
               }
             />
             <div className="flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)]">
               <Visualizer isPlaying={true} />
-              <span className="shrink-0 tabular-nums">{progressText || "Playing now"}</span>
+              <span className="shrink-0 tabular-nums">
+                {progressText || "Playing now"}
+              </span>
             </div>
           </div>
         </div>
@@ -334,7 +459,9 @@ const DiscordStatus: NextComponentType = () => {
         const statusData = await statusRes.json();
         setStatus(statusData);
         if (statusData.spotify?.timestamps?.start) {
-          setSongProgress(Math.max(Date.now() - statusData.spotify.timestamps.start, 0));
+          setSongProgress(
+            Math.max(Date.now() - statusData.spotify.timestamps.start, 0)
+          );
         } else {
           setSongProgress(0);
         }
@@ -377,25 +504,46 @@ const DiscordStatus: NextComponentType = () => {
   return (
     <div className="w-full" style={{ perspective: "1000px" }}>
       <motion.div
-        className={hasActivity && hasSpotify ? "grid gap-2 md:grid-cols-2" : "grid gap-2"}
+        className={
+          hasActivity && hasSpotify
+            ? "grid gap-2 md:grid-cols-2 md:items-stretch"
+            : "grid gap-2"
+        }
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
-        {hasActivity ? <ActivityPanel activity={status!.activity!} activeDevice={status?.activeDevice} theme={theme} /> : null}
+        {hasActivity ? (
+          <ActivityPanel
+            activity={status!.activity!}
+            activeDevice={status?.activeDevice}
+            theme={theme}
+          />
+        ) : null}
 
-        {hasSpotify ? <SpotifyPanel spotify={status!.spotify!} songProgress={songProgress} theme={theme} /> : null}
+        {hasSpotify ? (
+          <SpotifyPanel
+            spotify={status!.spotify!}
+            songProgress={songProgress}
+            theme={theme}
+          />
+        ) : null}
 
         {!hasActivity && !hasSpotify ? (
           <div
             className="rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
-            style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
+            style={{
+              borderColor: "var(--card-border)",
+              background: "var(--card-bg)",
+            }}
           >
             <div className="flex items-center gap-2 text-[var(--text-secondary)]">
               <Activity className="h-4 w-4 text-indigo-400" />
               <span className="text-sm font-medium">Discord activity</span>
             </div>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">Not doing anything right now.</p>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+              Not doing anything right now.
+            </p>
           </div>
         ) : null}
       </motion.div>
