@@ -1,21 +1,13 @@
-import { timingSafeEqual } from "node:crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
+import {
+  hasLocationSecret,
+  isLocationRequestAuthorized,
+} from "../../lib/locationAuth";
 import {
   geocodeLocation,
   getCurrentLocation,
   setCurrentLocation,
 } from "../../lib/location";
-
-const isAuthorized = (authorization?: string) => {
-  const secret = process.env.LOCATION_SECRET;
-  if (!secret || !authorization) return false;
-
-  const authBuffer = Buffer.from(authorization);
-  const secretBuffer = Buffer.from(secret);
-
-  if (authBuffer.length !== secretBuffer.length) return false;
-  return timingSafeEqual(authBuffer, secretBuffer);
-};
 
 export default async function handler(
   req: NextApiRequest,
@@ -29,7 +21,14 @@ export default async function handler(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  if (!isAuthorized(req.headers.authorization)) {
+  if (!hasLocationSecret()) {
+    console.error(
+      "Location update rejected: LOCATION_SECRET or LOCATION_UPDATE_SECRET is not configured."
+    );
+    return res.status(500).json({ error: "Location secret is not configured" });
+  }
+
+  if (!isLocationRequestAuthorized(req.headers)) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
