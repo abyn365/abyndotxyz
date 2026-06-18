@@ -32,9 +32,17 @@
 
 ## Preview
 
-| Dark Theme | Light Theme |
-|------------|------------|
+| Dark Theme                | Light Theme                |
+| ------------------------- | -------------------------- |
 | ![](public/Darktheme.png) | ![](public/Lighttheme.png) |
+
+## Documentation
+
+- [API docs](docs/api.md) for the site's public Next.js API routes, including:
+  - [Discord status](docs/api.md#get-apidiscord-status)
+  - [Visitor stats](docs/api.md#get-apivisitor-stats)
+  - [Top tracks](docs/api.md#get-apitop-tracks)
+  - [Location and weather APIs](docs/api.md#location-and-weather-apis)
 
 ## License
 
