@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  getLocationAuthHeader,
   getLocationSecrets,
   hasLocationSecret,
   isLocationAuthorized,
+  isLocationRequestAuthorized,
 } from "../lib/locationAuth";
 
 describe("location auth", () => {
@@ -24,6 +26,26 @@ describe("location auth", () => {
     expect(hasLocationSecret(env)).toBe(true);
     expect(getLocationSecrets(env)).toEqual(["fallback-secret"]);
     expect(isLocationAuthorized("fallback-secret", env)).toBe(true);
+  });
+
+  it("authorizes alternate secret headers when Authorization is stripped", () => {
+    const env = { LOCATION_SECRET: "secret-value" };
+
+    expect(
+      isLocationRequestAuthorized({ "x-location-secret": "secret-value" }, env)
+    ).toBe(true);
+    expect(isLocationRequestAuthorized({ "x-api-key": "secret-value" }, env)).toBe(
+      true
+    );
+  });
+
+  it("prefers the first configured secret header", () => {
+    expect(
+      getLocationAuthHeader({
+        authorization: "",
+        "x-location-secret": "secret-value",
+      })
+    ).toBe("secret-value");
   });
 
   it("rejects missing or mismatched secrets", () => {

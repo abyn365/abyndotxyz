@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import {
   hasLocationSecret,
-  isLocationAuthorized,
+  isLocationRequestAuthorized,
 } from "../../lib/locationAuth";
 import {
   geocodeLocation,
@@ -25,10 +25,10 @@ export default async function handler(
     console.error(
       "Location update rejected: LOCATION_SECRET or LOCATION_UPDATE_SECRET is not configured."
     );
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(500).json({ error: "Location secret is not configured" });
   }
 
-  if (!isLocationAuthorized(req.headers.authorization)) {
+  if (!isLocationRequestAuthorized(req.headers)) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
