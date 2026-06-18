@@ -145,6 +145,7 @@ The location API stores the site owner's current city/country in Vercel KV, geoc
 | Variable            | Required                  | Description                                                                               |
 | ------------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
 | `LOCATION_SECRET`   | Yes for updates           | Shared secret that must be sent in the `Authorization` header when updating location.     |
+| `LOCATION_UPDATE_SECRET` | Optional fallback      | Alternate shared secret name for location updates. Useful when rotating or replacing `LOCATION_SECRET`. |
 | Vercel KV variables | Yes outside fallback mode | `@vercel/kv` connection variables used to persist the current location and weather cache. |
 
 ### `GET /api/location`
@@ -178,6 +179,8 @@ curl -X POST https://your-domain.com/api/location \
   -H "Authorization: $LOCATION_SECRET" \
   -d '{"city":"Paris","country":"France"}'
 ```
+
+The authorization check trims accidental whitespace and accepts either the raw secret or a `Bearer <secret>` value. In production, confirm the secret is configured for the Production environment and redeploy after changing it.
 
 Example response:
 
