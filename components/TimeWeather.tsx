@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState, useRef } from "react";
+import { motion } from "framer-motion";
 import {
   Clock,
   Cloud,
@@ -8,7 +8,7 @@ import {
   CloudSnow,
   Sun,
   Moon,
-} from 'lucide-react';
+} from "lucide-react";
 
 type WeatherData = {
   time: string;
@@ -17,6 +17,10 @@ type WeatherData = {
   weatherCode: number;
   weatherDescription: string;
   isDay: boolean;
+  city: string;
+  country: string;
+  timezone: string;
+  locationUpdatedAt: string;
 };
 
 const getWeatherIcon = (code: number, isNight: boolean) => {
@@ -29,6 +33,25 @@ const getWeatherIcon = (code: number, isNight: boolean) => {
   if (code === 800) return isNight ? Moon : Sun;
   if (code > 800 && code < 900) return Cloud;
   return Cloud;
+};
+
+const DEFAULT_TIMEZONE = "Asia/Jakarta";
+
+const getShortOffset = (timeZone: string) => {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "shortOffset",
+  }).formatToParts(new Date());
+  return parts.find((part) => part.type === "timeZoneName")?.value || "GMT+7";
+};
+
+const formatLocationUpdatedAt = (timestamp?: string) => {
+  if (!timestamp) return "Location update time unavailable";
+
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(timestamp));
 };
 
 const TimeWeather = () => {
@@ -46,28 +69,29 @@ const TimeWeather = () => {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const gmt7Time = new Date(
-        now.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' })
-      );
+      const timeZone = weather?.timezone || DEFAULT_TIMEZONE;
+      const localTime = new Date(now.toLocaleString("en-US", { timeZone }));
 
-      const timeStr = gmt7Time.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+      const timeStr = localTime.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
         hour12: false,
       });
 
-      const dateStr = gmt7Time.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
+      const dateStr = localTime.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
       });
 
       if (timeRef.current) {
-        timeRef.current.textContent = `${dateStr} · ${timeStr} GMT+7`;
+        timeRef.current.textContent = `${dateStr} · ${timeStr} ${getShortOffset(
+          timeZone
+        )}`;
       }
 
-      const hour = gmt7Time.getHours() + gmt7Time.getMinutes() / 60;
+      const hour = localTime.getHours() + localTime.getMinutes() / 60;
       setTimeIsNight(hour >= 18 || hour < 6);
       setIsAwake(hour >= 6 && hour < 22.5);
     };
@@ -75,7 +99,7 @@ const TimeWeather = () => {
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [weather?.timezone]);
 
   useEffect(() => {
     const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -88,7 +112,7 @@ const TimeWeather = () => {
 
     const fetchWeather = async () => {
       try {
-        const response = await fetch('/api/weather');
+        const response = await fetch("/api/weather");
         const data = await response.json();
 
         if (data && data.temperature !== undefined) {
@@ -99,7 +123,7 @@ const TimeWeather = () => {
           // `isNight` at render time using the fetched `weather` when present.
         }
       } catch (error) {
-        console.error('Failed to fetch weather:', error);
+        console.error("Failed to fetch weather:", error);
       } finally {
         setLoading(false);
       }
@@ -124,12 +148,19 @@ const TimeWeather = () => {
 
   // prefer API value when available, otherwise fall back to client's time
   const isNight = weather ? !weather.isDay : timeIsNight;
-  const WeatherIcon = weather ? getWeatherIcon(weather.weatherCode, isNight) : Cloud;
+  const WeatherIcon = weather
+    ? getWeatherIcon(weather.weatherCode, isNight)
+    : Cloud;
   const TimeIcon = isNight ? Moon : Sun;
+  const locationTooltip = weather
+    ? `${weather.city}, ${weather.country} · updated ${formatLocationUpdatedAt(
+        weather.locationUpdatedAt
+      )}`
+    : "";
 
   if (!mounted) {
     return (
-      <div className="text-sm text-[var(--text-secondary)] space-y-1">
+      <div className="space-y-1 text-sm text-[var(--text-secondary)]">
         <div className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
           <Clock className="h-3.5 w-3.5" />
           <span ref={timeRef}></span>
@@ -139,27 +170,30 @@ const TimeWeather = () => {
   }
 
   return (
-    <div className="text-sm text-[var(--text-secondary)] space-y-1">
+    <div className="space-y-1 text-sm text-[var(--text-secondary)]">
       <div className="group relative flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
         <TimeIcon
           data-testid="time-icon"
           className={`h-3.5 w-3.5 ${
-            !isNight ? 'text-amber-400 animate-spin-slow' : 'text-indigo-300'
+            !isNight ? "animate-spin-slow text-amber-400" : "text-indigo-300"
           }`}
         />
         <span ref={timeRef}></span>
 
-        <div className="absolute bottom-full left-0 mb-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 pointer-events-none origin-bottom-left">
+        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 origin-bottom-left scale-95 opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
           <div
-            className="whitespace-nowrap rounded-xl px-4 py-2.5 text-xs border shadow-lg backdrop-blur-xl"
+            className="whitespace-nowrap rounded-xl border px-4 py-2.5 text-xs shadow-lg backdrop-blur-xl"
             style={{
-              background: 'var(--card-bg)',
-              borderColor: 'var(--card-border)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              background: "var(--card-bg)",
+              borderColor: "var(--card-border)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
             }}
           >
             <span className="font-medium text-[var(--text-primary)]">
-              I&apos;m {isAwake ? 'probably awake right now.' : 'probably asleep right now... 😴'}
+              I&apos;m{" "}
+              {isAwake
+                ? "probably awake right now."
+                : "probably asleep right now... 😴"}
             </span>
           </div>
 
@@ -168,9 +202,9 @@ const TimeWeather = () => {
             style={{
               width: 0,
               height: 0,
-              borderLeft: '6px solid transparent',
-              borderRight: '6px solid transparent',
-              borderTop: '6px solid var(--card-border)',
+              borderLeft: "6px solid transparent",
+              borderRight: "6px solid transparent",
+              borderTop: "6px solid var(--card-border)",
             }}
           />
         </div>
@@ -180,40 +214,47 @@ const TimeWeather = () => {
         <div className="flex items-center gap-1.5">
           <motion.div
             className="inline-flex"
-            animate={weather.weatherCode === 800 ? { rotate: [0, 4, 0, -4, 0] } : { y: [0, -1, 0, 1, 0] }}
+            animate={
+              weather.weatherCode === 800
+                ? { rotate: [0, 4, 0, -4, 0] }
+                : { y: [0, -1, 0, 1, 0] }
+            }
             transition={{
               duration: weather.weatherCode === 800 ? 4 : 2.5,
               repeat: Infinity,
-              ease: 'easeInOut',
+              ease: "easeInOut",
             }}
           >
             <WeatherIcon
               data-testid="weather-icon"
               className={`h-3.5 w-3.5 ${
-                weather.weatherCode === 800 && weather.isDay ? 'text-amber-400' : ''
+                weather.weatherCode === 800 && weather.isDay
+                  ? "text-amber-400"
+                  : ""
               }`}
             />
           </motion.div>
           <p>
-            It&apos;s{' '}
-            <span className="relative inline-flex items-center group">
+            It&apos;s{" "}
+            <span className="group relative inline-flex items-center">
               <span className="font-semibold text-[var(--text-primary)]">
                 {weather.temperature}°C
               </span>
               <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover:block">
                 Feels like {weather.feelsLike}°C
               </span>
-              <span
-                className="absolute left-1/2 top-full hidden -translate-x-1/2 -mt-px border-l-6 border-r-6 border-t-6 border-transparent border-t-[var(--card-border)] group-hover:block"
-              />
-            </span>{' '}
-            with{' '}
+              <span className="border-l-6 border-r-6 border-t-6 absolute left-1/2 top-full -mt-px hidden -translate-x-1/2 border-transparent border-t-[var(--card-border)] group-hover:block" />
+            </span>{" "}
+            with{" "}
             <span className="text-[var(--text-secondary)]">
               {weather.weatherDescription.toLowerCase()}
-            </span>{' '}
-            in{' '}
-            <span className="font-semibold text-[var(--text-primary)]">
-              Yogyakarta
+            </span>{" "}
+            in{" "}
+            <span className="group/location relative inline-flex items-center font-semibold text-[var(--text-primary)]">
+              {weather.city}
+              <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs font-normal text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover/location:block">
+                {locationTooltip}
+              </span>
             </span>
             .
           </p>
