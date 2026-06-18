@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import type { IncomingHttpHeaders } from "node:http";
+import type { NextApiRequest } from "next";
 
 const LOCATION_SECRET_ENV_KEYS = ["LOCATION_SECRET", "LOCATION_UPDATE_SECRET"];
 const LOCATION_SECRET_HEADER_KEYS = [
@@ -7,6 +8,9 @@ const LOCATION_SECRET_HEADER_KEYS = [
   "x-location-secret",
   "x-api-key",
 ];
+const LOCATION_SECRET_BODY_KEYS = ["secret", "locationSecret"];
+const LOCATION_SECRET_QUERY_KEYS = ["secret", "locationSecret"];
+type LocationSecretEnv = Record<string, string | undefined>;
 
 const normalizeSecret = (value?: string) => {
   const trimmed = value?.trim();
@@ -25,12 +29,12 @@ const normalizeSecret = (value?: string) => {
   return withoutBearer;
 };
 
-export const getLocationSecrets = (env = process.env) =>
+export const getLocationSecrets = (env: LocationSecretEnv = process.env) =>
   LOCATION_SECRET_ENV_KEYS.map((key) => normalizeSecret(env[key])).filter(
     Boolean
   );
 
-export const hasLocationSecret = (env = process.env) =>
+export const hasLocationSecret = (env: LocationSecretEnv = process.env) =>
   getLocationSecrets(env).length > 0;
 
 export const getLocationAuthHeader = (headers: IncomingHttpHeaders) => {
@@ -44,6 +48,30 @@ export const getLocationAuthHeader = (headers: IncomingHttpHeaders) => {
 
   return "";
 };
+
+const getRecordValue = (
+  source: NextApiRequest["body"] | NextApiRequest["query"],
+  keys: string[]
+) => {
+  if (!source || typeof source !== "object") return "";
+
+  for (const key of keys) {
+    const value = source[key];
+    const secret = Array.isArray(value) ? value[0] : value;
+    const normalized = normalizeSecret(
+      typeof secret === "string" ? secret : undefined
+    );
+
+    if (normalized) return normalized;
+  }
+
+  return "";
+};
+
+export const getLocationAuthCandidate = (req: Pick<NextApiRequest, "headers" | "body" | "query">) =>
+  getLocationAuthHeader(req.headers) ||
+  getRecordValue(req.body, LOCATION_SECRET_BODY_KEYS) ||
+  getRecordValue(req.query, LOCATION_SECRET_QUERY_KEYS);
 
 const timingSafeMatches = (candidate: string, secret: string) => {
   const candidateBuffer = Buffer.from(candidate);
@@ -61,7 +89,7 @@ const timingSafeMatches = (candidate: string, secret: string) => {
 
 export const isLocationAuthorized = (
   authorization?: string | string[],
-  env = process.env
+  env: LocationSecretEnv = process.env
 ) => {
   const headerValue = Array.isArray(authorization)
     ? authorization[0]
@@ -75,6 +103,16 @@ export const isLocationAuthorized = (
 };
 
 export const isLocationRequestAuthorized = (
-  headers: IncomingHttpHeaders,
-  env = process.env
-) => isLocationAuthorized(getLocationAuthHeader(headers), env);
+  req: Pick<NextApiRequest, "headers" | "body" | "query">,
+  env: LocationSecretEnv = process.env
+) => isLocationAuthorized(getLocationAuthCandidate(req), env);
+
+export const getLocationAuthDiagnostics = (
+  req: Pick<NextApiRequest, "headers" | "body" | "query">
+) => ({
+  hasHeaderCredential: Boolean(getLocationAuthHeader(req.headers)),
+  hasBodyCredential: Boolean(getRecordValue(req.body, LOCATION_SECRET_BODY_KEYS)),
+  hasQueryCredential: Boolean(
+    getRecordValue(req.query, LOCATION_SECRET_QUERY_KEYS)
+  ),
+});

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import {
+  getLocationAuthDiagnostics,
   hasLocationSecret,
   isLocationRequestAuthorized,
 } from "../../lib/locationAuth";
@@ -28,8 +29,12 @@ export default async function handler(
     return res.status(500).json({ error: "Location secret is not configured" });
   }
 
-  if (!isLocationRequestAuthorized(req.headers)) {
-    return res.status(401).json({ error: "Unauthorized" });
+  if (!isLocationRequestAuthorized(req)) {
+    return res.status(401).json({
+      error: "Unauthorized",
+      code: "LOCATION_AUTH_INVALID",
+      auth: getLocationAuthDiagnostics(req),
+    });
   }
 
   const { city, country } = req.body || {};

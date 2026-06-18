@@ -176,11 +176,10 @@ Updates the stored location. Send a city and country; the API geocodes them befo
 ```sh
 curl -X POST https://your-domain.com/api/location \
   -H "Content-Type: application/json" \
-  -H "X-Location-Secret: $LOCATION_SECRET" \
-  -d '{"city":"Paris","country":"France"}'
+  -d '{"city":"Paris","country":"France","secret":"'"$LOCATION_SECRET"'"}'
 ```
 
-The authorization check trims accidental whitespace and accepts the secret in `X-Location-Secret`, `X-API-Key`, or `Authorization`. `Authorization` may be either the raw secret or `Bearer <secret>`. In production, confirm the secret is configured for the Production environment and redeploy after changing it.
+The authorization check trims accidental whitespace and accepts the secret in the JSON body as `secret` or `locationSecret`, in the query string as `secret` or `locationSecret`, or in the `X-Location-Secret`, `X-API-Key`, or `Authorization` headers. `Authorization` may be either the raw secret or `Bearer <secret>`. In production, confirm the secret is configured for the Production environment and redeploy after changing it.
 
 Example response:
 

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  getLocationAuthCandidate,
   getLocationAuthHeader,
+  getLocationAuthDiagnostics,
   getLocationSecrets,
   hasLocationSecret,
   isLocationAuthorized,
@@ -32,11 +34,17 @@ describe("location auth", () => {
     const env = { LOCATION_SECRET: "secret-value" };
 
     expect(
-      isLocationRequestAuthorized({ "x-location-secret": "secret-value" }, env)
+      isLocationRequestAuthorized(
+        { headers: { "x-location-secret": "secret-value" }, body: {}, query: {} },
+        env
+      )
     ).toBe(true);
-    expect(isLocationRequestAuthorized({ "x-api-key": "secret-value" }, env)).toBe(
-      true
-    );
+    expect(
+      isLocationRequestAuthorized(
+        { headers: { "x-api-key": "secret-value" }, body: {}, query: {} },
+        env
+      )
+    ).toBe(true);
   });
 
   it("prefers the first configured secret header", () => {
@@ -46,6 +54,38 @@ describe("location auth", () => {
         "x-location-secret": "secret-value",
       })
     ).toBe("secret-value");
+  });
+
+  it("authorizes body and query credentials when headers are unavailable", () => {
+    const env = { LOCATION_SECRET: "secret-value" };
+
+    expect(
+      isLocationRequestAuthorized(
+        { headers: {}, body: { secret: "secret-value" }, query: {} },
+        env
+      )
+    ).toBe(true);
+    expect(
+      isLocationRequestAuthorized(
+        { headers: {}, body: {}, query: { locationSecret: "secret-value" } },
+        env
+      )
+    ).toBe(true);
+  });
+
+  it("reports credential presence without exposing secret values", () => {
+    const req = {
+      headers: {},
+      body: { secret: "secret-value" },
+      query: {},
+    };
+
+    expect(getLocationAuthCandidate(req)).toBe("secret-value");
+    expect(getLocationAuthDiagnostics(req)).toEqual({
+      hasHeaderCredential: false,
+      hasBodyCredential: true,
+      hasQueryCredential: false,
+    });
   });
 
   it("rejects missing or mismatched secrets", () => {
