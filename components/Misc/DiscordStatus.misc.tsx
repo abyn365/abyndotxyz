@@ -5,6 +5,46 @@ import { motion } from "framer-motion";
 import { Activity, Disc3, ExternalLink, Music } from "lucide-react";
 import { useTheme } from "../ThemeProvider";
 
+const DISCORD_ID = "877018055815868426";
+const LANYARD_SOCKET = "wss://api.lanyard.rest/socket";
+
+type LanyardActivity = {
+  application_id?: string;
+  name: string;
+  type?: number;
+  details?: string;
+  state?: string;
+  assets?: {
+    large_image?: string;
+    large_text?: string;
+    small_image?: string;
+    small_text?: string;
+  };
+  timestamps?: {
+    start: number;
+    end?: number;
+  };
+};
+
+type LanyardPresence = {
+  active_on_discord_desktop?: boolean;
+  active_on_discord_web?: boolean;
+  active_on_discord_mobile?: boolean;
+  discord_status?: string;
+  activities?: LanyardActivity[];
+  spotify?: {
+    album: string;
+    album_art_url: string;
+    artist: string;
+    song: string;
+    track_id?: string;
+    timestamps?: {
+      start: number;
+      end?: number;
+    };
+  } | null;
+};
+
 type StatusData = {
   activity?: {
     name: string;
@@ -46,6 +86,109 @@ const formatTime = (ms: number): string => {
 const buildSpotifyTrackUrl = (trackId?: string | null) => {
   if (!trackId) return null;
   return `https://open.spotify.com/track/${trackId}`;
+};
+
+const isPreMiDText = (text?: string) =>
+  typeof text === "string" && /pre.?mid/i.test(text);
+
+const sanitizeActivityText = (text?: string) => {
+  if (!text) return null;
+  return isPreMiDText(text) ? null : text;
+};
+
+const getActiveDevice = (presence: LanyardPresence) => {
+  if (presence.active_on_discord_desktop) return "Desktop";
+  if (presence.active_on_discord_web) return "Web";
+  if (presence.active_on_discord_mobile) return "Mobile";
+  return null;
+};
+
+const resolveDiscordAsset = (applicationId?: string, asset?: string) => {
+  if (!asset) {
+    return applicationId
+      ? `https://dcdn.dstn.to/app-icons/${applicationId}.webp?size=512`
+      : null;
+  }
+
+  if (asset.startsWith("http://") || asset.startsWith("https://")) return asset;
+
+  const parts = asset.split(":");
+  if (parts.length > 1) {
+    switch (parts[0]) {
+      case "spotify":
+        return parts[1] ? `https://i.scdn.co/image/${parts[1]}` : null;
+      case "mp":
+        return `https://media.discordapp.net/${parts.slice(1).join(":")}`;
+      case "twitch":
+        return `https://static-cdn.jtvnw.net/previews-ttv/live_user_${parts[1]}.png`;
+      case "youtube":
+        return `https://i.ytimg.com/vi/${parts[1]}/hqdefault_live.jpg`;
+      default:
+        return null;
+    }
+  }
+
+  return applicationId
+    ? `https://cdn.discordapp.com/app-assets/${applicationId}/${asset}.webp?size=512`
+    : null;
+};
+
+const toStatusData = (presence: LanyardPresence): StatusData => {
+  const activities = Array.isArray(presence.activities)
+    ? presence.activities
+    : [];
+  const activityCandidates = activities.filter(
+    (activity) =>
+      [0, 2, 3].includes(activity.type ?? -1) &&
+      activity.name !== "Spotify" &&
+      !isPreMiDText(activity.name)
+  );
+  const activity =
+    activityCandidates.find(
+      (candidate) =>
+        !isPreMiDText(candidate.assets?.large_text) &&
+        !isPreMiDText(candidate.assets?.small_text)
+    ) ||
+    activityCandidates[0] ||
+    null;
+
+  return {
+    activeDevice: getActiveDevice(presence),
+    activity: activity
+      ? {
+          name: activity.name,
+          type: activity.type,
+          details: sanitizeActivityText(activity.details) || undefined,
+          state: sanitizeActivityText(activity.state) || undefined,
+          image: resolveDiscordAsset(
+            activity.application_id,
+            activity.assets?.large_image
+          ),
+          smallImage: activity.assets?.small_image
+            ? resolveDiscordAsset(
+                activity.application_id,
+                activity.assets.small_image
+              )
+            : null,
+          largeText:
+            sanitizeActivityText(activity.assets?.large_text) || undefined,
+          smallText:
+            sanitizeActivityText(activity.assets?.small_text) || undefined,
+          timestamps: activity.timestamps || null,
+        }
+      : null,
+    spotify: presence.spotify
+      ? {
+          album: presence.spotify.album,
+          albumArtUrl: presence.spotify.album_art_url,
+          artist: presence.spotify.artist,
+          song: presence.spotify.song,
+          timestamps: presence.spotify.timestamps || null,
+          trackId: presence.spotify.track_id || null,
+          songUrl: buildSpotifyTrackUrl(presence.spotify.track_id),
+        }
+      : null,
+  };
 };
 
 const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
@@ -188,8 +331,23 @@ const ActivityPanel = ({
     return () => clearInterval(interval);
   }, [activity.timestamps?.start]);
 
+  const rawTextParts = [activity.details, activity.state, activity.smallText]
+    .flatMap((part) => part?.split(/\n+/) ?? [])
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const readableDetails = rawTextParts
+    .map((part) => {
+      const viewingMatch = part.match(/^Viewing\s+"(.+?)"(?:\s+mainpage)?$/i);
+      return viewingMatch?.[1] || part;
+    })
+    .filter(
+      (part, index, parts) =>
+        parts.findIndex(
+          (candidate) => candidate.toLowerCase() === part.toLowerCase()
+        ) === index
+    );
   const title =
-    activity.details?.trim() ||
+    readableDetails.find((part) => !/^chapter\s*:/i.test(part)) ||
     activity.largeText?.trim() ||
     activity.name ||
     "Not Active";
@@ -218,26 +376,20 @@ const ActivityPanel = ({
   const subtitle =
     activity.type === 2 || activity.type === 3 ? undefined : activity.state;
   const details: string[] = [];
-  if (activity.type === 2 && activity.state) {
-    details.push(activity.state);
-  }
-  if (activity.type === 3 && activity.state) {
-    details.push(activity.state);
-  }
-  if (activity.type === 2 && activity.largeText) {
+  readableDetails.forEach((part) => {
+    if (part.toLowerCase() !== title.toLowerCase()) details.push(part);
+  });
+  if (activity.type === 2 && activity.largeText)
     details.push(activity.largeText);
-  }
-  if (
-    activity.smallText &&
-    activity.smallText !== title &&
-    activity.smallText !== activity.state
-  ) {
-    details.push(activity.smallText);
-  }
-  const description = details.length
-    ? details.join(" · ")
-    : activity.smallText && activity.smallText !== title
-    ? activity.smallText
+  const descriptionParts = details.filter(
+    (part, index, parts) =>
+      part &&
+      parts.findIndex(
+        (candidate) => candidate.toLowerCase() === part.toLowerCase()
+      ) === index
+  );
+  const description = descriptionParts.length
+    ? descriptionParts.join(" · ")
     : "Not doing anything right now";
 
   const overlayClass =
@@ -247,7 +399,7 @@ const ActivityPanel = ({
 
   return (
     <div
-      className="flex h-full flex-col justify-between relative overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+      className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
       style={{
         borderColor: "var(--card-border)",
         background: "var(--card-bg)",
@@ -367,7 +519,7 @@ const SpotifyPanel = ({
 
   return (
     <div
-      className="flex h-full flex-col justify-between relative overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+      className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
       style={{
         borderColor: "var(--card-border)",
         background: "var(--card-bg)",
@@ -452,29 +604,72 @@ const DiscordStatus: NextComponentType = () => {
   const [songProgress, setSongProgress] = useState(0);
   const songProgressRef = useRef<NodeJS.Timeout | null>(null);
 
+  const applyStatus = (statusData: StatusData) => {
+    setStatus(statusData);
+    if (statusData.spotify?.timestamps?.start) {
+      setSongProgress(
+        Math.max(Date.now() - statusData.spotify.timestamps.start, 0)
+      );
+    } else {
+      setSongProgress(0);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
+    let socket: WebSocket | null = null;
+    let heartbeat: NodeJS.Timeout | null = null;
+    let fallbackPoll: NodeJS.Timeout | null = null;
+
     const fetchStatus = async () => {
       try {
         const statusRes = await fetch("/api/discord-status");
-        const statusData = await statusRes.json();
-        setStatus(statusData);
-        if (statusData.spotify?.timestamps?.start) {
-          setSongProgress(
-            Math.max(Date.now() - statusData.spotify.timestamps.start, 0)
-          );
-        } else {
-          setSongProgress(0);
-        }
+        applyStatus(await statusRes.json());
       } catch (error) {
         console.error("Failed to fetch activity data:", error);
-      } finally {
         setLoading(false);
       }
     };
 
-    fetchStatus();
-    const poll = setInterval(fetchStatus, 10000);
-    return () => clearInterval(poll);
+    try {
+      socket = new WebSocket(LANYARD_SOCKET);
+      socket.addEventListener("message", (event) => {
+        const payload = JSON.parse(event.data);
+
+        if (payload.op === 1) {
+          const heartbeatInterval = payload.d?.heartbeat_interval ?? 30000;
+          heartbeat = setInterval(() => {
+            socket?.send(JSON.stringify({ op: 3 }));
+          }, heartbeatInterval);
+          socket?.send(
+            JSON.stringify({ op: 2, d: { subscribe_to_id: DISCORD_ID } })
+          );
+          return;
+        }
+
+        if (
+          payload.op === 0 &&
+          ["INIT_STATE", "PRESENCE_UPDATE"].includes(payload.t)
+        ) {
+          applyStatus(toStatusData(payload.d));
+        }
+      });
+      socket.addEventListener("error", fetchStatus);
+      socket.addEventListener("close", () => {
+        if (heartbeat) clearInterval(heartbeat);
+        fallbackPoll = setInterval(fetchStatus, 10000);
+      });
+    } catch (error) {
+      console.error("Failed to connect to Lanyard websocket:", error);
+      fetchStatus();
+      fallbackPoll = setInterval(fetchStatus, 10000);
+    }
+
+    return () => {
+      if (heartbeat) clearInterval(heartbeat);
+      if (fallbackPoll) clearInterval(fallbackPoll);
+      socket?.close();
+    };
   }, []);
 
   useEffect(() => {
