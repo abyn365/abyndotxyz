@@ -51,7 +51,7 @@ const CurrentAge = () => {
     };
 
     update();
-    const interval = window.setInterval(update, 100); // update at 100ms
+    const interval = window.setInterval(update, 50); // update at ms
 
     return () => window.clearInterval(interval);
   }, []);
