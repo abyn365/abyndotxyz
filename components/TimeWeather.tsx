@@ -32,18 +32,14 @@ type WeatherData = {
 const DEFAULT_TIMEZONE = "Asia/Jakarta";
 
 const getWeatherIcon = (code: number, isNight: boolean): LucideIcon => {
-  // WMO weather codes
-  if (code === 0) return isNight ? Moon : Sun; // clear sky
+  if (code === 0) return isNight ? Moon : Sun;
 
-  if (code >= 1 && code <= 3) {
-    return isNight ? CloudMoon : CloudSun; // mainly clear / partly cloudy / overcast-ish
-  }
-
-  if (code >= 45 && code <= 48) return CloudFog; // fog
-  if (code >= 51 && code <= 67) return isNight ? CloudMoonRain : CloudSunRain; // drizzle / rain
-  if (code >= 71 && code <= 77) return CloudSnow; // snow
-  if (code >= 80 && code <= 82) return isNight ? CloudMoonRain : CloudSunRain; // rain showers
-  if (code >= 95 && code <= 99) return CloudLightning; // thunderstorm
+  if (code >= 1 && code <= 3) return isNight ? CloudMoon : CloudSun;
+  if (code >= 45 && code <= 48) return CloudFog;
+  if (code >= 51 && code <= 67) return isNight ? CloudMoonRain : CloudSunRain;
+  if (code >= 71 && code <= 77) return CloudSnow;
+  if (code >= 80 && code <= 82) return isNight ? CloudMoonRain : CloudSunRain;
+  if (code >= 95 && code <= 99) return CloudLightning;
 
   return Cloud;
 };
@@ -53,23 +49,23 @@ const getIconStyle = (code: number, isNight: boolean) => {
     return {
       className: isNight ? "text-indigo-300" : "text-amber-400",
       animate: { rotate: [0, 4, 0, -4, 0] },
-      duration: 4,
+      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" },
     };
   }
 
   if (code >= 51 && code <= 67) {
     return {
       className: "text-sky-400",
-      animate: { y: [0, -1, 0, 1, 0] },
-      duration: 2.5,
+      animate: { y: [0, -1.5, 0, 1.5, 0] },
+      transition: { duration: 2.2, repeat: Infinity, ease: "easeInOut" },
     };
   }
 
   if (code >= 80 && code <= 82) {
     return {
       className: "text-sky-400",
-      animate: { y: [0, -1, 0, 1, 0] },
-      duration: 2.3,
+      animate: { y: [0, -2, 0, 2, 0] },
+      transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
     };
   }
 
@@ -77,15 +73,15 @@ const getIconStyle = (code: number, isNight: boolean) => {
     return {
       className: "text-slate-300",
       animate: { y: [0, -1, 0, 1, 0] },
-      duration: 3,
+      transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
     };
   }
 
   if (code >= 95 && code <= 99) {
     return {
       className: "text-violet-400",
-      animate: { x: [0, -1, 1, -1, 1, 0] },
-      duration: 0.9,
+      animate: { x: [0, -1, 1, -1, 1, 0], rotate: [0, -2, 2, -2, 2, 0] },
+      transition: { duration: 0.9, repeat: Infinity, ease: "easeInOut" },
     };
   }
 
@@ -93,14 +89,14 @@ const getIconStyle = (code: number, isNight: boolean) => {
     return {
       className: "text-slate-300",
       animate: { y: [0, -1, 0, 1, 0] },
-      duration: 3,
+      transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
     };
   }
 
   return {
     className: isNight ? "text-indigo-300" : "text-amber-400",
     animate: { y: [0, -1, 0, 1, 0] },
-    duration: 2.8,
+    transition: { duration: 2.8, repeat: Infinity, ease: "easeInOut" },
   };
 };
 
@@ -150,7 +146,6 @@ const getTimePartsInZone = (timeZone: string) => {
 
     const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
     const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
-    const second = Number(parts.find((p) => p.type === "second")?.value ?? "0");
 
     const time = new Intl.DateTimeFormat("en-US", {
       timeZone,
@@ -166,14 +161,12 @@ const getTimePartsInZone = (timeZone: string) => {
       text: `${date} · ${time}${offset ? ` ${offset}` : ""}`,
       hour,
       minute,
-      second,
     };
   } catch {
     return {
       text: now.toLocaleString("en-US"),
       hour: now.getHours(),
       minute: now.getMinutes(),
-      second: now.getSeconds(),
     };
   }
 };
@@ -247,7 +240,6 @@ const TimeWeather = () => {
 
     return () => {
       cancelled = true;
-
       if (timeoutId !== undefined) window.clearTimeout(timeoutId);
       if (intervalId !== undefined) window.clearInterval(intervalId);
     };
@@ -265,11 +257,7 @@ const TimeWeather = () => {
         <motion.div
           className="inline-flex"
           animate={iconStyle.animate}
-          transition={{
-            duration: iconStyle.duration,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          transition={iconStyle.transition}
         >
           {loading ? (
             <Clock
