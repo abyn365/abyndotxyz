@@ -1,13 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
 import {
   Clock,
   Cloud,
-  CloudRain,
+  CloudFog,
   CloudLightning,
+  CloudMoon,
+  CloudMoonRain,
+  CloudRain,
   CloudSnow,
-  Sun,
+  CloudSun,
+  CloudSunRain,
   Moon,
+  Sun,
 } from "lucide-react";
 
 type WeatherData = {
@@ -25,16 +31,77 @@ type WeatherData = {
 
 const DEFAULT_TIMEZONE = "Asia/Jakarta";
 
-const getWeatherIcon = (code: number, isNight: boolean) => {
+const getWeatherIcon = (code: number, isNight: boolean): LucideIcon => {
   // WMO weather codes
   if (code === 0) return isNight ? Moon : Sun; // clear sky
-  if (code >= 1 && code <= 3) return Cloud; // mainly clear / partly cloudy / overcast
-  if (code >= 45 && code <= 48) return Cloud; // fog
-  if (code >= 51 && code <= 67) return CloudRain; // drizzle / rain
+
+  if (code >= 1 && code <= 3) {
+    return isNight ? CloudMoon : CloudSun; // mainly clear / partly cloudy / overcast-ish
+  }
+
+  if (code >= 45 && code <= 48) return CloudFog; // fog
+  if (code >= 51 && code <= 67) return isNight ? CloudMoonRain : CloudSunRain; // drizzle / rain
   if (code >= 71 && code <= 77) return CloudSnow; // snow
-  if (code >= 80 && code <= 82) return CloudRain; // rain showers
+  if (code >= 80 && code <= 82) return isNight ? CloudMoonRain : CloudSunRain; // rain showers
   if (code >= 95 && code <= 99) return CloudLightning; // thunderstorm
+
   return Cloud;
+};
+
+const getIconStyle = (code: number, isNight: boolean) => {
+  if (code === 0) {
+    return {
+      className: isNight ? "text-indigo-300" : "text-amber-400",
+      animate: { rotate: [0, 4, 0, -4, 0] },
+      duration: 4,
+    };
+  }
+
+  if (code >= 51 && code <= 67) {
+    return {
+      className: "text-sky-400",
+      animate: { y: [0, -1, 0, 1, 0] },
+      duration: 2.5,
+    };
+  }
+
+  if (code >= 80 && code <= 82) {
+    return {
+      className: "text-sky-400",
+      animate: { y: [0, -1, 0, 1, 0] },
+      duration: 2.3,
+    };
+  }
+
+  if (code >= 71 && code <= 77) {
+    return {
+      className: "text-slate-300",
+      animate: { y: [0, -1, 0, 1, 0] },
+      duration: 3,
+    };
+  }
+
+  if (code >= 95 && code <= 99) {
+    return {
+      className: "text-violet-400",
+      animate: { x: [0, -1, 1, -1, 1, 0] },
+      duration: 0.9,
+    };
+  }
+
+  if (code >= 45 && code <= 48) {
+    return {
+      className: "text-slate-300",
+      animate: { y: [0, -1, 0, 1, 0] },
+      duration: 3,
+    };
+  }
+
+  return {
+    className: isNight ? "text-indigo-300" : "text-amber-400",
+    animate: { y: [0, -1, 0, 1, 0] },
+    duration: 2.8,
+  };
 };
 
 const getShortOffset = (timeZone: string) => {
@@ -65,44 +132,50 @@ const formatLocationUpdatedAt = (timestamp?: string) => {
 const getTimePartsInZone = (timeZone: string) => {
   const now = new Date();
 
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).formatToParts(now);
+  try {
+    const date = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(now);
 
-  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
-  const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
-  const second = Number(parts.find((p) => p.type === "second")?.value ?? "0");
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(now);
 
-  const dateStr = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(now);
+    const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+    const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+    const second = Number(parts.find((p) => p.type === "second")?.value ?? "0");
 
-  const timeStr = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).format(now);
+    const time = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(now);
 
-  const offset = getShortOffset(timeZone);
+    const offset = getShortOffset(timeZone);
 
-  return {
-    dateStr,
-    timeStr,
-    offset,
-    hour,
-    minute,
-    second,
-    text: `${dateStr} · ${timeStr}${offset ? ` ${offset}` : ""}`,
-  };
+    return {
+      text: `${date} · ${time}${offset ? ` ${offset}` : ""}`,
+      hour,
+      minute,
+      second,
+    };
+  } catch {
+    return {
+      text: now.toLocaleString("en-US"),
+      hour: now.getHours(),
+      minute: now.getMinutes(),
+      second: now.getSeconds(),
+    };
+  }
 };
 
 const TimeWeather = () => {
@@ -113,6 +186,11 @@ const TimeWeather = () => {
   const [isAwake, setIsAwake] = useState(true);
 
   const timeZone = weather?.timezone || DEFAULT_TIMEZONE;
+  const isNight = weather ? !weather.isDay : timeIsNight;
+
+  const iconCode = weather?.weatherCode ?? (isNight ? 1 : 0);
+  const WeatherIcon = getWeatherIcon(iconCode, isNight);
+  const iconStyle = getIconStyle(iconCode, isNight);
 
   useEffect(() => {
     const updateTime = () => {
@@ -175,9 +253,6 @@ const TimeWeather = () => {
     };
   }, []);
 
-  const isNight = weather ? !weather.isDay : timeIsNight;
-  const WeatherIcon = weather ? getWeatherIcon(weather.weatherCode, isNight) : Cloud;
-  const TimeIcon = isNight ? Moon : Sun;
   const locationTooltip = weather
     ? `${weather.city}, ${weather.country} · updated ${formatLocationUpdatedAt(
         weather.locationUpdatedAt
@@ -187,13 +262,29 @@ const TimeWeather = () => {
   return (
     <div className="space-y-1 text-sm text-[var(--text-secondary)]">
       <div className="group relative flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
-        <TimeIcon
-          data-testid="time-icon"
-          className={`h-3.5 w-3.5 ${
-            !isNight ? "animate-spin-slow text-amber-400" : "text-indigo-300"
-          }`}
-        />
-        <span>{timeText || <Clock className="h-3.5 w-3.5" />}</span>
+        <motion.div
+          className="inline-flex"
+          animate={iconStyle.animate}
+          transition={{
+            duration: iconStyle.duration,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        >
+          {loading ? (
+            <Clock
+              data-testid="time-icon"
+              className="h-3.5 w-3.5 text-[var(--text-secondary)]"
+            />
+          ) : (
+            <WeatherIcon
+              data-testid="time-icon"
+              className={`h-3.5 w-3.5 ${iconStyle.className}`}
+            />
+          )}
+        </motion.div>
+
+        <span>{timeText}</span>
 
         <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 origin-bottom-left scale-95 opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
           <div
@@ -223,55 +314,32 @@ const TimeWeather = () => {
       </div>
 
       {!loading && weather && (
-        <div className="flex items-center gap-1.5">
-          <motion.div
-            className="inline-flex"
-            animate={
-              weather.weatherCode === 0
-                ? { rotate: [0, 4, 0, -4, 0] }
-                : { y: [0, -1, 0, 1, 0] }
-            }
-            transition={{
-              duration: weather.weatherCode === 0 ? 4 : 2.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            <WeatherIcon
-              data-testid="weather-icon"
-              className={`h-3.5 w-3.5 ${
-                weather.weatherCode === 0 && weather.isDay ? "text-amber-400" : ""
-              }`}
-            />
-          </motion.div>
-
-          <p>
-            It&apos;s{" "}
-            <span className="group relative inline-flex items-center">
-              <span className="font-semibold text-[var(--text-primary)]">
-                {weather.temperature}°C
-              </span>
-
-              <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover:block">
-                Feels like {weather.feelsLike}°C
-              </span>
-
-              <span className="absolute left-1/2 top-full -mt-px hidden -translate-x-1/2 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-[var(--card-border)] group-hover:block" />
-            </span>{" "}
-            with{" "}
-            <span className="text-[var(--text-secondary)]">
-              {weather.weatherDescription.toLowerCase()}
-            </span>{" "}
-            in{" "}
-            <span className="group/location relative inline-flex items-center font-semibold text-[var(--text-primary)]">
-              {weather.city}
-              <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs font-normal text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover/location:block">
-                {locationTooltip}
-              </span>
+        <p>
+          It&apos;s{" "}
+          <span className="group relative inline-flex items-center">
+            <span className="font-semibold text-[var(--text-primary)]">
+              {weather.temperature}°C
             </span>
-            .
-          </p>
-        </div>
+
+            <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover:block">
+              Feels like {weather.feelsLike}°C
+            </span>
+
+            <span className="absolute left-1/2 top-full -mt-px hidden -translate-x-1/2 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-[var(--card-border)] group-hover:block" />
+          </span>{" "}
+          with{" "}
+          <span className="text-[var(--text-secondary)]">
+            {weather.weatherDescription.toLowerCase()}
+          </span>{" "}
+          in{" "}
+          <span className="group/location relative inline-flex items-center font-semibold text-[var(--text-primary)]">
+            {weather.city}
+            <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs font-normal text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover/location:block">
+              {locationTooltip}
+            </span>
+          </span>
+          .
+        </p>
       )}
     </div>
   );
