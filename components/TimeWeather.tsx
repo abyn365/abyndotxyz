@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Clock,
@@ -23,151 +23,166 @@ type WeatherData = {
   locationUpdatedAt: string;
 };
 
+const DEFAULT_TIMEZONE = "Asia/Jakarta";
+
 const getWeatherIcon = (code: number, isNight: boolean) => {
-  // WMO Weather interpretation codes (https://open-meteo.com/en/docs)
-  if (code >= 200 && code < 300) return CloudLightning;
-  if (code >= 300 && code < 400) return CloudRain;
-  if (code >= 500 && code < 600) return CloudRain;
-  if (code >= 600 && code < 700) return CloudSnow;
-  if (code >= 700 && code < 800) return Cloud;
-  if (code === 800) return isNight ? Moon : Sun;
-  if (code > 800 && code < 900) return Cloud;
+  // WMO weather codes
+  if (code === 0) return isNight ? Moon : Sun; // clear sky
+  if (code >= 1 && code <= 3) return Cloud; // mainly clear / partly cloudy / overcast
+  if (code >= 45 && code <= 48) return Cloud; // fog
+  if (code >= 51 && code <= 67) return CloudRain; // drizzle / rain
+  if (code >= 71 && code <= 77) return CloudSnow; // snow
+  if (code >= 80 && code <= 82) return CloudRain; // rain showers
+  if (code >= 95 && code <= 99) return CloudLightning; // thunderstorm
   return Cloud;
 };
 
-const DEFAULT_TIMEZONE = "Asia/Jakarta";
-
 const getShortOffset = (timeZone: string) => {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    timeZoneName: "shortOffset",
-  }).formatToParts(new Date());
-  return parts.find((part) => part.type === "timeZoneName")?.value || "GMT+7";
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "shortOffset",
+    }).formatToParts(new Date());
+
+    return parts.find((part) => part.type === "timeZoneName")?.value || "";
+  } catch {
+    return "";
+  }
 };
 
 const formatLocationUpdatedAt = (timestamp?: string) => {
   if (!timestamp) return "Location update time unavailable";
 
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "Location update time unavailable";
+
   return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(timestamp));
+  }).format(date);
+};
+
+const getTimePartsInZone = (timeZone: string) => {
+  const now = new Date();
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  const second = Number(parts.find((p) => p.type === "second")?.value ?? "0");
+
+  const dateStr = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(now);
+
+  const timeStr = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(now);
+
+  const offset = getShortOffset(timeZone);
+
+  return {
+    dateStr,
+    timeStr,
+    offset,
+    hour,
+    minute,
+    second,
+    text: `${dateStr} · ${timeStr}${offset ? ` ${offset}` : ""}`,
+  };
 };
 
 const TimeWeather = () => {
-  const timeRef = useRef<HTMLSpanElement>(null);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [timeText, setTimeText] = useState("");
   const [timeIsNight, setTimeIsNight] = useState(false);
   const [isAwake, setIsAwake] = useState(true);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const timeZone = weather?.timezone || DEFAULT_TIMEZONE;
 
   useEffect(() => {
     const updateTime = () => {
-      const now = new Date();
-      const timeZone = weather?.timezone || DEFAULT_TIMEZONE;
-      const localTime = new Date(now.toLocaleString("en-US", { timeZone }));
+      const { text, hour, minute } = getTimePartsInZone(timeZone);
 
-      const timeStr = localTime.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-      });
+      setTimeText(text);
 
-      const dateStr = localTime.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-
-      if (timeRef.current) {
-        timeRef.current.textContent = `${dateStr} · ${timeStr} ${getShortOffset(
-          timeZone
-        )}`;
-      }
-
-      const hour = localTime.getHours() + localTime.getMinutes() / 60;
-      setTimeIsNight(hour >= 18 || hour < 6);
-      setIsAwake(hour >= 6 && hour < 22.5);
+      const hourDecimal = hour + minute / 60;
+      setTimeIsNight(hourDecimal >= 18 || hourDecimal < 6);
+      setIsAwake(hourDecimal >= 6 && hourDecimal < 22.5);
     };
 
     updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, [weather?.timezone]);
+    const interval = window.setInterval(updateTime, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [timeZone]);
 
   useEffect(() => {
-    const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
-    const START_OFFSET_MS = 5000; // 5 seconds after TTL
-    const REFRESH_DELAY_MS = CACHE_TTL_MS + START_OFFSET_MS;
-    const POLL_INTERVAL_MS = 10 * 60 * 1000; // every 10 minutes after first refresh
+    let timeoutId: number | undefined;
+    let intervalId: number | undefined;
+    let cancelled = false;
 
-    let refreshTimeout: number | null = null;
-    let refreshInterval: number | null = null;
+    const CACHE_TTL_MS = 10 * 60 * 1000;
+    const START_OFFSET_MS = 5000;
+    const POLL_INTERVAL_MS = 10 * 60 * 1000;
 
     const fetchWeather = async () => {
       try {
-        const response = await fetch("/api/weather");
-        const data = await response.json();
+        const response = await fetch("/api/weather", {
+          cache: "no-store",
+        });
 
-        if (data && data.temperature !== undefined) {
+        if (!response.ok) return;
+
+        const data: WeatherData = await response.json();
+
+        if (!cancelled && data && typeof data.temperature === "number") {
           setWeather(data);
-          // Keep `timeIsNight` separately; prefer API `isDay` when rendering below
-          // but don't overwrite the client's local time state here to avoid
-          // rapid flipping while time updates run. We derive the effective
-          // `isNight` at render time using the fetched `weather` when present.
         }
       } catch (error) {
         console.error("Failed to fetch weather:", error);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchWeather();
 
-    refreshTimeout = window.setTimeout(() => {
+    timeoutId = window.setTimeout(() => {
       fetchWeather();
-      refreshInterval = window.setInterval(fetchWeather, POLL_INTERVAL_MS);
-    }, REFRESH_DELAY_MS);
+      intervalId = window.setInterval(fetchWeather, POLL_INTERVAL_MS);
+    }, CACHE_TTL_MS + START_OFFSET_MS);
 
     return () => {
-      if (refreshTimeout !== null) {
-        window.clearTimeout(refreshTimeout);
-      }
-      if (refreshInterval !== null) {
-        window.clearInterval(refreshInterval);
-      }
+      cancelled = true;
+
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      if (intervalId !== undefined) window.clearInterval(intervalId);
     };
   }, []);
 
-  // prefer API value when available, otherwise fall back to client's time
   const isNight = weather ? !weather.isDay : timeIsNight;
-  const WeatherIcon = weather
-    ? getWeatherIcon(weather.weatherCode, isNight)
-    : Cloud;
+  const WeatherIcon = weather ? getWeatherIcon(weather.weatherCode, isNight) : Cloud;
   const TimeIcon = isNight ? Moon : Sun;
   const locationTooltip = weather
     ? `${weather.city}, ${weather.country} · updated ${formatLocationUpdatedAt(
         weather.locationUpdatedAt
       )}`
     : "";
-
-  if (!mounted) {
-    return (
-      <div className="space-y-1 text-sm text-[var(--text-secondary)]">
-        <div className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
-          <Clock className="h-3.5 w-3.5" />
-          <span ref={timeRef}></span>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-1 text-sm text-[var(--text-secondary)]">
@@ -178,7 +193,7 @@ const TimeWeather = () => {
             !isNight ? "animate-spin-slow text-amber-400" : "text-indigo-300"
           }`}
         />
-        <span ref={timeRef}></span>
+        <span>{timeText || <Clock className="h-3.5 w-3.5" />}</span>
 
         <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 origin-bottom-left scale-95 opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
           <div
@@ -190,10 +205,7 @@ const TimeWeather = () => {
             }}
           >
             <span className="font-medium text-[var(--text-primary)]">
-              I&apos;m{" "}
-              {isAwake
-                ? "probably awake right now."
-                : "probably asleep right now... 😴"}
+              I&apos;m {isAwake ? "probably awake right now." : "probably asleep right now... 😴"}
             </span>
           </div>
 
@@ -215,12 +227,12 @@ const TimeWeather = () => {
           <motion.div
             className="inline-flex"
             animate={
-              weather.weatherCode === 800
+              weather.weatherCode === 0
                 ? { rotate: [0, 4, 0, -4, 0] }
                 : { y: [0, -1, 0, 1, 0] }
             }
             transition={{
-              duration: weather.weatherCode === 800 ? 4 : 2.5,
+              duration: weather.weatherCode === 0 ? 4 : 2.5,
               repeat: Infinity,
               ease: "easeInOut",
             }}
@@ -228,22 +240,23 @@ const TimeWeather = () => {
             <WeatherIcon
               data-testid="weather-icon"
               className={`h-3.5 w-3.5 ${
-                weather.weatherCode === 800 && weather.isDay
-                  ? "text-amber-400"
-                  : ""
+                weather.weatherCode === 0 && weather.isDay ? "text-amber-400" : ""
               }`}
             />
           </motion.div>
+
           <p>
             It&apos;s{" "}
             <span className="group relative inline-flex items-center">
               <span className="font-semibold text-[var(--text-primary)]">
                 {weather.temperature}°C
               </span>
+
               <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover:block">
                 Feels like {weather.feelsLike}°C
               </span>
-              <span className="border-l-6 border-r-6 border-t-6 absolute left-1/2 top-full -mt-px hidden -translate-x-1/2 border-transparent border-t-[var(--card-border)] group-hover:block" />
+
+              <span className="absolute left-1/2 top-full -mt-px hidden -translate-x-1/2 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-[var(--card-border)] group-hover:block" />
             </span>{" "}
             with{" "}
             <span className="text-[var(--text-secondary)]">
