@@ -30,6 +30,7 @@ type WeatherData = {
 };
 
 const DEFAULT_TIMEZONE = "Asia/Jakarta";
+const WEATHER_REFRESH_MS = 10 * 60 * 1000;
 
 const getWeatherIcon = (code: number, isNight: boolean): LucideIcon => {
   if (code === 0) return isNight ? Moon : Sun;
@@ -203,13 +204,7 @@ const TimeWeather = () => {
   }, [timeZone]);
 
   useEffect(() => {
-    let timeoutId: number | undefined;
-    let intervalId: number | undefined;
     let cancelled = false;
-
-    const CACHE_TTL_MS = 10 * 60 * 1000;
-    const START_OFFSET_MS = 5000;
-    const POLL_INTERVAL_MS = 10 * 60 * 1000;
 
     const fetchWeather = async () => {
       try {
@@ -232,16 +227,11 @@ const TimeWeather = () => {
     };
 
     fetchWeather();
-
-    timeoutId = window.setTimeout(() => {
-      fetchWeather();
-      intervalId = window.setInterval(fetchWeather, POLL_INTERVAL_MS);
-    }, CACHE_TTL_MS + START_OFFSET_MS);
+    const interval = window.setInterval(fetchWeather, WEATHER_REFRESH_MS);
 
     return () => {
       cancelled = true;
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-      if (intervalId !== undefined) window.clearInterval(intervalId);
+      window.clearInterval(interval);
     };
   }, []);
 
@@ -284,7 +274,10 @@ const TimeWeather = () => {
             }}
           >
             <span className="font-medium text-[var(--text-primary)]">
-              I&apos;m {isAwake ? "probably awake right now." : "probably asleep right now... 😴"}
+              I&apos;m{" "}
+              {isAwake
+                ? "probably awake right now."
+                : "probably asleep right now... 😴"}
             </span>
           </div>
 
