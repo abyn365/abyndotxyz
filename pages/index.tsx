@@ -8,28 +8,52 @@ import DiscordStatus from "../components/Misc/DiscordStatus.misc";
 import TimeWeather from "../components/TimeWeather";
 import Squares from "../components/Squares";
 
+const BIRTH_YEAR = 2009;
+const BIRTH_MONTH = 3; // April (0-based)
+const BIRTH_DAY = 8;
+
+function getCurrentAge() {
+  const now = new Date();
+
+  // Local/browser timezone dates
+  const birth = new Date(BIRTH_YEAR, BIRTH_MONTH, BIRTH_DAY);
+  const thisYearBirthday = new Date(now.getFullYear(), BIRTH_MONTH, BIRTH_DAY);
+
+  const hasHadBirthdayThisYear = now >= thisYearBirthday;
+
+  const lastBirthday = hasHadBirthdayThisYear
+    ? thisYearBirthday
+    : new Date(now.getFullYear() - 1, BIRTH_MONTH, BIRTH_DAY);
+
+  const nextBirthday = hasHadBirthdayThisYear
+    ? new Date(now.getFullYear() + 1, BIRTH_MONTH, BIRTH_DAY)
+    : thisYearBirthday;
+
+  const fullYears = hasHadBirthdayThisYear
+    ? now.getFullYear() - birth.getFullYear()
+    : now.getFullYear() - birth.getFullYear() - 1;
+
+  const fractionOfYear =
+    (now.getTime() - lastBirthday.getTime()) /
+    (nextBirthday.getTime() - lastBirthday.getTime());
+
+  return (fullYears + fractionOfYear).toFixed(10);
+}
+
 const CurrentAge = () => {
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const birth = new Date("2009-04-08T00:00:00Z").getTime();
-    let frame = 0;
-
     const update = () => {
-      const age = (
-        (Date.now() - birth) / (365.25 * 24 * 60 * 60 * 1000)
-      ).toFixed(10);
-
       if (ref.current) {
-        ref.current.textContent = age;
+        ref.current.textContent = getCurrentAge();
       }
-
-      frame = requestAnimationFrame(update);
     };
 
-    frame = requestAnimationFrame(update);
+    update();
+    const interval = window.setInterval(update, 1000);
 
-    return () => cancelAnimationFrame(frame);
+    return () => window.clearInterval(interval);
   }, []);
 
   return <span ref={ref} />;
