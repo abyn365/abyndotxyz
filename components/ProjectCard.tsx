@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ExternalLink, Github } from 'lucide-react';
+import { ExternalLink, GitHub } from 'lucide-react';
 import type { Project } from '../data/projects';
 
 interface ProjectCardProps {
@@ -149,7 +149,7 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
                     background: 'var(--social-bg-mix)',
                   }}
                 >
-                  <Github className="h-3.5 w-3.5" />
+                  <GitHub className="h-3.5 w-3.5" />
                   Source
                 </span>
               )}
