@@ -41,7 +41,7 @@ const Squares: React.FC<SquaresProps> = ({
   }, []);
 
   const resolvedBorderColor = borderColor || (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(24, 24, 27, 0.04)');
-  const resolvedHoverFillColor = hoverFillColor || (isDark ? 'rgba(255, 99, 71, 0.08)' : 'rgba(255, 99, 71, 0.03)');
+  const resolvedHoverFillColor = hoverFillColor || (isDark ? 'rgba(255, 255, 255, 0.035)' : 'rgba(24, 24, 27, 0.035)');
 
   useEffect(() => {
     const canvas = canvasRef.current;

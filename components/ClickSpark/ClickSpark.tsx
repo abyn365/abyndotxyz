@@ -80,7 +80,7 @@ if (isBrowser) {
             overflow: visible;
           }
         </style>
-        <svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" stroke="var(--click-spark-color, #ff6347)" transform="rotate(-20)">
+        <svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" stroke="var(--click-spark-color, var(--accent))" transform="rotate(-20)">
           ${Array.from(
             { length: 8 },
             () => `<line x1="50" y1="30" x2="50" y2="4" stroke-dasharray="30" stroke-dashoffset="30" style="transform-origin: center" />`

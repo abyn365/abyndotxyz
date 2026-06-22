@@ -118,11 +118,11 @@ export default function Home() {
 
   const socialLinks = [
     { icon: FiGithub, href: '/github', label: 'GitHub', color: 'text-[var(--text-primary)]' },
-    { icon: FiMail, href: 'mailto:abyn@abyn.xyz', label: 'Email', color: 'text-amber-400' },
-    { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-indigo-400' },
-    { icon: FiInstagram, href: '/instagram', label: 'Instagram', color: 'text-pink-400' },
+    { icon: FiMail, href: 'mailto:abyn@abyn.xyz', label: 'Email', color: 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]' },
+    { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]' },
+    { icon: FiInstagram, href: '/instagram', label: 'Instagram', color: 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]' },
     { icon: SiTiktok, href: '/tiktok', label: 'TikTok', color: 'text-[var(--text-primary)]' },
-    { icon: SiSpotify, href: '/spotify', label: 'Spotify', color: 'text-emerald-400' },
+    { icon: SiSpotify, href: '/spotify', label: 'Spotify', color: 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]' },
   ];
 
   return (
@@ -264,7 +264,7 @@ export default function Home() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex flex-col items-center justify-center gap-1.5 px-2.5 py-2 min-h-16 rounded-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto sm:flex-row sm:gap-2 sm:px-4 sm:py-2.5 sm:min-h-0 sm:rounded-lg"
+                    className="group inline-flex flex-col items-center justify-center gap-1.5 px-2.5 py-2 min-h-16 rounded-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto sm:flex-row sm:gap-2 sm:px-4 sm:py-2.5 sm:min-h-0 sm:rounded-lg"
                     style={{
                       background: 'var(--social-bg-mix)',
                       border: '1px solid var(--card-border)',

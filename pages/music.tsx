@@ -91,7 +91,7 @@ export default function MusicEmbed() {
                     className="rounded-full px-3 py-1.5 text-xs transition sm:px-4 font-medium"
                     style={
                       period === p
-                        ? { background: 'var(--accent)', color: '#fff' }
+                        ? { background: 'var(--accent)', color: 'var(--accent-contrast)' }
                         : { color: 'var(--text-secondary)' }
                     }
                     onMouseEnter={(e) => {
