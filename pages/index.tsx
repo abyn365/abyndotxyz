@@ -166,12 +166,12 @@ export default function Home() {
                         style={{
                           backgroundColor:
                             discordStatus === 'online'
-                              ? 'var(--text-primary)'
+                              ? '#10b981'
                               : discordStatus === 'idle'
-                              ? '#a1a1aa'
+                              ? '#f59e0b'
                               : discordStatus === 'dnd'
-                              ? '#71717a'
-                              : '#3f3f46',
+                              ? '#ef4444'
+                              : '#9ca3af',
                         }}
                       />
                       <span className="capitalize">{discordStatus}</span>
