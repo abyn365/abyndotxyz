@@ -15,9 +15,7 @@ const Projects = () => {
       try {
         const res = await fetch('/api/github-projects');
         const data = await res.json();
-        if (data?.repos) {
-          setGithubProjects(data.repos);
-        }
+        if (data?.repos) setGithubProjects(data.repos);
       } catch (error) {
         console.error('Failed to fetch GitHub repos', error);
       } finally {
@@ -37,10 +35,7 @@ const Projects = () => {
 
     const githubFallback = githubProjects.filter((project) => !existingNames.has(project.name));
 
-    const ordered: Project[] = [...pinned, ...popular];
-    ordered.push(...githubFallback);
-
-    return ordered;
+    return [...pinned, ...popular, ...githubFallback];
   }, [githubProjects]);
 
   const totalPages = Math.max(1, Math.ceil(orderedProjects.length / ITEMS_PER_PAGE));
@@ -54,105 +49,162 @@ const Projects = () => {
     page * ITEMS_PER_PAGE
   );
 
-  const goToPage = (p: number) => {
-    if (p >= 1 && p <= totalPages) {
-      setPage(p);
-    }
+  const goToPage = (nextPage: number) => {
+    if (nextPage >= 1 && nextPage <= totalPages) setPage(nextPage);
   };
 
-  // Generate page numbers to show (max 5 around current)
   const getPageNumbers = (): (number | 'dots')[] => {
     const pages: (number | 'dots')[] = [];
+
     if (totalPages <= 5) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1);
-      if (page > 3) pages.push('dots');
-      const start = Math.max(2, page - 1);
-      const end = Math.min(totalPages - 1, page + 1);
-      for (let i = start; i <= end; i++) pages.push(i);
-      if (page < totalPages - 2) pages.push('dots');
-      pages.push(totalPages);
+      return pages;
     }
+
+    pages.push(1);
+
+    if (page > 3) pages.push('dots');
+
+    const start = Math.max(2, page - 1);
+    const end = Math.min(totalPages - 1, page + 1);
+
+    for (let i = start; i <= end; i++) pages.push(i);
+
+    if (page < totalPages - 2) pages.push('dots');
+
+    pages.push(totalPages);
     return pages;
   };
 
   return (
-    <div className="flex flex-col gap-6 h-full">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {paginatedProjects.map((project, index) => (
-          <ProjectCard
-            key={`${project.name}-${project.github ?? project.link ?? index}`}
-            project={project}
-            index={index}
-          />
-        ))}
+    <section
+      className="rounded-[2rem] border p-4 sm:p-6 backdrop-blur-xl"
+      style={{
+        borderColor: 'rgba(255,255,255,0.08)',
+        background: 'rgba(255,255,255,0.03)',
+        boxShadow: '0 18px 50px rgba(0,0,0,0.18)',
+      }}
+    >
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold tracking-wide text-[var(--text-primary)]">
+            Projects
+          </h2>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">
+            {loading ? 'Loading repositories…' : `${orderedProjects.length} projects`}
+          </p>
+        </div>
+
+        {!loading && (
+          <div
+            className="inline-flex w-fit items-center rounded-full border px-3 py-1 text-xs text-[var(--text-secondary)]"
+            style={{
+              borderColor: 'rgba(255,255,255,0.08)',
+              background: 'rgba(255,255,255,0.04)',
+            }}
+          >
+            Page {page} of {totalPages}
+          </div>
+        )}
       </div>
 
-      {loading && (
-        <div className="text-center text-xs text-[var(--text-secondary)] py-4">
-          Loading repositories&hellip;
-        </div>
-      )}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {loading
+          ? Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+              <div
+                key={index}
+                className="h-[250px] animate-pulse rounded-3xl border p-5"
+                style={{
+                  borderColor: 'rgba(255,255,255,0.08)',
+                  background: 'rgba(255,255,255,0.025)',
+                }}
+              >
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div className="h-4 w-2/3 rounded-full bg-white/5" />
+                  <div className="h-10 w-10 rounded-full bg-white/5" />
+                </div>
+                <div className="mb-3 h-3 w-full rounded-full bg-white/5" />
+                <div className="mb-4 h-3 w-11/12 rounded-full bg-white/5" />
+                <div className="mb-4 h-3 w-4/5 rounded-full bg-white/5" />
+                <div className="flex flex-wrap gap-2">
+                  <div className="h-6 w-16 rounded-full bg-white/5" />
+                  <div className="h-6 w-14 rounded-full bg-white/5" />
+                  <div className="h-6 w-12 rounded-full bg-white/5" />
+                </div>
+              </div>
+            ))
+          : paginatedProjects.map((project, index) => (
+              <ProjectCard
+                key={`${project.name}-${project.github ?? project.link ?? index}`}
+                project={project}
+                index={index}
+              />
+            ))}
+      </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-2">
-          {/* Previous */}
+      {totalPages > 1 && !loading && (
+        <div className="mt-6 flex items-center justify-center gap-2">
           <button
             onClick={() => goToPage(page - 1)}
             disabled={page === 1}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-sm transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Previous page"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-30"
             style={{
-              color: page === 1 ? 'var(--text-secondary)' : 'var(--text-primary)',
-              background: 'var(--social-bg-mix)',
-              border: '1px solid var(--card-border)',
+              color: 'var(--text-primary)',
+              background: 'rgba(255,255,255,0.04)',
+              borderColor: 'rgba(255,255,255,0.08)',
             }}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
 
-          {/* Page numbers */}
-          {getPageNumbers().map((p, i) =>
-            p === 'dots' ? (
-              <span key={`dots-${i}`} className="px-1 text-sm text-[var(--text-secondary)]">
-                &hellip;
-              </span>
-            ) : (
-              <button
-                key={p}
-                onClick={() => goToPage(p)}
-                className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200"
-                style={
-                  p === page
-                    ? { background: 'var(--accent)', color: '#fff' }
-                    : {
-                        color: 'var(--text-secondary)',
-                        background: 'var(--social-bg-mix)',
-                        border: '1px solid var(--card-border)',
-                      }
-                }
-              >
-                {p}
-              </button>
-            )
-          )}
+          <div className="flex items-center gap-2">
+            {getPageNumbers().map((p, i) =>
+              p === 'dots' ? (
+                <span key={`dots-${i}`} className="px-1 text-sm text-[var(--text-secondary)]">
+                  …
+                </span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => goToPage(p)}
+                  className="inline-flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm font-medium transition-all duration-200"
+                  style={
+                    p === page
+                      ? {
+                          background: 'rgba(255,255,255,0.12)',
+                          color: '#fff',
+                          border: '1px solid rgba(255,255,255,0.14)',
+                        }
+                      : {
+                          color: 'var(--text-secondary)',
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                        }
+                  }
+                >
+                  {p}
+                </button>
+              )
+            )}
+          </div>
 
-          {/* Next */}
           <button
             onClick={() => goToPage(page + 1)}
             disabled={page === totalPages}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-sm transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Next page"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-30"
             style={{
-              color: page === totalPages ? 'var(--text-secondary)' : 'var(--text-primary)',
-              background: 'var(--social-bg-mix)',
-              border: '1px solid var(--card-border)',
+              color: 'var(--text-primary)',
+              background: 'rgba(255,255,255,0.04)',
+              borderColor: 'rgba(255,255,255,0.08)',
             }}
           >
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 
