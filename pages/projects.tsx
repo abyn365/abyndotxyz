@@ -10,14 +10,6 @@ export default function ProjectsPage() {
         <Squares speed={0.15} squareSize={42} direction="diagonal" />
       </div>
 
-      <div
-        className="pointer-events-none fixed inset-0 z-[1]"
-        style={{
-          background:
-            'radial-gradient(circle at top, var(--accent-glow), transparent 35%)',
-        }}
-      />
-
       <NextSeo
         title="projects | abyn"
         description="Projects built by abyn."
