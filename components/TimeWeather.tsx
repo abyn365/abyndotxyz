@@ -48,7 +48,7 @@ const getWeatherIcon = (code: number, isNight: boolean): LucideIcon => {
 const getIconStyle = (code: number, isNight: boolean) => {
   if (code === 0) {
     return {
-      className: isNight ? "text-indigo-300" : "text-amber-400",
+      className: isNight ? "text-zinc-500" : "text-zinc-400",
       animate: { rotate: [0, 4, 0, -4, 0] },
       transition: { duration: 4, repeat: Infinity, ease: "easeInOut" },
     };
@@ -56,7 +56,7 @@ const getIconStyle = (code: number, isNight: boolean) => {
 
   if (code >= 51 && code <= 67) {
     return {
-      className: "text-sky-400",
+      className: "text-zinc-400",
       animate: { y: [0, -1.5, 0, 1.5, 0] },
       transition: { duration: 2.2, repeat: Infinity, ease: "easeInOut" },
     };
@@ -64,7 +64,7 @@ const getIconStyle = (code: number, isNight: boolean) => {
 
   if (code >= 80 && code <= 82) {
     return {
-      className: "text-sky-400",
+      className: "text-zinc-400",
       animate: { y: [0, -2, 0, 2, 0] },
       transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
     };
@@ -72,7 +72,7 @@ const getIconStyle = (code: number, isNight: boolean) => {
 
   if (code >= 71 && code <= 77) {
     return {
-      className: "text-slate-300",
+      className: "text-zinc-500",
       animate: { y: [0, -1, 0, 1, 0] },
       transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
     };
@@ -80,7 +80,7 @@ const getIconStyle = (code: number, isNight: boolean) => {
 
   if (code >= 95 && code <= 99) {
     return {
-      className: "text-violet-400",
+      className: "text-zinc-400",
       animate: { x: [0, -1, 1, -1, 1, 0], rotate: [0, -2, 2, -2, 2, 0] },
       transition: { duration: 0.9, repeat: Infinity, ease: "easeInOut" },
     };
@@ -88,14 +88,14 @@ const getIconStyle = (code: number, isNight: boolean) => {
 
   if (code >= 45 && code <= 48) {
     return {
-      className: "text-slate-300",
+      className: "text-zinc-500",
       animate: { y: [0, -1, 0, 1, 0] },
       transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
     };
   }
 
   return {
-    className: isNight ? "text-indigo-300" : "text-amber-400",
+    className: isNight ? "text-zinc-500" : "text-zinc-400",
     animate: { y: [0, -1, 0, 1, 0] },
     transition: { duration: 2.8, repeat: Infinity, ease: "easeInOut" },
   };

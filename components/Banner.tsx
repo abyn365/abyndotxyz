@@ -18,22 +18,22 @@ function Banners() {
       <Banner
         icon="🎮"
         label="Gamer"
-        color="#818cf8"
+        color="#e4e4e7"
       />
       <Banner
         icon="🎵"
         label="Music Enjoyer"
-        color="#34d399"
+        color="#a1a1aa"
       />
       <Banner
         icon="🏍"
         label="Vroom Vroom"
-        color="#fb923c"
+        color="#71717a"
       />
       <Banner
         icon="🏋"
         label="Gym Rat"
-        color="#f43f5e"
+        color="#52525b"
       />
     </div>
   );

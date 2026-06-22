@@ -33,10 +33,10 @@ describe('TimeWeather', () => {
     const timeIcon = screen.getByTestId('time-icon');
     const weatherIcon = screen.getByTestId('weather-icon');
 
-    // when night, TimeIcon uses 'text-indigo-300' class
-    expect(timeIcon).toHaveClass('text-indigo-300');
+    // when night, TimeIcon uses 'text-zinc-500' class
+    expect(timeIcon).toHaveClass('text-zinc-500');
 
-    // WeatherIcon should be Moon when code 800 and isDay false -> we expect no 'text-amber-400'
-    expect(weatherIcon).not.toHaveClass('text-amber-400');
+    // WeatherIcon should be Moon when code 800 and isDay false -> we expect no 'text-zinc-400'
+    expect(weatherIcon).not.toHaveClass('text-zinc-400');
   });
 });

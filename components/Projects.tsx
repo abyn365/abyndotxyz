@@ -173,7 +173,7 @@ const Projects = () => {
                     p === page
                       ? {
                           background: 'var(--accent)',
-                          color: '#fff',
+                          color: 'var(--accent-text)',
                           border: '1px solid var(--accent)',
                         }
                       : {

@@ -216,7 +216,7 @@ const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
         <motion.span
           key={index}
           className={`w-[2px] rounded-full ${
-            isPlaying ? "bg-emerald-400" : "bg-[var(--card-border)]"
+            isPlaying ? "bg-[var(--accent)]" : "bg-[var(--card-border)]"
           }`}
           animate={{ height: `${height}%` }}
           transition={{ duration: 0.15, ease: "easeOut" }}
@@ -229,25 +229,18 @@ const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
 const ProgressBar = ({
   current,
   total,
-  color = "emerald",
 }: {
   current: number;
   total: number;
-  color?: "emerald" | "indigo" | "violet";
+  color?: string;
 }) => {
   const safeTotal = Math.max(total, 1);
   const percent = Math.min(Math.max((current / safeTotal) * 100, 0), 100);
-  const gradientClass =
-    color === "indigo"
-      ? "from-indigo-400 to-indigo-500"
-      : color === "violet"
-      ? "from-violet-400 to-violet-500"
-      : "from-emerald-400 to-emerald-500";
 
   return (
     <div className="h-1 w-full overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
       <div
-        className={`h-full rounded-full bg-gradient-to-r ${gradientClass} transition-all duration-300`}
+        className="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
         style={{ width: `${percent}%` }}
       />
     </div>
@@ -394,8 +387,8 @@ const ActivityPanel = ({
 
   const overlayClass =
     theme === "dark"
-      ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.06),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.03),transparent_32%)]"
-      : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.12),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.06),transparent_32%)]";
+      ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.015),transparent_40%)]"
+      : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.015),transparent_40%)]";
 
   return (
     <div
@@ -436,14 +429,14 @@ const ActivityPanel = ({
             </div>
           ) : (
             <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[var(--card-border)] bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] shadow-md sm:h-16 sm:w-16">
-              <Disc3 className="h-6 w-6 text-indigo-400" />
+              <Disc3 className="h-6 w-6 text-[var(--text-secondary)]" />
             </div>
           )}
         </div>
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <ActionChip icon={<Activity className="h-3 w-3 text-indigo-400" />}>
+            <ActionChip icon={<Activity className="h-3 w-3 text-[var(--text-secondary)]" />}>
               Discord activity
             </ActionChip>
             {activeDevice ? (
@@ -473,7 +466,6 @@ const ActivityPanel = ({
                 <ProgressBar
                   current={Math.max(elapsedTime * 1000, 0)}
                   total={Math.max(activityDuration, 1)}
-                  color="indigo"
                 />
                 <div className="flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)]">
                   <span className="shrink-0 tabular-nums">
@@ -514,8 +506,8 @@ const SpotifyPanel = ({
   }, [songProgress, spotify.timestamps]);
   const overlayClass =
     theme === "dark"
-      ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.08),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.04),transparent_34%)]"
-      : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.08),transparent_34%)]";
+      ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.015),transparent_40%)]"
+      : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,0,0,0.015),transparent_40%)]";
 
   return (
     <div
@@ -541,7 +533,7 @@ const SpotifyPanel = ({
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]">
-                <Music className="h-6 w-6 text-emerald-400" />
+                <Music className="h-6 w-6 text-[var(--text-secondary)]" />
               </div>
             )}
           </div>
@@ -549,7 +541,7 @@ const SpotifyPanel = ({
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <ActionChip icon={<Music className="h-3 w-3 text-emerald-400" />}>
+            <ActionChip icon={<Music className="h-3 w-3 text-[var(--text-secondary)]" />}>
               Spotify
             </ActionChip>
             {spotifyUrl ? (
@@ -733,7 +725,7 @@ const DiscordStatus: NextComponentType = () => {
             }}
           >
             <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-              <Activity className="h-4 w-4 text-indigo-400" />
+              <Activity className="h-4 w-4 text-[var(--text-secondary)]" />
               <span className="text-sm font-medium">Discord activity</span>
             </div>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
