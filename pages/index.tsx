@@ -118,11 +118,11 @@ export default function Home() {
 
   const socialLinks = [
     { icon: FiGithub, href: '/github', label: 'GitHub', color: 'text-[var(--text-primary)]' },
-    { icon: FiMail, href: 'mailto:abyn@abyn.xyz', label: 'Email', color: 'text-amber-400' },
-    { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-indigo-400' },
-    { icon: FiInstagram, href: '/instagram', label: 'Instagram', color: 'text-pink-400' },
+    { icon: FiMail, href: 'mailto:abyn@abyn.xyz', label: 'Email', color: 'text-[var(--text-primary)]' },
+    { icon: SiDiscord, href: '/discord', label: 'Discord', color: 'text-[var(--text-primary)]' },
+    { icon: FiInstagram, href: '/instagram', label: 'Instagram', color: 'text-[var(--text-primary)]' },
     { icon: SiTiktok, href: '/tiktok', label: 'TikTok', color: 'text-[var(--text-primary)]' },
-    { icon: SiSpotify, href: '/spotify', label: 'Spotify', color: 'text-emerald-400' },
+    { icon: SiSpotify, href: '/spotify', label: 'Spotify', color: 'text-[var(--text-primary)]' },
   ];
 
   return (

@@ -3,33 +3,36 @@
 @tailwind utilities;
 
 :root {
-  --click-spark-color: #ff6347;
+  --click-spark-color: #18181b;
   --bg-primary: #fafafa;
   --bg-secondary: #f4f4f5;
   --text-primary: #09090b;
   --text-secondary: #52525b;
   --border-color: #e4e4e7;
   --card-bg: #ffffff;
-  --card-border: rgba(24, 24, 27, 0.18);
+  --card-border: rgba(24, 24, 27, 0.08);
   --card-bg-mix: var(--card-bg);
   --social-bg-mix: var(--card-bg);
-  --accent: #ff6347;
-  --accent-glow: rgba(255, 99, 71, 0.12);
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --accent: #18181b;
+  --accent-text: #ffffff;
+  --accent-glow: rgba(24, 24, 27, 0.04);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 4px rgba(0, 0, 0, 0.02);
 }
 
 .dark {
+  --click-spark-color: #ffffff;
   --bg-primary: #09090b;
   --bg-secondary: #111113;
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --border-color: #27272a;
   --card-bg: rgba(24, 24, 27, 0.5);
-  --card-border: rgba(39, 39, 42, 0.6);
+  --card-border: rgba(39, 39, 42, 0.4);
   --card-bg-mix: color-mix(in srgb, var(--text-primary) 3%, transparent);
   --social-bg-mix: color-mix(in srgb, var(--text-primary) 5%, transparent);
-  --accent: #ff6347;
-  --accent-glow: rgba(255, 99, 71, 0.15);
+  --accent: #ffffff;
+  --accent-text: #09090b;
+  --accent-glow: rgba(255, 255, 255, 0.06);
   --card-shadow: none;
 }
 

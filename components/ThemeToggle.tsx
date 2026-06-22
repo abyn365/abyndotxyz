@@ -14,9 +14,9 @@ const ThemeToggle = () => {
       type="button"
     >
       {theme === 'dark' ? (
-        <Sun className="h-5 w-5 text-amber-400" />
+        <Sun className="h-5 w-5 text-zinc-400" />
       ) : (
-        <Moon className="h-5 w-5 text-indigo-400" />
+        <Moon className="h-5 w-5 text-zinc-500" />
       )}
     </button>
   );
