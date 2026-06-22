@@ -5,8 +5,8 @@ import Projects from '../components/Projects';
 
 export default function ProjectsPage() {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-black">
-      <div className="fixed inset-0 z-0 opacity-35">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[var(--bg-primary)]">
+      <div className="fixed inset-0 z-0">
         <Squares speed={0.15} squareSize={42} direction="diagonal" />
       </div>
 
@@ -14,7 +14,7 @@ export default function ProjectsPage() {
         className="pointer-events-none fixed inset-0 z-[1]"
         style={{
           background:
-            'radial-gradient(circle at top, rgba(255,255,255,0.05), transparent 35%), linear-gradient(to bottom, transparent, rgba(0,0,0,0.42))',
+            'radial-gradient(circle at top, var(--accent-glow), transparent 35%)',
         }}
       />
 
@@ -49,9 +49,9 @@ export default function ProjectsPage() {
             transition={{ duration: 0.45, ease: 'easeOut' }}
             className="mb-8 rounded-[2rem] border p-6 sm:p-8 backdrop-blur-xl"
             style={{
-              borderColor: 'rgba(255,255,255,0.08)',
-              background: 'rgba(255,255,255,0.03)',
-              boxShadow: '0 18px 50px rgba(0,0,0,0.18)',
+              borderColor: 'var(--card-border)',
+              background: 'var(--card-bg)',
+              boxShadow: 'var(--card-shadow)',
             }}
           >
             <div className="max-w-2xl">
@@ -79,7 +79,7 @@ export default function ProjectsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.25 }}
-            className="mt-10 border-t border-[rgba(255,255,255,0.08)] pt-8 text-center text-sm text-[var(--text-secondary)]"
+            className="mt-10 border-t border-[var(--card-border)] pt-8 text-center text-sm text-[var(--text-secondary)]"
           >
             <a
               href="https://github.com/abyn365"
