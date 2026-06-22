@@ -15,7 +15,7 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
 
   return (
     <motion.article
-      initial={{ y: 16, opacity: 0 }}
+      initial={{ y: 14, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: index * 0.04, duration: 0.35, ease: 'easeOut' }}
       whileHover={{ y: -4 }}
@@ -27,17 +27,17 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
         rel="noopener noreferrer"
         className="relative flex h-full min-h-[250px] flex-col overflow-hidden rounded-3xl border p-5 transition-all duration-300"
         style={{
-          borderColor: 'color-mix(in srgb, var(--card-border) 80%, var(--accent) 20%)',
+          borderColor: 'rgba(255,255,255,0.08)',
           background:
-            'linear-gradient(180deg, color-mix(in srgb, var(--card-bg-mix) 96%, transparent), color-mix(in srgb, var(--card-bg-mix) 100%, transparent))',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+            'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))',
+          boxShadow: '0 16px 40px rgba(0,0,0,0.16)',
         }}
       >
         <div
           className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           style={{
             background:
-              'radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 14%, transparent), transparent 58%)',
+              'radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 55%)',
           }}
         />
 
@@ -45,7 +45,7 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
           <div className="mb-4 flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <h3 className="truncate text-[15px] font-semibold tracking-tight text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
+                <h3 className="truncate text-[15px] font-semibold tracking-tight text-[var(--text-primary)] transition-colors group-hover:text-white">
                   {project.name}
                 </h3>
 
@@ -53,9 +53,9 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
                   <span
                     className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em]"
                     style={{
-                      color: 'var(--accent)',
-                      borderColor: 'color-mix(in srgb, var(--accent) 22%, transparent)',
-                      background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
+                      color: 'var(--text-secondary)',
+                      borderColor: 'rgba(255,255,255,0.12)',
+                      background: 'rgba(255,255,255,0.04)',
                     }}
                   >
                     Featured
@@ -73,11 +73,11 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
             <div
               className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border transition-all duration-300 group-hover:scale-105"
               style={{
-                borderColor: 'color-mix(in srgb, var(--card-border) 70%, var(--accent) 30%)',
-                background: 'color-mix(in srgb, var(--social-bg-mix) 88%, transparent)',
+                borderColor: 'rgba(255,255,255,0.10)',
+                background: 'rgba(255,255,255,0.04)',
               }}
             >
-              <ExternalLink className="h-4 w-4 text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent)]" />
+              <ExternalLink className="h-4 w-4 text-[var(--text-secondary)] transition-colors group-hover:text-white" />
             </div>
           </div>
 
@@ -93,7 +93,7 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">
                   Homepage
                 </p>
-                <p className="truncate text-sm text-[var(--accent)] transition-colors group-hover:underline">
+                <p className="truncate text-sm text-[var(--text-primary)]/90 transition-colors group-hover:text-white group-hover:underline">
                   {project.homepage}
                 </p>
               </div>
@@ -110,8 +110,8 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
                       key={lang.name}
                       className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs"
                       style={{
-                        borderColor: 'color-mix(in srgb, var(--card-border) 76%, var(--accent) 24%)',
-                        background: 'color-mix(in srgb, var(--social-bg-mix) 92%, transparent)',
+                        borderColor: 'rgba(255,255,255,0.10)',
+                        background: 'rgba(255,255,255,0.035)',
                       }}
                     >
                       <span className="font-medium text-[var(--text-primary)]">{lang.name}</span>
@@ -128,11 +128,11 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
               {project.tech.slice(0, 3).map((tech) => (
                 <span
                   key={tech}
-                  className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium"
+                  className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium transition-colors"
                   style={{
-                    background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
-                    color: 'var(--accent)',
-                    borderColor: 'color-mix(in srgb, var(--accent) 18%, transparent)',
+                    background: 'rgba(255,255,255,0.04)',
+                    color: 'var(--text-primary)',
+                    borderColor: 'rgba(255,255,255,0.10)',
                   }}
                 >
                   {tech}
@@ -142,11 +142,11 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
 
             {hasSource && (
               <span
-                className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px]"
+                className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium"
                 style={{
                   color: 'var(--text-secondary)',
-                  borderColor: 'var(--card-border)',
-                  background: 'var(--social-bg-mix)',
+                  borderColor: 'rgba(255,255,255,0.10)',
+                  background: 'rgba(255,255,255,0.04)',
                 }}
               >
                 <FaGithub className="h-3.5 w-3.5" />
