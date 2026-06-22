@@ -46,15 +46,15 @@ export default function ProjectsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="mb-10 overflow-hidden rounded-[2rem] border border-[var(--card-border)] bg-[var(--card-bg-mix)] p-6 shadow-[var(--card-shadow)] backdrop-blur sm:p-8">
-              <div className="mb-4 inline-flex items-center rounded-full border border-[color-mix(in_srgb,var(--accent)_24%,var(--card-border))] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] px-3 py-1 text-xs font-medium text-[var(--accent)]">
+            <div className="mb-10 border-b border-[var(--card-border)] pb-8">
+              <div className="mb-3 text-xs font-medium uppercase tracking-[0.22em] text-[var(--accent)]">
                 Selected work
               </div>
-              <h1 className="text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
+              <h1 className="text-4xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-5xl">
                 Projects
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--text-secondary)] sm:text-lg">
-                Open-source projects, tools, and experiments with cleaner cards, quick stats, and direct links to explore the work.
+                Open-source projects, tools, and experiments presented with a clean portfolio-style layout.
               </p>
             </div>
 
