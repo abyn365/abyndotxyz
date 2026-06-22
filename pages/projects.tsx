@@ -40,18 +40,23 @@ export default function ProjectsPage() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col">
-        <div className="mx-auto w-full max-w-3xl px-4 pt-12 pb-8 sm:px-6 lg:px-8 lg:pb-16">
+        <div className="mx-auto w-full max-w-6xl px-4 pt-12 pb-8 sm:px-6 lg:px-8 lg:pb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-2">
-              Projects
-            </h1>
-            <p className="text-[var(--text-secondary)] mb-10 max-w-xl">
-              Open-source projects, tools, and things I&apos;ve built.
-            </p>
+            <div className="mb-10 overflow-hidden rounded-[2rem] border border-[var(--card-border)] bg-[var(--card-bg-mix)] p-6 shadow-[var(--card-shadow)] backdrop-blur sm:p-8">
+              <div className="mb-4 inline-flex items-center rounded-full border border-[color-mix(in_srgb,var(--accent)_24%,var(--card-border))] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] px-3 py-1 text-xs font-medium text-[var(--accent)]">
+                Selected work
+              </div>
+              <h1 className="text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
+                Projects
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--text-secondary)] sm:text-lg">
+                Open-source projects, tools, and experiments with cleaner cards, quick stats, and direct links to explore the work.
+              </p>
+            </div>
 
             <Projects />
           </motion.div>

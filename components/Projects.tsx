@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { projects, type Project } from '../data/projects';
 import ProjectCard from './ProjectCard';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 6;
 
 const Projects = () => {
   const [githubProjects, setGithubProjects] = useState<Project[]>([]);
@@ -78,8 +78,8 @@ const Projects = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 h-full">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="flex h-full flex-col gap-8">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {paginatedProjects.map((project, index) => (
           <ProjectCard
             key={`${project.name}-${project.github ?? project.link ?? index}`}
@@ -96,7 +96,7 @@ const Projects = () => {
       )}
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           {/* Previous */}
           <button
             onClick={() => goToPage(page - 1)}
