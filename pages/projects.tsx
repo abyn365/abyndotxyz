@@ -6,9 +6,17 @@ import Projects from '../components/Projects';
 export default function ProjectsPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      <div className="fixed inset-0 z-0">
-        <Squares speed={0.15} squareSize={40} direction="diagonal" />
+      <div className="fixed inset-0 z-0 opacity-60">
+        <Squares speed={0.15} squareSize={42} direction="diagonal" />
       </div>
+
+      <div
+        className="pointer-events-none fixed inset-0 z-[1]"
+        style={{
+          background:
+            'radial-gradient(circle at top, rgba(255,255,255,0.03), transparent 38%), linear-gradient(to bottom, transparent, rgba(0,0,0,0.32))',
+        }}
+      />
 
       <NextSeo
         title="projects | abyn"
@@ -34,27 +42,27 @@ export default function ProjectsPage() {
       />
 
       <div className="relative z-10">
-        <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+        <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="mb-8 rounded-3xl border p-6 sm:p-8"
+            className="mb-8 rounded-[2rem] border p-6 sm:p-8"
             style={{
               borderColor: 'var(--card-border)',
               background:
                 'linear-gradient(180deg, color-mix(in srgb, var(--card-bg-mix) 94%, transparent), color-mix(in srgb, var(--card-bg-mix) 100%, transparent))',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
             }}
           >
             <div className="max-w-2xl">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
                 Selected work
               </p>
-              <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
+              <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
                 Projects
               </h1>
-              <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)] sm:text-base">
+              <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--text-secondary)] sm:text-base">
                 Open-source projects, tools, and experiments I&apos;ve built.
               </p>
             </div>
