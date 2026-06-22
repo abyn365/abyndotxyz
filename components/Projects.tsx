@@ -44,7 +44,10 @@ const Projects = () => {
     setPage(1);
   }, [orderedProjects.length]);
 
-  const paginatedProjects = orderedProjects.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedProjects = orderedProjects.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
 
   const goToPage = (nextPage: number) => {
     if (nextPage >= 1 && nextPage <= totalPages) setPage(nextPage);
@@ -75,14 +78,15 @@ const Projects = () => {
 
   return (
     <section
-      className="rounded-3xl border p-4 sm:p-6"
+      className="rounded-[2rem] border p-4 sm:p-6"
       style={{
-        borderColor: 'var(--card-border)',
-        background: 'color-mix(in srgb, var(--card-bg-mix) 88%, transparent)',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
+        borderColor: 'color-mix(in srgb, var(--card-border) 85%, var(--accent) 15%)',
+        background:
+          'linear-gradient(180deg, color-mix(in srgb, var(--card-bg-mix) 92%, transparent), color-mix(in srgb, var(--card-bg-mix) 100%, transparent))',
+        boxShadow: '0 12px 42px rgba(0,0,0,0.12)',
       }}
     >
-      <div className="mb-5 flex items-center justify-between gap-3">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold tracking-wide text-[var(--text-primary)]">
             Projects
@@ -94,33 +98,36 @@ const Projects = () => {
 
         {!loading && (
           <div
-            className="rounded-full border px-3 py-1 text-xs text-[var(--text-secondary)]"
-            style={{ borderColor: 'var(--card-border)', background: 'var(--social-bg-mix)' }}
+            className="inline-flex w-fit items-center rounded-full border px-3 py-1 text-xs text-[var(--text-secondary)]"
+            style={{
+              borderColor: 'var(--card-border)',
+              background: 'var(--social-bg-mix)',
+            }}
           >
             Page {page} of {totalPages}
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {loading
           ? Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
               <div
                 key={index}
-                className="h-[220px] animate-pulse rounded-2xl border p-5"
+                className="h-[250px] animate-pulse rounded-3xl border p-5"
                 style={{
                   borderColor: 'var(--card-border)',
-                  background: 'color-mix(in srgb, var(--card-bg-mix) 82%, transparent)',
+                  background: 'color-mix(in srgb, var(--card-bg-mix) 85%, transparent)',
                 }}
               >
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div className="h-4 w-2/3 rounded-full bg-[var(--social-bg-mix)]" />
-                  <div className="h-9 w-9 rounded-full bg-[var(--social-bg-mix)]" />
+                  <div className="h-10 w-10 rounded-full bg-[var(--social-bg-mix)]" />
                 </div>
                 <div className="mb-3 h-3 w-full rounded-full bg-[var(--social-bg-mix)]" />
-                <div className="mb-2 h-3 w-11/12 rounded-full bg-[var(--social-bg-mix)]" />
-                <div className="mb-5 h-3 w-4/5 rounded-full bg-[var(--social-bg-mix)]" />
-                <div className="flex gap-2">
+                <div className="mb-4 h-3 w-11/12 rounded-full bg-[var(--social-bg-mix)]" />
+                <div className="mb-4 h-3 w-4/5 rounded-full bg-[var(--social-bg-mix)]" />
+                <div className="flex flex-wrap gap-2">
                   <div className="h-6 w-16 rounded-full bg-[var(--social-bg-mix)]" />
                   <div className="h-6 w-14 rounded-full bg-[var(--social-bg-mix)]" />
                   <div className="h-6 w-12 rounded-full bg-[var(--social-bg-mix)]" />
@@ -168,7 +175,7 @@ const Projects = () => {
                       ? {
                           background: 'var(--accent)',
                           color: '#fff',
-                          boxShadow: '0 8px 22px color-mix(in srgb, var(--accent) 35%, transparent)',
+                          boxShadow: '0 10px 24px color-mix(in srgb, var(--accent) 32%, transparent)',
                         }
                       : {
                           color: 'var(--text-secondary)',
