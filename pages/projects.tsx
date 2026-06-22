@@ -5,8 +5,8 @@ import Projects from '../components/Projects';
 
 export default function ProjectsPage() {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
-      <div className="fixed inset-0 z-0 opacity-60">
+    <div className="relative min-h-screen w-full overflow-hidden bg-black">
+      <div className="fixed inset-0 z-0 opacity-35">
         <Squares speed={0.15} squareSize={42} direction="diagonal" />
       </div>
 
@@ -14,7 +14,7 @@ export default function ProjectsPage() {
         className="pointer-events-none fixed inset-0 z-[1]"
         style={{
           background:
-            'radial-gradient(circle at top, rgba(255,255,255,0.03), transparent 38%), linear-gradient(to bottom, transparent, rgba(0,0,0,0.32))',
+            'radial-gradient(circle at top, rgba(255,255,255,0.05), transparent 35%), linear-gradient(to bottom, transparent, rgba(0,0,0,0.42))',
         }}
       />
 
@@ -42,21 +42,20 @@ export default function ProjectsPage() {
       />
 
       <div className="relative z-10">
-        <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+        <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="mb-8 rounded-[2rem] border p-6 sm:p-8"
+            className="mb-8 rounded-[2rem] border p-6 sm:p-8 backdrop-blur-xl"
             style={{
-              borderColor: 'var(--card-border)',
-              background:
-                'linear-gradient(180deg, color-mix(in srgb, var(--card-bg-mix) 94%, transparent), color-mix(in srgb, var(--card-bg-mix) 100%, transparent))',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+              borderColor: 'rgba(255,255,255,0.08)',
+              background: 'rgba(255,255,255,0.03)',
+              boxShadow: '0 18px 50px rgba(0,0,0,0.18)',
             }}
           >
             <div className="max-w-2xl">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">
                 Selected work
               </p>
               <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
@@ -80,13 +79,13 @@ export default function ProjectsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.25 }}
-            className="mt-10 border-t border-[var(--card-border)] pt-8 text-center text-sm text-[var(--text-secondary)]"
+            className="mt-10 border-t border-[rgba(255,255,255,0.08)] pt-8 text-center text-sm text-[var(--text-secondary)]"
           >
             <a
               href="https://github.com/abyn365"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition-colors hover:text-[var(--accent)]"
+              className="transition-colors hover:text-[var(--text-primary)]"
             >
               abyn
             </a>
