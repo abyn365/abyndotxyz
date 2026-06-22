@@ -6,13 +6,8 @@ import Projects from '../components/Projects';
 export default function ProjectsPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Background effect */}
       <div className="fixed inset-0 z-0">
-        <Squares
-          speed={0.15}
-          squareSize={40}
-          direction="diagonal"
-        />
+        <Squares speed={0.15} squareSize={40} direction="diagonal" />
       </div>
 
       <NextSeo
@@ -38,42 +33,55 @@ export default function ProjectsPage() {
         }}
       />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col">
-        <div className="mx-auto w-full max-w-3xl px-4 pt-12 pb-8 sm:px-6 lg:px-8 lg:pb-16">
+      <div className="relative z-10">
+        <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+            className="mb-8 rounded-3xl border p-6 sm:p-8"
+            style={{
+              borderColor: 'var(--card-border)',
+              background:
+                'linear-gradient(180deg, color-mix(in srgb, var(--card-bg-mix) 94%, transparent), color-mix(in srgb, var(--card-bg-mix) 100%, transparent))',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
+            }}
           >
-            <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-2">
-              Projects
-            </h1>
-            <p className="text-[var(--text-secondary)] mb-10 max-w-xl">
-              Open-source projects, tools, and things I&apos;ve built.
-            </p>
+            <div className="max-w-2xl">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
+                Selected work
+              </p>
+              <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
+                Projects
+              </h1>
+              <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)] sm:text-base">
+                Open-source projects, tools, and experiments I&apos;ve built.
+              </p>
+            </div>
+          </motion.div>
 
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.08 }}
+          >
             <Projects />
           </motion.div>
 
-          {/* Footer */}
           <motion.footer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="pt-10 mt-10 border-t border-[var(--card-border)] text-center text-sm text-[var(--text-secondary)]"
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="mt-10 border-t border-[var(--card-border)] pt-8 text-center text-sm text-[var(--text-secondary)]"
           >
-            <p>
-              <a
-                href="https://github.com/abyn365"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors hover:text-[var(--accent)]"
-                style={{ color: 'var(--accent)' }}
-              >
-                abyn
-              </a>
-            </p>
+            <a
+              href="https://github.com/abyn365"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-[var(--accent)]"
+            >
+              abyn
+            </a>
           </motion.footer>
         </div>
       </div>
