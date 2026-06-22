@@ -80,9 +80,9 @@ const Projects = () => {
     <section
       className="rounded-[2rem] border p-4 sm:p-6 backdrop-blur-xl"
       style={{
-        borderColor: 'rgba(255,255,255,0.08)',
-        background: 'rgba(255,255,255,0.03)',
-        boxShadow: '0 18px 50px rgba(0,0,0,0.18)',
+        borderColor: 'var(--card-border)',
+        background: 'var(--card-bg)',
+        boxShadow: 'var(--card-shadow)',
       }}
     >
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -99,8 +99,8 @@ const Projects = () => {
           <div
             className="inline-flex w-fit items-center rounded-full border px-3 py-1 text-xs text-[var(--text-secondary)]"
             style={{
-              borderColor: 'rgba(255,255,255,0.08)',
-              background: 'rgba(255,255,255,0.04)',
+              borderColor: 'var(--card-border)',
+              background: 'var(--card-bg-mix)',
             }}
           >
             Page {page} of {totalPages}
@@ -115,21 +115,21 @@ const Projects = () => {
                 key={index}
                 className="h-[250px] animate-pulse rounded-3xl border p-5"
                 style={{
-                  borderColor: 'rgba(255,255,255,0.08)',
-                  background: 'rgba(255,255,255,0.025)',
+                  borderColor: 'var(--card-border)',
+                  background: 'var(--card-bg-mix)',
                 }}
-              >
+                >
                 <div className="mb-4 flex items-start justify-between gap-3">
-                  <div className="h-4 w-2/3 rounded-full bg-white/5" />
-                  <div className="h-10 w-10 rounded-full bg-white/5" />
+                  <div className="h-4 w-2/3 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]" />
+                  <div className="h-10 w-10 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]" />
                 </div>
-                <div className="mb-3 h-3 w-full rounded-full bg-white/5" />
-                <div className="mb-4 h-3 w-11/12 rounded-full bg-white/5" />
-                <div className="mb-4 h-3 w-4/5 rounded-full bg-white/5" />
+                <div className="mb-3 h-3 w-full rounded-full bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]" />
+                <div className="mb-4 h-3 w-11/12 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]" />
+                <div className="mb-4 h-3 w-4/5 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]" />
                 <div className="flex flex-wrap gap-2">
-                  <div className="h-6 w-16 rounded-full bg-white/5" />
-                  <div className="h-6 w-14 rounded-full bg-white/5" />
-                  <div className="h-6 w-12 rounded-full bg-white/5" />
+                  <div className="h-6 w-16 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]" />
+                  <div className="h-6 w-14 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]" />
+                  <div className="h-6 w-12 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]" />
                 </div>
               </div>
             ))
@@ -151,14 +151,14 @@ const Projects = () => {
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-30"
             style={{
               color: 'var(--text-primary)',
-              background: 'rgba(255,255,255,0.04)',
-              borderColor: 'rgba(255,255,255,0.08)',
+              background: 'var(--card-bg-mix)',
+              borderColor: 'var(--card-border)',
             }}
-          >
+            >
             <ChevronLeft className="h-4 w-4" />
-          </button>
+            </button>
 
-          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
             {getPageNumbers().map((p, i) =>
               p === 'dots' ? (
                 <span key={`dots-${i}`} className="px-1 text-sm text-[var(--text-secondary)]">
@@ -172,14 +172,14 @@ const Projects = () => {
                   style={
                     p === page
                       ? {
-                          background: 'rgba(255,255,255,0.12)',
+                          background: 'var(--accent)',
                           color: '#fff',
-                          border: '1px solid rgba(255,255,255,0.14)',
+                          border: '1px solid var(--accent)',
                         }
                       : {
                           color: 'var(--text-secondary)',
-                          background: 'rgba(255,255,255,0.04)',
-                          border: '1px solid rgba(255,255,255,0.08)',
+                          background: 'var(--card-bg-mix)',
+                          border: '1px solid var(--card-border)',
                         }
                   }
                 >
@@ -187,19 +187,19 @@ const Projects = () => {
                 </button>
               )
             )}
-          </div>
+            </div>
 
-          <button
+            <button
             onClick={() => goToPage(page + 1)}
             disabled={page === totalPages}
             aria-label="Next page"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-30"
             style={{
               color: 'var(--text-primary)',
-              background: 'rgba(255,255,255,0.04)',
-              borderColor: 'rgba(255,255,255,0.08)',
+              background: 'var(--card-bg-mix)',
+              borderColor: 'var(--card-border)',
             }}
-          >
+            >
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
