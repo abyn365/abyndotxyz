@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { ExternalLink, GitHub } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
+import { FaGithub } from 'react-icons/fa';
 import type { Project } from '../data/projects';
 
 interface ProjectCardProps {
@@ -139,21 +140,19 @@ const ProjectCard = ({ project, index }: ProjectCardProps) => {
               ))}
             </div>
 
-            <div className="flex items-center gap-2">
-              {hasSource && (
-                <span
-                  className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px]"
-                  style={{
-                    color: 'var(--text-secondary)',
-                    borderColor: 'var(--card-border)',
-                    background: 'var(--social-bg-mix)',
-                  }}
-                >
-                  <GitHub className="h-3.5 w-3.5" />
-                  Source
-                </span>
-              )}
-            </div>
+            {hasSource && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px]"
+                style={{
+                  color: 'var(--text-secondary)',
+                  borderColor: 'var(--card-border)',
+                  background: 'var(--social-bg-mix)',
+                }}
+              >
+                <FaGithub className="h-3.5 w-3.5" />
+                Source
+              </span>
+            )}
           </div>
         </div>
       </a>
