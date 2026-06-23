@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { getNowPlaying, getAccessToken } from "../../lib/spotify";
+import { getNowPlaying, getAccessToken, SpotifyRefreshTokenExpiredError } from "../../lib/spotify";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -91,6 +91,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
+    if (error instanceof SpotifyRefreshTokenExpiredError) {
+      return res.status(401).json({ isPlaying: false, error: 'Spotify refresh token expired. Reauthenticate required.' });
+    }
+
     return res.status(500).json({ isPlaying: false, error: 'Failed to fetch now playing' });
   }
 }

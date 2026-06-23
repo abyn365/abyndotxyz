@@ -10,8 +10,24 @@ const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
 
 const REFRESH_TOKEN_KV_KEY = "spotify_refresh_token";
 const ACCESS_TOKEN_KV_KEY = "spotify_access_token";
+const INVALID_REFRESH_TOKEN_KV_KEY = "spotify_refresh_token_invalid";
+
+export class SpotifyRefreshTokenExpiredError extends Error {}
 
 export const getAccessToken = async (forceRefresh = false): Promise<{ access_token: string }> => {
+  // If we have previously detected an expired or invalid refresh token, stop retrying.
+  try {
+    const invalidTokenMarker = await kv.get<string>(INVALID_REFRESH_TOKEN_KV_KEY);
+    if (invalidTokenMarker) {
+      throw new SpotifyRefreshTokenExpiredError(
+        "Spotify refresh token has been marked invalid. Reauthenticate required."
+      );
+    }
+  } catch (err) {
+    if (err instanceof SpotifyRefreshTokenExpiredError) throw err;
+    console.error("Failed to read refresh token invalidation marker from KV:", err);
+  }
+
   if (!forceRefresh) {
     try {
       // 1. Try to fetch cached access token from Vercel KV
@@ -50,7 +66,6 @@ export const getAccessToken = async (forceRefresh = false): Promise<{ access_tok
   const params = new URLSearchParams({
     grant_type: "refresh_token",
     refresh_token: currentRefreshToken,
-    scope: "user-top-read user-read-private user-read-email user-read-currently-playing",
   });
 
   const response = await fetch(TOKEN_ENDPOINT, {
@@ -64,7 +79,28 @@ export const getAccessToken = async (forceRefresh = false): Promise<{ access_tok
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Spotify token refresh failed: ${response.status} - ${errorText}`);
+    let message = `Spotify token refresh failed: ${response.status} - ${errorText}`;
+
+    try {
+      const errorBody = JSON.parse(errorText);
+      if (errorBody?.error === "invalid_grant") {
+        console.warn("Spotify refresh token expired or invalid. Clearing stored refresh token from KV.");
+        try {
+          await Promise.all([
+            kv.del(REFRESH_TOKEN_KV_KEY),
+            kv.del(ACCESS_TOKEN_KV_KEY),
+            kv.set(INVALID_REFRESH_TOKEN_KV_KEY, "1", { ex: 60 * 60 * 24 * 7 }),
+          ]);
+        } catch (err) {
+          console.error("Failed to update KV after invalid refresh token:", err);
+        }
+        throw new SpotifyRefreshTokenExpiredError(message);
+      }
+    } catch (_err) {
+      // Ignore JSON parse errors and continue with the original message.
+    }
+
+    throw new Error(message);
   }
 
   const data = await response.json();

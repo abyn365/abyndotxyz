@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getAccessToken } from '../../lib/spotify';
+import { getAccessToken, SpotifyRefreshTokenExpiredError } from '../../lib/spotify';
 import { kv } from '@vercel/kv';
 
 interface SpotifyArtist {
@@ -241,6 +241,10 @@ export default async function handler(
     return res.status(200).json(responseData);
   } catch (err) {
     console.error('Spotify fetch failed:', err);
+
+    if (err instanceof SpotifyRefreshTokenExpiredError) {
+      return res.status(401).json({ error: 'Spotify refresh token expired. Reauthenticate required.' });
+    }
 
     // ---------- STALE FALLBACK ----------
     const cached = await kv.get(cacheKey);
