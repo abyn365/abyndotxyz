@@ -8,23 +8,22 @@ module.exports = {
     extend: {
       colors: {
         banner: "#c5a78b",
-        primary: "#121212",
+        primary: "#000000",
         surface: {
           light: '#ffffff',
-          dark: '#09090b',
+          dark: '#000000',
         },
         card: {
           light: '#f4f4f5',
-          dark: '#18181b',
+          dark: '#080808',
         },
         border: {
           light: '#e4e4e7',
-          dark: '#27272a',
+          dark: '#1a1a1a',
         }
       },
       fontFamily: {
-        jost: ["Jost", "sans-serif"],
-        sen: ["Sen", "sans-serif"],
+        sans: ["Geist", "Inter", "system-ui", "sans-serif"],
       },
       screens: {
         custom: "400px",
