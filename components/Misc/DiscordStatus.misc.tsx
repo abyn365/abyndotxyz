@@ -210,6 +210,41 @@ const ProgressBar = ({
   );
 };
 
+const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
+  const [barHeights, setBarHeights] = useState([38, 64, 48]);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (isPlaying) {
+      intervalRef.current = setInterval(() => {
+        setBarHeights([0, 0, 0].map(() => Math.random() * 68 + 24));
+      }, 160);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      setBarHeights([38, 64, 48]);
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPlaying]);
+
+  return (
+    <span className="flex h-3 items-end gap-[2px]" aria-hidden="true">
+      {barHeights.map((height, index) => (
+        <span
+          key={index}
+          className="w-[2px] rounded-full transition-all duration-150"
+          style={{
+            height: `${height}%`,
+            background: isPlaying ? 'var(--accent)' : 'var(--card-border)',
+          }}
+        />
+      ))}
+    </span>
+  );
+};
+
 const stringFromType = (type?: number) => {
   switch (type) {
     case 0:
@@ -524,11 +559,7 @@ const SpotifyPanel = ({
               }
             />
             <div className="flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)]">
-              <span className="flex h-3 items-end gap-[2px]" aria-hidden="true">
-                <span className="w-[2px] rounded-full bg-[var(--accent)] h-full" />
-                <span className="w-[2px] rounded-full bg-[var(--accent)] h-3/4" />
-                <span className="w-[2px] rounded-full bg-[var(--accent)] h-1/2" />
-              </span>
+              <Visualizer isPlaying={true} />
               <span className="shrink-0 tabular-nums">
                 {progressText || "Playing now"}
               </span>
