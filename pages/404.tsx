@@ -41,10 +41,10 @@ const ErrorPage: NextPage = () => {
           transition={{ delay: 0.2, duration: 0.5 }}
           className="mt-8 text-center"
         >
-          <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-2 font-jost">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-2">
             Whoops! Lost in Space?
           </h1>
-          <p className="text-base text-[var(--text-secondary)] font-sen mb-8">
+          <p className="text-base text-[var(--text-secondary)] font-inter mb-8">
             The page you&apos;re looking for isn&apos;t found :( <br />
             We suggest you go back to home
           </p>
