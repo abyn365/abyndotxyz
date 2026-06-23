@@ -138,31 +138,31 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col">
-        <div className="mx-auto w-full max-w-3xl px-4 pt-16 pb-8 sm:px-6 lg:px-8 lg:pt-24 lg:pb-16">
+        <div className="mx-auto w-full max-w-2xl px-6 pt-24 pb-12 sm:pt-32 sm:pb-20">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-12"
+            transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+            className="mb-16"
           >
             {/* Header */}
-            <div className="flex flex-col-reverse sm:flex-row items-start justify-between gap-6 sm:gap-10 mb-8">
-              <div className="flex-1 min-w-0 space-y-4">
-                <div className="pt-1">
-                  <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-2">
-                    {username || 'Loading...'}
+            <div className="flex flex-col-reverse sm:flex-row items-start justify-between gap-8 mb-12">
+              <div className="flex-1 min-w-0 space-y-6">
+                <div>
+                  <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[var(--text-primary)] mb-3">
+                    {username || 'Abyan'}
                   </h1>
-                  <p className="text-lg text-[var(--text-secondary)]">
+                  <p className="text-lg text-[var(--text-secondary)] font-normal">
                     Software developer & builder
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap items-center gap-6">
                   <VisitorStats />
                   {discordStatus && (
                     <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                       <div
-                        className="w-2 h-2 rounded-full"
+                        className="w-1.5 h-1.5 rounded-full"
                         style={{
                           backgroundColor:
                             discordStatus === 'online'
@@ -183,14 +183,14 @@ export default function Home() {
               </div>
 
               {avatarUrl && (
-                <div className="flex-shrink-0 self-center sm:self-start">
-                  <div className="relative h-28 w-28 sm:h-36 sm:w-36">
+                <div className="flex-shrink-0">
+                  <div className="relative h-24 w-24 sm:h-28 sm:w-28">
                     <Image
-                      className="rounded-[2rem] border border-[var(--card-border)] object-cover shadow-sm"
+                      className="rounded-full border border-[var(--card-border)] object-cover grayscale-[0.2]"
                       src={avatarUrl}
                       alt="profile"
                       fill
-                      sizes="(max-width: 640px) 112px, 144px"
+                      sizes="(max-width: 640px) 96px, 112px"
                       priority
                     />
                   </div>
@@ -199,45 +199,33 @@ export default function Home() {
             </div>
 
             {/* Bio */}
-            <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
-              Hello! I'm Abyan (/uh-bee-an/), a student with a passion for software development.
-              I'm{' '}
-              <span className="group relative font-mono font-medium text-[var(--text-primary)]">
-                <CurrentAge />
-                <span className="absolute bottom-full left-0 mb-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 pointer-events-none origin-bottom-left">
-                  <span
-                    className="whitespace-nowrap rounded-xl px-4 py-2.5 text-xs border shadow-lg backdrop-blur-xl"
-                    style={{
-                      background: 'var(--card-bg)',
-                      borderColor: 'var(--card-border)',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                    }}
-                  >
-                    <span className="font-medium text-[var(--text-primary)]">
-                      Born: April 8, 2009
+            <div className="space-y-6 text-[var(--text-secondary)] text-lg leading-relaxed max-w-2xl">
+              <p>
+                Hello! I'm Abyan (/uh-bee-an/), a student with a passion for software development.
+                I'm{' '}
+                <span className="group relative font-medium text-[var(--text-primary)]">
+                  <CurrentAge />
+                  <span className="absolute bottom-full left-0 mb-3 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 pointer-events-none origin-bottom-left">
+                    <span
+                      className="whitespace-nowrap rounded-lg px-3 py-1.5 text-xs border bg-[var(--bg-secondary)] border-[var(--border-color)] shadow-xl"
+                    >
+                      <span className="font-medium text-[var(--text-primary)]">
+                        Born: April 8, 2009
+                      </span>
                     </span>
                   </span>
-                  <span
-                    className="absolute left-3 top-full -mt-px"
-                    style={{
-                      width: 0,
-                      height: 0,
-                      borderLeft: '6px solid transparent',
-                      borderRight: '6px solid transparent',
-                      borderTop: '6px solid var(--card-border)',
-                    }}
-                  />
-                </span>
-              </span>{' '}
-              years old.
-            </p>
+                </span>{' '}
+                years old.
+              </p>
+            </div>
 
             {/* Live activity */}
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">
-                  Live activity
+            <div className="mt-16 space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[var(--text-secondary)]">
+                  Active Now
                 </span>
+                <div className="h-px flex-1 bg-[var(--border-color)] opacity-50" />
               </div>
               <DiscordStatus />
             </div>
@@ -245,16 +233,16 @@ export default function Home() {
 
           {/* Social Links */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mb-10"
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            className="mb-20"
           >
-            <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
-              Connect
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-6">
+              Links
             </h2>
 
-            <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
 
@@ -264,14 +252,10 @@ export default function Home() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex flex-col items-center justify-center gap-1.5 px-2.5 py-2 min-h-16 rounded-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto sm:flex-row sm:gap-2 sm:px-4 sm:py-2.5 sm:min-h-0 sm:rounded-lg"
-                    style={{
-                      background: 'var(--social-bg-mix)',
-                      border: '1px solid var(--card-border)',
-                    }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] transition-all duration-300 hover:border-[var(--text-primary)] group"
                   >
-                    <Icon className={`h-5 w-5 sm:h-4 sm:w-4 ${social.color}`} />
-                    <span className="text-[9px] leading-none sm:text-sm font-medium text-[var(--text-primary)] text-center">
+                    <Icon className={`h-4 w-4 ${social.color} opacity-70 group-hover:opacity-100`} />
+                    <span className="text-sm font-medium text-[var(--text-primary)]">
                       {social.label}
                     </span>
                   </a>
@@ -284,21 +268,16 @@ export default function Home() {
           <motion.footer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="pt-6 border-t border-[var(--card-border)] text-center text-sm text-[var(--text-secondary)]"
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="pt-12 border-t border-[var(--border-color)] flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-[var(--text-secondary)]"
           >
             <p>
-              &copy; {mounted ? new Date().getFullYear() : '2024'}{' '}
-              <a
-                href="https://github.com/abyn365"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors hover:text-[var(--accent)]"
-                style={{ color: 'var(--accent)' }}
-              >
-                abyn
-              </a>
+              &copy; {mounted ? new Date().getFullYear() : '2024'} Abyan. Built with Next.js.
             </p>
+            <div className="flex items-center gap-4">
+              <a href="/github" className="hover:text-[var(--text-primary)] transition-colors">GitHub</a>
+              <a href="/spotify" className="hover:text-[var(--text-primary)] transition-colors">Spotify</a>
+            </div>
           </motion.footer>
         </div>
       </div>

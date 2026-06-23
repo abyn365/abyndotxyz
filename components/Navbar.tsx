@@ -13,24 +13,23 @@ const Navbar = () => {
 
   return (
     <nav
-      className="sticky top-0 z-40 w-full border-b backdrop-blur-md transition-colors duration-300"
+      className="sticky top-0 z-40 w-full transition-colors duration-300"
       style={{
         background: 'var(--bg-primary)',
-        borderColor: 'var(--card-border)',
       }}
     >
-      <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4 sm:px-6">
         {/* Left: Brand */}
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)] transition-opacity hover:opacity-80"
+          className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-primary)] transition-opacity hover:opacity-80"
         >
-          <ChevronRight className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+          <div className="h-2 w-2 rounded-full" style={{ background: 'var(--accent)' }} />
           abyn
         </Link>
 
         {/* Right: Nav links */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = router.pathname === item.href;
@@ -39,13 +38,11 @@ const Navbar = () => {
               <Link
                 key={item.href}
                 href={item.href}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200"
+                className="inline-flex items-center gap-1.5 text-xs font-medium transition-all duration-200 hover:text-[var(--text-primary)]"
                 style={{
-                  background: isActive ? 'var(--accent)' : 'transparent',
-                  color: isActive ? 'var(--accent-text)' : 'var(--text-secondary)',
+                  color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                 }}
               >
-                <Icon className="h-3.5 w-3.5" />
                 <span>{item.label}</span>
               </Link>
             );

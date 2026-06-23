@@ -242,8 +242,8 @@ const TimeWeather = () => {
     : "";
 
   return (
-    <div className="space-y-1 text-sm text-[var(--text-secondary)]">
-      <div className="group relative flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
+    <div className="space-y-2 text-sm text-[var(--text-secondary)]">
+      <div className="group relative flex items-center gap-2 font-medium text-[var(--text-primary)]">
         <motion.div
           className="inline-flex"
           animate={iconStyle.animate}
@@ -264,14 +264,9 @@ const TimeWeather = () => {
 
         <span>{timeText}</span>
 
-        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 origin-bottom-left scale-95 opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
+        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-3 origin-bottom-left scale-95 opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
           <div
-            className="whitespace-nowrap rounded-xl border px-4 py-2.5 text-xs shadow-lg backdrop-blur-xl"
-            style={{
-              background: "var(--card-bg)",
-              borderColor: "var(--card-border)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-            }}
+            className="whitespace-nowrap rounded-lg border bg-[var(--bg-secondary)] border-[var(--border-color)] px-3 py-1.5 text-xs shadow-xl"
           >
             <span className="font-medium text-[var(--text-primary)]">
               I&apos;m{" "}
@@ -280,33 +275,20 @@ const TimeWeather = () => {
                 : "probably asleep right now... 😴"}
             </span>
           </div>
-
-          <div
-            className="absolute left-3 top-full -mt-px"
-            style={{
-              width: 0,
-              height: 0,
-              borderLeft: "6px solid transparent",
-              borderRight: "6px solid transparent",
-              borderTop: "6px solid var(--card-border)",
-            }}
-          />
         </div>
       </div>
 
       {!loading && weather && (
-        <p>
+        <p className="leading-relaxed">
           It&apos;s{" "}
           <span className="group relative inline-flex items-center">
             <span className="font-semibold text-[var(--text-primary)]">
               {weather.temperature}°C
             </span>
 
-            <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover:block">
+            <span className="absolute bottom-full left-1/2 z-50 mb-3 hidden -translate-x-1/2 whitespace-nowrap rounded-lg border bg-[var(--bg-secondary)] border-[var(--border-color)] px-3 py-1.5 text-xs text-[var(--text-secondary)] shadow-xl group-hover:block">
               Feels like {weather.feelsLike}°C
             </span>
-
-            <span className="absolute left-1/2 top-full -mt-px hidden -translate-x-1/2 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-[var(--card-border)] group-hover:block" />
           </span>{" "}
           with{" "}
           <span className="text-[var(--text-secondary)]">
@@ -315,7 +297,7 @@ const TimeWeather = () => {
           in{" "}
           <span className="group/location relative inline-flex items-center font-semibold text-[var(--text-primary)]">
             {weather.city}
-            <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs font-normal text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover/location:block">
+            <span className="absolute bottom-full left-1/2 z-50 mb-3 hidden -translate-x-1/2 whitespace-nowrap rounded-lg border bg-[var(--bg-secondary)] border-[var(--border-color)] px-3 py-1.5 text-xs font-normal text-[var(--text-secondary)] shadow-xl group-hover/location:block">
               {locationTooltip}
             </span>
           </span>

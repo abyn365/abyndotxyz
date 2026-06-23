@@ -4,18 +4,23 @@ import { Analytics } from "@vercel/analytics/react";
 import { NextSeo } from "next-seo";
 import Head from "next/head";
 import Script from "next/script";
+import { Inter, Geist } from "next/font/google";
 import { ThemeProvider } from "../components/ThemeProvider";
 import ThemeToggle from "../components/ThemeToggle";
 import Navbar from "../components/Navbar";
 
 import "../styles/globals.css";
-import "@fontsource/jost/400.css";
-import "@fontsource/jost/500.css";
-import "@fontsource/jost/600.css";
-import "@fontsource/jost/700.css";
-import "@fontsource/sen/400.css";
-import "@fontsource/sen/700.css";
 import "../components/ClickSpark/ClickSpark";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+});
 
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -29,7 +34,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <ThemeProvider>
-      <>
+      <div className={`${inter.variable} ${geist.variable} font-inter`}>
         {/* Umami Analytics */}
         {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID &&
           process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL && (
@@ -112,7 +117,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <Navbar />
         <Component {...pageProps} />
         <ThemeToggle />
-      </>
+      </div>
     </ThemeProvider>
   );
 }

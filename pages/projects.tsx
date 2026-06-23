@@ -34,35 +34,27 @@ export default function ProjectsPage() {
       />
 
       <div className="relative z-10">
-        <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+        <div className="mx-auto w-full max-w-2xl px-6 pt-24 pb-12 sm:pt-32 sm:pb-20">
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="mb-8 rounded-[2rem] border p-6 sm:p-8 backdrop-blur-xl"
-            style={{
-              borderColor: 'var(--card-border)',
-              background: 'var(--card-bg)',
-              boxShadow: 'var(--card-shadow)',
-            }}
+            transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+            className="mb-16"
           >
-            <div className="max-w-2xl">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">
-                Selected work
-              </p>
-              <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
+            <div className="space-y-4">
+              <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-[var(--text-primary)]">
                 Projects
               </h1>
-              <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--text-secondary)] sm:text-base">
+              <p className="text-lg text-[var(--text-secondary)] leading-relaxed">
                 Open-source projects, tools, and experiments I&apos;ve built.
               </p>
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.08 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
           >
             <Projects />
           </motion.div>
@@ -70,8 +62,8 @@ export default function ProjectsPage() {
           <motion.footer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.25 }}
-            className="mt-10 border-t border-[var(--card-border)] pt-8 text-center text-sm text-[var(--text-secondary)]"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mt-20 border-t border-[var(--border-color)] pt-12 text-center text-xs text-[var(--text-secondary)]"
           >
             <a
               href="https://github.com/abyn365"
@@ -79,7 +71,7 @@ export default function ProjectsPage() {
               rel="noopener noreferrer"
               className="transition-colors hover:text-[var(--text-primary)]"
             >
-              abyn
+              Abyan &copy; {new Date().getFullYear()}
             </a>
           </motion.footer>
         </div>

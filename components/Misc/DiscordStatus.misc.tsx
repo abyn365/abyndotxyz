@@ -274,7 +274,7 @@ const ActionChip = ({
   href?: string | null;
 }) => {
   const classes =
-    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--hover-bg)]";
+    "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[10px] font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]";
 
   if (href) {
     return (
@@ -392,29 +392,27 @@ const ActivityPanel = ({
 
   return (
     <div
-      className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+      className="relative flex h-full flex-col justify-between overflow-hidden rounded-xl border p-4 sm:p-5"
       style={{
         borderColor: "var(--card-border)",
         background: "var(--card-bg)",
       }}
     >
-      <div className={overlayClass} />
-      <div className="relative grid h-full items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
+      <div className="relative grid h-full items-center gap-4 [grid-template-columns:auto_minmax(0,1fr)]">
         <div className="relative shrink-0">
           {activity.image ? (
-            <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-16 sm:w-16">
+            <div className="relative h-14 w-14 overflow-hidden rounded-lg border border-[var(--card-border)] sm:h-16 sm:w-16">
               <Image
                 src={activity.image}
                 fill
                 sizes="64px"
                 alt={title}
-                className="object-cover"
+                className="object-cover grayscale-[0.2]"
                 unoptimized
                 draggable={false}
               />
               {activity.smallImage && (
-                <div className="absolute bottom-0 right-0 h-5 w-5 overflow-hidden rounded-full border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-md sm:h-6 sm:w-6">
-                  <div className="absolute inset-0 rounded-full bg-[rgba(0,0,0,0.18)]" />
+                <div className="absolute bottom-0 right-0 h-5 w-5 overflow-hidden rounded-full border border-[var(--card-bg)] bg-[var(--card-bg)] sm:h-6 sm:w-6">
                   <Image
                     src={activity.smallImage}
                     fill
@@ -428,46 +426,36 @@ const ActivityPanel = ({
               )}
             </div>
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[var(--card-border)] bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] shadow-md sm:h-16 sm:w-16">
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-[var(--card-border)] bg-[var(--bg-secondary)] sm:h-16 sm:w-16">
               <Disc3 className="h-6 w-6 text-[var(--text-secondary)]" />
             </div>
           )}
         </div>
 
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
             <ActionChip icon={<Activity className="h-3 w-3 text-[var(--text-secondary)]" />}>
-              Discord activity
+              Activity
             </ActionChip>
             {activeDevice ? (
               <ActionChip icon={null}>{activeDevice}</ActionChip>
             ) : null}
           </div>
 
-          <div className="mt-2 min-w-0 space-y-0.5">
-            <p className="truncate text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-secondary)] sm:text-[12px]">
-              {activityLabel}
-            </p>
-            <h3 className="truncate text-[15px] font-semibold leading-5 tracking-tight text-[var(--text-primary)] sm:text-base">
+          <div className="mt-2.5 min-w-0 space-y-0.5">
+            <h3 className="truncate text-[15px] font-medium leading-tight tracking-tight text-[var(--text-primary)] sm:text-base">
               {title}
             </h3>
-            <p className="truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
+            <p className="truncate text-xs leading-normal text-[var(--text-secondary)]">
               {description}
             </p>
-            {(subtitle || elapsedText) && !details.length && (
-              <p className="truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
-                {subtitle && elapsedText
-                  ? `${subtitle} · ${elapsedText}`
-                  : subtitle || elapsedText}
-              </p>
-            )}
             {showProgress ? (
-              <div className="mt-2 space-y-1.5">
+              <div className="mt-3 space-y-2">
                 <ProgressBar
                   current={Math.max(elapsedTime * 1000, 0)}
                   total={Math.max(activityDuration, 1)}
                 />
-                <div className="flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)]">
+                <div className="flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)] font-medium">
                   <span className="shrink-0 tabular-nums">
                     {activityProgressText}
                   </span>
@@ -511,16 +499,15 @@ const SpotifyPanel = ({
 
   return (
     <div
-      className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+      className="relative flex h-full flex-col justify-between overflow-hidden rounded-xl border p-4 sm:p-5"
       style={{
         borderColor: "var(--card-border)",
         background: "var(--card-bg)",
       }}
     >
-      <div className={overlayClass} />
-      <div className="relative grid h-full items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
+      <div className="relative grid h-full items-center gap-4 [grid-template-columns:auto_minmax(0,1fr)]">
         <div className="relative shrink-0">
-          <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-16 sm:w-16">
+          <div className="relative h-14 w-14 overflow-hidden rounded-lg border border-[var(--card-border)] sm:h-16 sm:w-16">
             {spotify.albumArtUrl ? (
               <Image
                 src={spotify.albumArtUrl}
@@ -532,7 +519,7 @@ const SpotifyPanel = ({
                 draggable={false}
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]">
+              <div className="flex h-full w-full items-center justify-center bg-[var(--bg-secondary)]">
                 <Music className="h-6 w-6 text-[var(--text-secondary)]" />
               </div>
             )}
@@ -540,7 +527,7 @@ const SpotifyPanel = ({
         </div>
 
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
             <ActionChip icon={<Music className="h-3 w-3 text-[var(--text-secondary)]" />}>
               Spotify
             </ActionChip>
@@ -549,22 +536,21 @@ const SpotifyPanel = ({
                 icon={<ExternalLink className="h-3 w-3" />}
                 href={spotifyUrl}
               >
-                Open track
+                Open
               </ActionChip>
             ) : null}
           </div>
 
-          <div className="mt-2 min-w-0">
-            <h3 className="truncate text-[15px] font-semibold leading-5 tracking-tight text-[var(--text-primary)] sm:text-base">
+          <div className="mt-2.5 min-w-0">
+            <h3 className="truncate text-[15px] font-medium leading-tight tracking-tight text-[var(--text-primary)] sm:text-base">
               {spotify.song || "Unknown track"}
             </h3>
-            <p className="mt-0.5 truncate text-[12px] leading-5 text-[var(--text-secondary)] sm:text-[13px]">
-              {spotify.artist || "Unknown artist"} ·{" "}
-              {spotify.album || "Listening now"}
+            <p className="mt-0.5 truncate text-xs leading-normal text-[var(--text-secondary)]">
+              {spotify.artist || "Unknown artist"}
             </p>
           </div>
 
-          <div className="mt-2 space-y-1.5">
+          <div className="mt-3 space-y-2">
             <ProgressBar
               current={Math.max(songProgress, 0)}
               total={
@@ -576,7 +562,7 @@ const SpotifyPanel = ({
                   : 1000
               }
             />
-            <div className="flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)]">
+            <div className="flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)] font-medium">
               <Visualizer isPlaying={true} />
               <span className="shrink-0 tabular-nums">
                 {progressText || "Playing now"}

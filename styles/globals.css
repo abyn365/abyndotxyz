@@ -4,8 +4,8 @@
 
 :root {
   --click-spark-color: #18181b;
-  --bg-primary: #fafafa;
-  --bg-secondary: #f4f4f5;
+  --bg-primary: #ffffff;
+  --bg-secondary: #fafafa;
   --text-primary: #09090b;
   --text-secondary: #52525b;
   --border-color: #e4e4e7;
@@ -16,34 +16,24 @@
   --accent: #18181b;
   --accent-text: #ffffff;
   --accent-glow: rgba(24, 24, 27, 0.04);
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 4px rgba(0, 0, 0, 0.02);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .dark {
   --click-spark-color: #ffffff;
-  --bg-primary: #09090b;
-  --bg-secondary: #111113;
+  --bg-primary: #000000;
+  --bg-secondary: #09090b;
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
-  --border-color: #27272a;
-  --card-bg: rgba(24, 24, 27, 0.5);
-  --card-border: rgba(39, 39, 42, 0.4);
+  --border-color: #18181b;
+  --card-bg: #09090b;
+  --card-border: rgba(255, 255, 255, 0.08);
   --card-bg-mix: color-mix(in srgb, var(--text-primary) 3%, transparent);
   --social-bg-mix: color-mix(in srgb, var(--text-primary) 5%, transparent);
   --accent: #ffffff;
-  --accent-text: #09090b;
-  --accent-glow: rgba(255, 255, 255, 0.06);
+  --accent-text: #000000;
+  --accent-glow: rgba(255, 255, 255, 0.04);
   --card-shadow: none;
-}
-
-body {
-  font-family: "Jost", sans-serif;
-  cursor: pointer;
-  position: relative;
-}
-
-* {
-  scroll-behavior: smooth;
 }
 
 @layer base {
@@ -55,17 +45,16 @@ body {
     @apply bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300;
     touch-action: manipulation;
     overscroll-behavior-y: none;
+    font-family: var(--font-geist), var(--font-inter), "Inter", sans-serif;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-}
 
-body {
-  overflow-y: scroll;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-body::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+  body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 }
 
 /* Click Spark */
@@ -77,18 +66,14 @@ click-spark {
 
 /* Bento Card Styles */
 .bento-card {
-  @apply relative overflow-hidden rounded-2xl border p-4 sm:p-6 transition-all duration-300;
+  @apply relative overflow-hidden rounded-xl border p-4 sm:p-8 transition-all duration-300;
   background: var(--card-bg);
   border-color: var(--card-border);
   box-shadow: var(--card-shadow);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 
 .bento-card:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--accent) 30%, var(--card-border));
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 8%, transparent), var(--card-shadow);
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--card-border));
 }
 
 .bento-card::before {
@@ -98,7 +83,7 @@ click-spark {
   border-radius: inherit;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--accent) 2.5%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 1.5%, transparent) 0%,
     transparent 50%
   );
   opacity: 0;
@@ -113,16 +98,7 @@ click-spark {
 /* Bento card variants */
 .bento-card-accent {
   @apply bento-card;
-  border-color: color-mix(in srgb, var(--accent) 25%, var(--card-border));
-}
-
-.bento-card-accent::before {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent) 8%, transparent) 0%,
-    transparent 60%
-  );
-  opacity: 0.5;
+  border-color: color-mix(in srgb, var(--accent) 15%, var(--card-border));
 }
 
 /* Gradient borders for spotlight cards */
@@ -134,44 +110,21 @@ click-spark {
   content: '';
   position: absolute;
   inset: -1px;
-  @apply rounded-2xl;
+  @apply rounded-xl;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--accent) 30%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 20%, transparent) 0%,
     transparent 40%,
-    color-mix(in srgb, var(--accent) 8%, transparent) 80%
+    color-mix(in srgb, var(--accent) 5%, transparent) 80%
   );
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: -1;
-  filter: blur(6px);
+  filter: blur(4px);
 }
 
 .bento-spotlight:hover::after {
-  opacity: 0.3;
-}
-
-/* Modified bento-card for nested use (inside spotlight) */
-.bento-spotlight .bento-card {
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  opacity: 0.2;
 }
 
 /* Enhanced social icon hover */
@@ -182,9 +135,9 @@ click-spark {
 }
 
 .social-link:hover {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 30%, var(--card-border));
-  transform: translateY(-2px);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--card-border));
+  transform: translateY(-1px);
 }
 
 /* Typing animation */
@@ -195,7 +148,7 @@ click-spark {
 
 @keyframes blink-caret {
   from, to { border-color: transparent; }
-  50% { border-color: black; }
+  50% { border-color: currentColor; }
 }
 
 .typing-animation {
@@ -222,47 +175,26 @@ click-spark {
 /* Conditional hover effects only on non-touch devices */
 @media (hover: hover) {
   .bento-card:hover {
-    transform: translateY(-1px);
+    transform: none;
   }
 
   .social-link:hover {
-    transform: translateY(-2px);
-  }
-
-  .bento-spotlight:hover::after {
-    opacity: 0.3;
-  }
-}
-
-/* Optimize mobile performance */
-@media (max-width: 640px) {
-  .bento-card,
-  .bento-spotlight .bento-card {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-
-/* Smooth scrolling */
-@media (prefers-reduced-motion: no-preference) {
-  .scroll-smooth {
-    scroll-behavior: smooth;
+    transform: translateY(-1px);
   }
 }
 
 /* Tag / Badge styles */
 .badge-tag {
-  @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all duration-300;
-  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  @apply inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium transition-all duration-300;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
   border: 1px solid var(--card-border);
   color: var(--text-secondary);
 }
 
 .badge-tag:hover {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
   color: var(--accent);
-  transform: translateY(-1px);
 }
 
 /* Progress bar animation */
