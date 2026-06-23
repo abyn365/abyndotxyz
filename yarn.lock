@@ -462,16 +462,6 @@
   resolved "https://registry.npmjs.org/@exodus/bytes/-/bytes-1.15.1.tgz"
   integrity sha512-S6mL0yNB/Abt9Ei4tq8gDhcczc4S3+vQ4ra7vxnAf+YHC02srtqxKKZghx2Dq6p0e66THKwR6r8N6P95wEty7Q==
 
-"@fontsource/jost@^4.5.13":
-  version "4.5.13"
-  resolved "https://registry.npmjs.org/@fontsource/jost/-/jost-4.5.13.tgz"
-  integrity sha512-StvM74Eny5ZkioanZ3JV6RgjTfMnB7mGde1SVoJGUrudxGPCp6kRXRm4CgwgJYarDzLt+jSPESLufHhRVemjrA==
-
-"@fontsource/sen@^4.5.9":
-  version "4.5.9"
-  resolved "https://registry.npmjs.org/@fontsource/sen/-/sen-4.5.9.tgz"
-  integrity sha512-QN+pW9fq+XNQoVwjrzxlZELSMSaKxUHlFJ1NApNr8b/KyGvRAL+hNVMhT1jBamtzkcI09yiGq7hdnEfo66rFog==
-
 "@gitmoji/commit-types@1.1.5":
   version "1.1.5"
   resolved "https://registry.npmjs.org/@gitmoji/commit-types/-/commit-types-1.1.5.tgz"

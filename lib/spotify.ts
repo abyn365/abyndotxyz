@@ -11,15 +11,24 @@ const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
 const REFRESH_TOKEN_KV_KEY = "spotify_refresh_token";
 const ACCESS_TOKEN_KV_KEY = "spotify_access_token";
 
-export const getAccessToken = async (): Promise<{ access_token: string }> => {
-  try {
-    // 1. Try to fetch cached access token from Vercel KV
-    const cachedAccessToken = await kv.get<string>(ACCESS_TOKEN_KV_KEY);
-    if (cachedAccessToken) {
-      return { access_token: cachedAccessToken };
+export const getAccessToken = async (forceRefresh = false): Promise<{ access_token: string }> => {
+  if (!forceRefresh) {
+    try {
+      // 1. Try to fetch cached access token from Vercel KV
+      const cachedAccessToken = await kv.get<string>(ACCESS_TOKEN_KV_KEY);
+      if (cachedAccessToken) {
+        return { access_token: cachedAccessToken };
+      }
+    } catch (err) {
+      console.error("Failed to read access token from KV:", err);
     }
-  } catch (err) {
-    console.error("Failed to read access token from KV:", err);
+  } else {
+    try {
+      // Delete cached access token from KV to force a brand new retrieval
+      await kv.del(ACCESS_TOKEN_KV_KEY);
+    } catch (err) {
+      console.error("Failed to delete expired access token from KV:", err);
+    }
   }
 
   // 2. Resolve refresh token to use (KV first, fallback to initial environment variable)
@@ -86,23 +95,49 @@ export const getAccessToken = async (): Promise<{ access_token: string }> => {
 };
 
 export const getNowPlaying = async () => {
-  const { access_token } = await getAccessToken();
+  let { access_token } = await getAccessToken();
 
-  const response = await fetch(NOW_PLAYING_ENDPOINT, {
+  let response = await fetch(NOW_PLAYING_ENDPOINT, {
     headers: {
       Authorization: `Bearer ${access_token}`,
     },
   });
+
+  if (response.status === 401) {
+    console.warn("Spotify now-playing returned 401. Force refreshing token...");
+    const freshToken = await getAccessToken(true);
+    access_token = freshToken.access_token;
+
+    response = await fetch(NOW_PLAYING_ENDPOINT, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+  }
 
   return response;
 };
 
 export async function getTopTracks(timeRange = "short_term") {
-  const { access_token } = await getAccessToken();
+  let { access_token } = await getAccessToken();
 
-  return fetch(`${TOP_TRACKS_ENDPOINT}?time_range=${timeRange}&limit=50`, {
+  let response = await fetch(`${TOP_TRACKS_ENDPOINT}?time_range=${timeRange}&limit=50`, {
     headers: {
       Authorization: `Bearer ${access_token}`,
     },
   });
+
+  if (response.status === 401) {
+    console.warn("Spotify getTopTracks returned 401. Force refreshing token...");
+    const freshToken = await getAccessToken(true);
+    access_token = freshToken.access_token;
+
+    response = await fetch(`${TOP_TRACKS_ENDPOINT}?time_range=${timeRange}&limit=50`, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+  }
+
+  return response;
 }
