@@ -23,10 +23,9 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "monospace"],
-        inter: ["var(--font-inter)", "sans-serif"],
-        geist: ["var(--font-geist-sans)", "sans-serif"],
+        sans: ["Jost", "sans-serif"],
+        sen: ["Sen", "sans-serif"],
+        inter: ["Sen", "sans-serif"],
       },
       screens: {
         custom: "400px",

@@ -11,6 +11,8 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@fontsource/jost": "^4.5.13",
+    "@fontsource/sen": "^4.5.9",
     "@vercel/analytics": "^1.5.0",
     "@vercel/kv": "^3.0.0",
     "aos": "^2.3.4",

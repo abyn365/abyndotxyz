@@ -8,24 +8,13 @@ import { ThemeProvider } from "../components/ThemeProvider";
 import ThemeToggle from "../components/ThemeToggle";
 import Navbar from "../components/Navbar";
 
+import "@fontsource/jost/400.css";
+import "@fontsource/jost/500.css";
+import "@fontsource/jost/600.css";
+import "@fontsource/sen/400.css";
+import "@fontsource/sen/700.css";
 import "../styles/globals.css";
 import "../components/ClickSpark/ClickSpark";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
-
-const geistSans = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-});
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
 
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -39,7 +28,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <ThemeProvider>
-      <div className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} font-sans min-h-screen`}>
+      <div className="min-h-screen font-sans">
         {/* Umami Analytics */}
         {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID &&
           process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL && (

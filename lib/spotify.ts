@@ -1,8 +1,15 @@
 import { kv } from "@vercel/kv";
 
-const client_id = process.env.SPOTIFY_CLIENT_ID as string;
-const client_secret = process.env.SPOTIFY_CLIENT_SECRET as string;
-const basic = Buffer.from(`${client_id}:${client_secret}`).toString("base64");
+const client_id = process.env.SPOTIFY_CLIENT_ID;
+const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
+
+const getBasicAuthHeader = () => {
+  if (!client_id || !client_secret) {
+    throw new Error("Spotify client credentials are missing.");
+  }
+
+  return Buffer.from(`${client_id}:${client_secret}`).toString("base64");
+};
 
 const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-playing`;
 const TOP_TRACKS_ENDPOINT = `https://api.spotify.com/v1/me/top/tracks`;
@@ -50,13 +57,12 @@ export const getAccessToken = async (forceRefresh = false): Promise<{ access_tok
   const params = new URLSearchParams({
     grant_type: "refresh_token",
     refresh_token: currentRefreshToken,
-    scope: "user-top-read user-read-private user-read-email user-read-currently-playing",
   });
 
   const response = await fetch(TOKEN_ENDPOINT, {
     method: "POST",
     headers: {
-      Authorization: `Basic ${basic}`,
+      Authorization: `Basic ${getBasicAuthHeader()}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: params,
@@ -69,6 +75,10 @@ export const getAccessToken = async (forceRefresh = false): Promise<{ access_tok
 
   const data = await response.json();
   const { access_token, expires_in, refresh_token: newRefreshToken } = data;
+
+  if (!access_token) {
+    throw new Error("Spotify token refresh response did not include an access token.");
+  }
 
   // 4. Save new refresh token if Spotify rotated it
   if (newRefreshToken && newRefreshToken !== currentRefreshToken) {

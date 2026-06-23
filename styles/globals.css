@@ -37,7 +37,7 @@
 }
 
 body {
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: "Jost", sans-serif;
   cursor: pointer;
   position: relative;
 }
