@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { FiGithub, FiMail, FiInstagram } from "react-icons/fi";
 import { SiDiscord, SiTiktok, SiSpotify } from "react-icons/si";
 import VisitorStats from "../components/Misc/VisitorStats.misc";
@@ -51,7 +50,7 @@ const CurrentAge = () => {
     };
 
     update();
-    const interval = window.setInterval(update, 50); // update at ms
+    const interval = window.setInterval(update, 50);
 
     return () => window.clearInterval(interval);
   }, []);
@@ -131,130 +130,105 @@ export default function Home() {
       <div className="fixed inset-0 z-0">
         <Squares
           speed={0.15}
-          squareSize={40}
+          squareSize={50}
           direction="diagonal"
         />
       </div>
 
       {/* Content */}
       <div className="relative z-10 flex flex-col">
-        <div className="mx-auto w-full max-w-3xl px-4 pt-16 pb-8 sm:px-6 lg:px-8 lg:pt-24 lg:pb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-12"
-          >
-            {/* Header */}
-            <div className="flex flex-col-reverse sm:flex-row items-start justify-between gap-6 sm:gap-10 mb-8">
-              <div className="flex-1 min-w-0 space-y-4">
-                <div className="pt-1">
-                  <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-2">
-                    {username || 'Loading...'}
-                  </h1>
-                  <p className="text-lg text-[var(--text-secondary)]">
-                    Software developer & builder
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4">
-                  <VisitorStats />
-                  {discordStatus && (
-                    <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{
-                          backgroundColor:
-                            discordStatus === 'online'
-                              ? '#10b981'
-                              : discordStatus === 'idle'
-                              ? '#f59e0b'
-                              : discordStatus === 'dnd'
-                              ? '#ef4444'
-                              : '#9ca3af',
-                        }}
-                      />
-                      <span className="capitalize">{discordStatus}</span>
-                    </div>
-                  )}
-                </div>
-
-                <TimeWeather />
+        <div className="mx-auto w-full max-w-2xl px-4 pt-24 pb-12 sm:px-6 lg:px-8 lg:pt-32 lg:pb-20">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-6 sm:gap-10 mb-8">
+            <div className="flex-1 min-w-0 space-y-4">
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-1.5">
+                  {username || 'Loading...'}
+                </h1>
+                <p className="text-base text-[var(--text-secondary)]">
+                  Software developer & builder
+                </p>
               </div>
 
-              {avatarUrl && (
-                <div className="flex-shrink-0 self-center sm:self-start">
-                  <div className="relative h-28 w-28 sm:h-36 sm:w-36">
-                    <Image
-                      className="rounded-[2rem] border border-[var(--card-border)] object-cover shadow-sm"
-                      src={avatarUrl}
-                      alt="profile"
-                      fill
-                      sizes="(max-width: 640px) 112px, 144px"
-                      priority
+              <div className="flex flex-wrap items-center gap-4">
+                <VisitorStats />
+                {discordStatus && (
+                  <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          discordStatus === 'online'
+                            ? '#10b981'
+                            : discordStatus === 'idle'
+                            ? '#f59e0b'
+                            : discordStatus === 'dnd'
+                            ? '#ef4444'
+                            : '#9ca3af',
+                      }}
                     />
+                    <span className="capitalize">{discordStatus}</span>
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* Bio */}
-            <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-6">
-              Hello! I'm Abyan (/uh-bee-an/), a student with a passion for software development.
-              I'm{' '}
-              <span className="group relative font-mono font-medium text-[var(--text-primary)]">
-                <CurrentAge />
-                <span className="absolute bottom-full left-0 mb-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 pointer-events-none origin-bottom-left">
-                  <span
-                    className="whitespace-nowrap rounded-xl px-4 py-2.5 text-xs border shadow-lg backdrop-blur-xl"
-                    style={{
-                      background: 'var(--card-bg)',
-                      borderColor: 'var(--card-border)',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                    }}
-                  >
-                    <span className="font-medium text-[var(--text-primary)]">
-                      Born: April 8, 2009
-                    </span>
-                  </span>
-                  <span
-                    className="absolute left-3 top-full -mt-px"
-                    style={{
-                      width: 0,
-                      height: 0,
-                      borderLeft: '6px solid transparent',
-                      borderRight: '6px solid transparent',
-                      borderTop: '6px solid var(--card-border)',
-                    }}
-                  />
-                </span>
-              </span>{' '}
-              years old.
-            </p>
-
-            {/* Live activity */}
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">
-                  Live activity
-                </span>
+                )}
               </div>
-              <DiscordStatus />
+
+              <TimeWeather />
             </div>
-          </motion.div>
+
+            {avatarUrl && (
+              <div className="flex-shrink-0 self-center sm:self-start">
+                <div className="relative h-24 w-24 sm:h-28 sm:w-28">
+                  <Image
+                    className="rounded-xl border border-[var(--card-border)] object-cover"
+                    src={avatarUrl}
+                    alt="profile"
+                    fill
+                    sizes="(max-width: 640px) 96px, 112px"
+                    priority
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Bio */}
+          <p className="text-[var(--text-secondary)] leading-relaxed max-w-xl mb-8">
+            Hello! I'm Abyan (/uh-bee-an/), a student with a passion for software development.
+            I'm{' '}
+            <span className="group relative font-mono font-medium text-[var(--text-primary)]">
+              <CurrentAge />
+              <span className="absolute bottom-full left-0 mb-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 pointer-events-none origin-bottom-left">
+                <span
+                  className="whitespace-nowrap rounded-lg px-3 py-2 text-xs border"
+                  style={{
+                    background: 'var(--card-bg)',
+                    borderColor: 'var(--card-border)',
+                  }}
+                >
+                  <span className="font-medium text-[var(--text-primary)]">
+                    Born: April 8, 2009
+                  </span>
+                </span>
+              </span>
+            </span>{' '}
+            years old.
+          </p>
+
+          {/* Live activity */}
+          <div className="space-y-3 mb-10">
+            <p className="text-xs uppercase tracking-[0.15em] text-[var(--text-secondary)]">
+              Live activity
+            </p>
+            <DiscordStatus />
+          </div>
 
           {/* Social Links */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mb-10"
-          >
-            <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
+          <div className="mb-10">
+            <h2 className="text-base font-medium text-[var(--text-primary)] mb-3">
               Connect
             </h2>
 
-            <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:gap-3">
+            <div className="flex flex-wrap gap-2">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
 
@@ -264,29 +238,23 @@ export default function Home() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex flex-col items-center justify-center gap-1.5 px-2.5 py-2 min-h-16 rounded-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto sm:flex-row sm:gap-2 sm:px-4 sm:py-2.5 sm:min-h-0 sm:rounded-lg"
+                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-200"
                     style={{
-                      background: 'var(--social-bg-mix)',
                       border: '1px solid var(--card-border)',
                     }}
                   >
-                    <Icon className={`h-5 w-5 sm:h-4 sm:w-4 ${social.color}`} />
-                    <span className="text-[9px] leading-none sm:text-sm font-medium text-[var(--text-primary)] text-center">
+                    <Icon className="h-4 w-4" />
+                    <span className="text-sm font-medium text-[var(--text-primary)]">
                       {social.label}
                     </span>
                   </a>
                 );
               })}
             </div>
-          </motion.div>
+          </div>
 
           {/* Footer */}
-          <motion.footer
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="pt-6 border-t border-[var(--card-border)] text-center text-sm text-[var(--text-secondary)]"
-          >
+          <footer className="text-center text-sm text-[var(--text-secondary)]">
             <p>
               &copy; {mounted ? new Date().getFullYear() : '2024'}{' '}
               <a
@@ -299,7 +267,7 @@ export default function Home() {
                 abyn
               </a>
             </p>
-          </motion.footer>
+          </footer>
         </div>
       </div>
     </div>

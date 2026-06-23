@@ -9,12 +9,11 @@ import ThemeToggle from "../components/ThemeToggle";
 import Navbar from "../components/Navbar";
 
 import "../styles/globals.css";
-import "@fontsource/jost/400.css";
-import "@fontsource/jost/500.css";
-import "@fontsource/jost/600.css";
-import "@fontsource/jost/700.css";
-import "@fontsource/sen/400.css";
-import "@fontsource/sen/700.css";
+import "@fontsource/geist-sans/400.css";
+import "@fontsource/geist-sans/500.css";
+import "@fontsource/geist-sans/600.css";
+import "@fontsource/geist-sans/700.css";
+import "@fontsource/geist-mono/400.css";
 import "../components/ClickSpark/ClickSpark";
 
 function MyApp({ Component, pageProps }: AppProps) {

@@ -11,20 +11,20 @@ module.exports = {
         primary: "#121212",
         surface: {
           light: '#ffffff',
-          dark: '#09090b',
+          dark: '#000000',
         },
         card: {
           light: '#f4f4f5',
-          dark: '#18181b',
+          dark: '#09090b',
         },
         border: {
           light: '#e4e4e7',
-          dark: '#27272a',
+          dark: 'rgba(255,255,255,0.06)',
         }
       },
       fontFamily: {
-        jost: ["Jost", "sans-serif"],
-        sen: ["Sen", "sans-serif"],
+        sans: ['"Geist Sans"', 'system-ui', 'sans-serif'],
+        mono: ['"Geist Mono"', 'monospace'],
       },
       screens: {
         custom: "400px",

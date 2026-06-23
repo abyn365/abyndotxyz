@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
   Clock,
@@ -45,60 +44,14 @@ const getWeatherIcon = (code: number, isNight: boolean): LucideIcon => {
   return Cloud;
 };
 
-const getIconStyle = (code: number, isNight: boolean) => {
-  if (code === 0) {
-    return {
-      className: isNight ? "text-indigo-300" : "text-amber-400",
-      animate: { rotate: [0, 4, 0, -4, 0] },
-      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-    };
-  }
-
-  if (code >= 51 && code <= 67) {
-    return {
-      className: "text-sky-400",
-      animate: { y: [0, -1.5, 0, 1.5, 0] },
-      transition: { duration: 2.2, repeat: Infinity, ease: "easeInOut" },
-    };
-  }
-
-  if (code >= 80 && code <= 82) {
-    return {
-      className: "text-sky-400",
-      animate: { y: [0, -2, 0, 2, 0] },
-      transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-    };
-  }
-
-  if (code >= 71 && code <= 77) {
-    return {
-      className: "text-slate-300",
-      animate: { y: [0, -1, 0, 1, 0] },
-      transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-    };
-  }
-
-  if (code >= 95 && code <= 99) {
-    return {
-      className: "text-violet-400",
-      animate: { x: [0, -1, 1, -1, 1, 0], rotate: [0, -2, 2, -2, 2, 0] },
-      transition: { duration: 0.9, repeat: Infinity, ease: "easeInOut" },
-    };
-  }
-
-  if (code >= 45 && code <= 48) {
-    return {
-      className: "text-slate-300",
-      animate: { y: [0, -1, 0, 1, 0] },
-      transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-    };
-  }
-
-  return {
-    className: isNight ? "text-indigo-300" : "text-amber-400",
-    animate: { y: [0, -1, 0, 1, 0] },
-    transition: { duration: 2.8, repeat: Infinity, ease: "easeInOut" },
-  };
+const getIconClass = (code: number, isNight: boolean) => {
+  if (code === 0) return isNight ? "text-indigo-300" : "text-amber-400";
+  if (code >= 51 && code <= 67) return "text-sky-400";
+  if (code >= 80 && code <= 82) return "text-sky-400";
+  if (code >= 71 && code <= 77) return "text-slate-300";
+  if (code >= 95 && code <= 99) return "text-violet-400";
+  if (code >= 45 && code <= 48) return "text-slate-300";
+  return isNight ? "text-indigo-300" : "text-amber-400";
 };
 
 const getShortOffset = (timeZone: string) => {
@@ -184,7 +137,6 @@ const TimeWeather = () => {
 
   const iconCode = weather?.weatherCode ?? (isNight ? 1 : 0);
   const WeatherIcon = getWeatherIcon(iconCode, isNight);
-  const iconStyle = getIconStyle(iconCode, isNight);
 
   useEffect(() => {
     const updateTime = () => {
@@ -244,53 +196,35 @@ const TimeWeather = () => {
   return (
     <div className="space-y-1 text-sm text-[var(--text-secondary)]">
       <div className="group relative flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
-        <motion.div
-          className="inline-flex"
-          animate={iconStyle.animate}
-          transition={iconStyle.transition}
-        >
-          {loading ? (
-            <Clock
-              data-testid="time-icon"
-              className="h-3.5 w-3.5 text-[var(--text-secondary)]"
-            />
-          ) : (
-            <WeatherIcon
-              data-testid="time-icon"
-              className={`h-3.5 w-3.5 ${iconStyle.className}`}
-            />
-          )}
-        </motion.div>
+        {loading ? (
+          <Clock
+            data-testid="time-icon"
+            className="h-3.5 w-3.5 text-[var(--text-secondary)]"
+          />
+        ) : (
+          <WeatherIcon
+            data-testid="time-icon"
+            className={`h-3.5 w-3.5 ${getIconClass(iconCode, isNight)}`}
+          />
+        )}
 
         <span>{timeText}</span>
 
         <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 origin-bottom-left scale-95 opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
           <div
-            className="whitespace-nowrap rounded-xl border px-4 py-2.5 text-xs shadow-lg backdrop-blur-xl"
+            className="whitespace-nowrap rounded-lg border px-3 py-2 text-xs"
             style={{
               background: "var(--card-bg)",
               borderColor: "var(--card-border)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
             }}
           >
-            <span className="font-medium text-[var(--text-primary)]">
+            <span className="text-[var(--text-primary)]">
               I&apos;m{" "}
               {isAwake
                 ? "probably awake right now."
                 : "probably asleep right now... 😴"}
             </span>
           </div>
-
-          <div
-            className="absolute left-3 top-full -mt-px"
-            style={{
-              width: 0,
-              height: 0,
-              borderLeft: "6px solid transparent",
-              borderRight: "6px solid transparent",
-              borderTop: "6px solid var(--card-border)",
-            }}
-          />
         </div>
       </div>
 
@@ -298,24 +232,22 @@ const TimeWeather = () => {
         <p>
           It&apos;s{" "}
           <span className="group relative inline-flex items-center">
-            <span className="font-semibold text-[var(--text-primary)]">
+            <span className="font-medium text-[var(--text-primary)]">
               {weather.temperature}°C
             </span>
 
-            <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover:block">
+            <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] px-3 py-2 text-xs text-[var(--text-secondary)] group-hover:block">
               Feels like {weather.feelsLike}°C
             </span>
-
-            <span className="absolute left-1/2 top-full -mt-px hidden -translate-x-1/2 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-[var(--card-border)] group-hover:block" />
           </span>{" "}
           with{" "}
           <span className="text-[var(--text-secondary)]">
             {weather.weatherDescription.toLowerCase()}
           </span>{" "}
           in{" "}
-          <span className="group/location relative inline-flex items-center font-semibold text-[var(--text-primary)]">
+          <span className="group/location relative inline-flex items-center font-medium text-[var(--text-primary)]">
             {weather.city}
-            <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs font-normal text-[var(--text-secondary)] shadow-lg backdrop-blur-xl group-hover/location:block">
+            <span className="absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] px-3 py-2 text-xs font-normal text-[var(--text-secondary)] group-hover/location:block">
               {locationTooltip}
             </span>
           </span>

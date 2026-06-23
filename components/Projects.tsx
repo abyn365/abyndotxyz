@@ -78,16 +78,15 @@ const Projects = () => {
 
   return (
     <section
-      className="rounded-[2rem] border p-4 sm:p-6 backdrop-blur-xl"
+      className="rounded-xl border p-4 sm:p-6"
       style={{
         borderColor: 'var(--card-border)',
         background: 'var(--card-bg)',
-        boxShadow: 'var(--card-shadow)',
       }}
     >
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-sm font-semibold tracking-wide text-[var(--text-primary)]">
+          <h2 className="text-sm font-medium text-[var(--text-primary)]">
             Projects
           </h2>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">
@@ -96,13 +95,7 @@ const Projects = () => {
         </div>
 
         {!loading && (
-          <div
-            className="inline-flex w-fit items-center rounded-full border px-3 py-1 text-xs text-[var(--text-secondary)]"
-            style={{
-              borderColor: 'var(--card-border)',
-              background: 'var(--card-bg-mix)',
-            }}
-          >
+          <div className="inline-flex w-fit items-center rounded-md border px-2.5 py-1 text-xs text-[var(--text-secondary)]" style={{ borderColor: 'var(--card-border)' }}>
             Page {page} of {totalPages}
           </div>
         )}
@@ -113,10 +106,10 @@ const Projects = () => {
           ? Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
               <div
                 key={index}
-                className="h-[250px] animate-pulse rounded-3xl border p-5"
+                className="h-[250px] animate-pulse rounded-xl border p-5"
                 style={{
                   borderColor: 'var(--card-border)',
-                  background: 'var(--card-bg-mix)',
+                  background: 'var(--card-bg)',
                 }}
                 >
                 <div className="mb-4 flex items-start justify-between gap-3">
@@ -148,17 +141,16 @@ const Projects = () => {
             onClick={() => goToPage(page - 1)}
             disabled={page === 1}
             aria-label="Previous page"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-30"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-30"
             style={{
               color: 'var(--text-primary)',
-              background: 'var(--card-bg-mix)',
               borderColor: 'var(--card-border)',
             }}
             >
             <ChevronLeft className="h-4 w-4" />
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
             {getPageNumbers().map((p, i) =>
               p === 'dots' ? (
                 <span key={`dots-${i}`} className="px-1 text-sm text-[var(--text-secondary)]">
@@ -168,17 +160,15 @@ const Projects = () => {
                 <button
                   key={p}
                   onClick={() => goToPage(p)}
-                  className="inline-flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm font-medium transition-all duration-200"
+                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-2.5 text-sm font-medium transition-all duration-200"
                   style={
                     p === page
                       ? {
                           background: 'var(--accent)',
                           color: 'var(--accent-text)',
-                          border: '1px solid var(--accent)',
                         }
                       : {
                           color: 'var(--text-secondary)',
-                          background: 'var(--card-bg-mix)',
                           border: '1px solid var(--card-border)',
                         }
                   }
@@ -193,10 +183,9 @@ const Projects = () => {
             onClick={() => goToPage(page + 1)}
             disabled={page === totalPages}
             aria-label="Next page"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-30"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-30"
             style={{
               color: 'var(--text-primary)',
-              background: 'var(--card-bg-mix)',
               borderColor: 'var(--card-border)',
             }}
             >

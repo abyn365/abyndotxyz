@@ -1,7 +1,6 @@
 import type { NextComponentType } from "next";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import { Activity, Disc3, ExternalLink, Music } from "lucide-react";
 import { useTheme } from "../ThemeProvider";
 
@@ -191,48 +190,12 @@ const toStatusData = (presence: LanyardPresence): StatusData => {
   };
 };
 
-const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
-  const [barHeights, setBarHeights] = useState<number[]>([38, 64, 48]);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (isPlaying) {
-      intervalRef.current = setInterval(() => {
-        setBarHeights([0, 0, 0].map(() => Math.random() * 68 + 24));
-      }, 160);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      setBarHeights([38, 64, 48]);
-    }
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isPlaying]);
-
-  return (
-    <div className="flex h-3 items-end gap-[2px]" aria-hidden="true">
-      {barHeights.map((height, index) => (
-        <motion.span
-          key={index}
-          className={`w-[2px] rounded-full ${
-            isPlaying ? "bg-[var(--accent)]" : "bg-[var(--card-border)]"
-          }`}
-          animate={{ height: `${height}%` }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
-        />
-      ))}
-    </div>
-  );
-};
-
 const ProgressBar = ({
   current,
   total,
 }: {
   current: number;
   total: number;
-  color?: string;
 }) => {
   const safeTotal = Math.max(total, 1);
   const percent = Math.min(Math.max((current / safeTotal) * 100, 0), 100);
@@ -274,7 +237,7 @@ const ActionChip = ({
   href?: string | null;
 }) => {
   const classes =
-    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--hover-bg)]";
+    "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium text-[var(--text-secondary)]";
 
   if (href) {
     return (
@@ -283,7 +246,6 @@ const ActionChip = ({
         target="_blank"
         rel="noopener noreferrer"
         className={classes}
-        style={{ borderColor: "var(--card-border)" }}
       >
         {icon}
         {children}
@@ -292,7 +254,7 @@ const ActionChip = ({
   }
 
   return (
-    <span className={classes} style={{ borderColor: "var(--card-border)" }}>
+    <span className={classes}>
       {icon}
       {children}
     </span>
@@ -302,11 +264,9 @@ const ActionChip = ({
 const ActivityPanel = ({
   activity,
   activeDevice,
-  theme,
 }: {
   activity: NonNullable<StatusData["activity"]>;
   activeDevice: string | null | undefined;
-  theme: "light" | "dark";
 }) => {
   const [elapsedTime, setElapsedTime] = useState(0);
 
@@ -385,24 +345,18 @@ const ActivityPanel = ({
     ? descriptionParts.join(" · ")
     : "Not doing anything right now";
 
-  const overlayClass =
-    theme === "dark"
-      ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.015),transparent_40%)]"
-      : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.015),transparent_40%)]";
-
   return (
     <div
-      className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+      className="flex h-full flex-col justify-between overflow-hidden rounded-xl border px-3 py-3 sm:px-4 sm:py-3.5"
       style={{
         borderColor: "var(--card-border)",
         background: "var(--card-bg)",
       }}
     >
-      <div className={overlayClass} />
-      <div className="relative grid h-full items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
-        <div className="relative shrink-0">
+      <div className="grid h-full items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
+        <div className="shrink-0">
           {activity.image ? (
-            <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-16 sm:w-16">
+            <div className="relative h-14 w-14 overflow-hidden rounded-lg border border-[var(--card-border)] sm:h-16 sm:w-16">
               <Image
                 src={activity.image}
                 fill
@@ -413,7 +367,7 @@ const ActivityPanel = ({
                 draggable={false}
               />
               {activity.smallImage && (
-                <div className="absolute bottom-0 right-0 h-5 w-5 overflow-hidden rounded-full border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-md sm:h-6 sm:w-6">
+                <div className="absolute bottom-0 right-0 h-5 w-5 overflow-hidden rounded-full border-2 border-[var(--card-bg)] bg-[var(--card-bg)] sm:h-6 sm:w-6">
                   <div className="absolute inset-0 rounded-full bg-[rgba(0,0,0,0.18)]" />
                   <Image
                     src={activity.smallImage}
@@ -428,7 +382,7 @@ const ActivityPanel = ({
               )}
             </div>
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[var(--card-border)] bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] shadow-md sm:h-16 sm:w-16">
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-[var(--card-border)] sm:h-16 sm:w-16">
               <Disc3 className="h-6 w-6 text-[var(--text-secondary)]" />
             </div>
           )}
@@ -436,7 +390,7 @@ const ActivityPanel = ({
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <ActionChip icon={<Activity className="h-3 w-3 text-[var(--text-secondary)]" />}>
+            <ActionChip icon={<Activity className="h-3 w-3" />}>
               Discord activity
             </ActionChip>
             {activeDevice ? (
@@ -484,11 +438,9 @@ const ActivityPanel = ({
 const SpotifyPanel = ({
   spotify,
   songProgress,
-  theme,
 }: {
   spotify: NonNullable<StatusData["spotify"]>;
   songProgress: number;
-  theme: "light" | "dark";
 }) => {
   const spotifyUrl =
     spotify.spotifyUrl ||
@@ -504,23 +456,18 @@ const SpotifyPanel = ({
       ? `${formatTime(elapsed)} / ${formatTime(total)}`
       : formatTime(elapsed);
   }, [songProgress, spotify.timestamps]);
-  const overlayClass =
-    theme === "dark"
-      ? "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.015),transparent_40%)]"
-      : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,0,0,0.015),transparent_40%)]";
 
   return (
     <div
-      className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+      className="flex h-full flex-col justify-between overflow-hidden rounded-xl border px-3 py-3 sm:px-4 sm:py-3.5"
       style={{
         borderColor: "var(--card-border)",
         background: "var(--card-bg)",
       }}
     >
-      <div className={overlayClass} />
-      <div className="relative grid h-full items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
-        <div className="relative shrink-0">
-          <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[var(--card-border)] shadow-md sm:h-16 sm:w-16">
+      <div className="grid h-full items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
+        <div className="shrink-0">
+          <div className="relative h-14 w-14 overflow-hidden rounded-lg border border-[var(--card-border)] sm:h-16 sm:w-16">
             {spotify.albumArtUrl ? (
               <Image
                 src={spotify.albumArtUrl}
@@ -532,7 +479,7 @@ const SpotifyPanel = ({
                 draggable={false}
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]">
+              <div className="flex h-full w-full items-center justify-center">
                 <Music className="h-6 w-6 text-[var(--text-secondary)]" />
               </div>
             )}
@@ -541,7 +488,7 @@ const SpotifyPanel = ({
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <ActionChip icon={<Music className="h-3 w-3 text-[var(--text-secondary)]" />}>
+            <ActionChip icon={<Music className="h-3 w-3" />}>
               Spotify
             </ActionChip>
             {spotifyUrl ? (
@@ -577,7 +524,11 @@ const SpotifyPanel = ({
               }
             />
             <div className="flex items-center justify-between gap-3 text-[10px] text-[var(--text-secondary)]">
-              <Visualizer isPlaying={true} />
+              <span className="flex h-3 items-end gap-[2px]" aria-hidden="true">
+                <span className="w-[2px] rounded-full bg-[var(--accent)] h-full" />
+                <span className="w-[2px] rounded-full bg-[var(--accent)] h-3/4" />
+                <span className="w-[2px] rounded-full bg-[var(--accent)] h-1/2" />
+              </span>
               <span className="shrink-0 tabular-nums">
                 {progressText || "Playing now"}
               </span>
@@ -689,22 +640,18 @@ const DiscordStatus: NextComponentType = () => {
   const hasSpotify = Boolean(status?.spotify);
 
   return (
-    <div className="w-full" style={{ perspective: "1000px" }}>
-      <motion.div
+    <div className="w-full">
+      <div
         className={
           hasActivity && hasSpotify
             ? "grid gap-2 md:grid-cols-2 md:items-stretch"
             : "grid gap-2"
         }
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
       >
         {hasActivity ? (
           <ActivityPanel
             activity={status!.activity!}
             activeDevice={status?.activeDevice}
-            theme={theme}
           />
         ) : null}
 
@@ -712,28 +659,23 @@ const DiscordStatus: NextComponentType = () => {
           <SpotifyPanel
             spotify={status!.spotify!}
             songProgress={songProgress}
-            theme={theme}
           />
         ) : null}
 
         {!hasActivity && !hasSpotify ? (
           <div
-            className="rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
+            className="rounded-xl border px-3 py-3 sm:px-4 sm:py-3.5"
             style={{
               borderColor: "var(--card-border)",
               background: "var(--card-bg)",
             }}
           >
-            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-              <Activity className="h-4 w-4 text-[var(--text-secondary)]" />
-              <span className="text-sm font-medium">Discord activity</span>
-            </div>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            <p className="text-sm text-[var(--text-secondary)]">
               Not doing anything right now.
             </p>
           </div>
         ) : null}
-      </motion.div>
+      </div>
     </div>
   );
 };

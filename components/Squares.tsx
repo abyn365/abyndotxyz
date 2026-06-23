@@ -12,22 +12,19 @@ interface SquaresProps {
   speed?: number;
   borderColor?: CanvasStrokeStyle;
   squareSize?: number;
-  hoverFillColor?: CanvasStrokeStyle;
 }
 
 const Squares: React.FC<SquaresProps> = ({
   direction = "right",
   speed = 1,
   borderColor,
-  squareSize = 40,
-  hoverFillColor,
+  squareSize = 50,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number | null>(null);
   const numSquaresX = useRef<number>(0);
   const numSquaresY = useRef<number>(0);
   const gridOffset = useRef<GridOffset>({ x: 0, y: 0 });
-  const hoveredSquareRef = useRef<GridOffset | null>(null);
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
@@ -40,8 +37,7 @@ const Squares: React.FC<SquaresProps> = ({
     return () => observer.disconnect();
   }, []);
 
-  const resolvedBorderColor = borderColor || (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(24, 24, 27, 0.015)');
-  const resolvedHoverFillColor = hoverFillColor || (isDark ? 'rgba(255, 255, 255, 0.015)' : 'rgba(24, 24, 27, 0.01)');
+  const resolvedBorderColor = borderColor || (isDark ? 'rgba(255,255,255,0.015)' : 'rgba(24, 24, 27, 0.008)');
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -71,16 +67,6 @@ const Squares: React.FC<SquaresProps> = ({
           const squareX = x - (gridOffset.current.x % squareSize);
           const squareY = y - (gridOffset.current.y % squareSize);
 
-          if (
-            hoveredSquareRef.current &&
-            Math.floor((x - startX) / squareSize) ===
-              hoveredSquareRef.current.x &&
-            Math.floor((y - startY) / squareSize) === hoveredSquareRef.current.y
-          ) {
-            ctx.fillStyle = resolvedHoverFillColor;
-            ctx.fillRect(squareX, squareY, squareSize, squareSize);
-          }
-
           ctx.strokeStyle = resolvedBorderColor;
           ctx.strokeRect(squareX, squareY, squareSize, squareSize);
         }
@@ -94,8 +80,8 @@ const Squares: React.FC<SquaresProps> = ({
         canvas.height / 2,
         Math.sqrt(canvas.width ** 2 + canvas.height ** 2) / 2
       );
-      const startColor = isDark ? "rgba(9, 9, 11, 0)" : "rgba(250, 250, 250, 0)";
-      const endColor = isDark ? "#09090b" : "#fafafa";
+      const startColor = isDark ? "rgba(0, 0, 0, 0)" : "rgba(250, 250, 250, 0)";
+      const endColor = isDark ? "#000000" : "#fafafa";
       gradient.addColorStop(0, startColor);
       gradient.addColorStop(1, endColor);
 
@@ -136,45 +122,13 @@ const Squares: React.FC<SquaresProps> = ({
       requestRef.current = requestAnimationFrame(updateAnimation);
     };
 
-    const handleMouseMove = (event: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = event.clientX - rect.left;
-      const mouseY = event.clientY - rect.top;
-
-      const startX = Math.floor(gridOffset.current.x / squareSize) * squareSize;
-      const startY = Math.floor(gridOffset.current.y / squareSize) * squareSize;
-
-      const hoveredSquareX = Math.floor(
-        (mouseX + gridOffset.current.x - startX) / squareSize
-      );
-      const hoveredSquareY = Math.floor(
-        (mouseY + gridOffset.current.y - startY) / squareSize
-      );
-
-      if (
-        !hoveredSquareRef.current ||
-        hoveredSquareRef.current.x !== hoveredSquareX ||
-        hoveredSquareRef.current.y !== hoveredSquareY
-      ) {
-        hoveredSquareRef.current = { x: hoveredSquareX, y: hoveredSquareY };
-      }
-    };
-
-    const handleMouseLeave = () => {
-      hoveredSquareRef.current = null;
-    };
-
-    canvas.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("mouseleave", handleMouseLeave);
     requestRef.current = requestAnimationFrame(updateAnimation);
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      canvas.removeEventListener("mousemove", handleMouseMove);
-      canvas.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [direction, speed, resolvedBorderColor, resolvedHoverFillColor, squareSize, isDark]);
+  }, [direction, speed, resolvedBorderColor, squareSize, isDark]);
 
   return (
     <canvas

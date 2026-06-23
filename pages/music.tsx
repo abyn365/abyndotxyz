@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Squares from "../components/Squares";
-import { Music, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 type Track = {
   artist: string;
@@ -44,62 +44,45 @@ export default function MusicEmbed() {
       <div className="fixed inset-0 z-0">
         <Squares
           speed={0.15}
-          squareSize={40}
+          squareSize={50}
           direction="diagonal"
         />
       </div>
 
-      <div className="relative z-10 min-h-screen w-full px-3 py-4 sm:px-6 sm:py-8">
-        <div className="mx-auto w-full max-w-5xl">
-          <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6">
-            <Link href="/" passHref legacyBehavior>
-              <a className="inline-flex items-center text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
-                <ChevronLeft size={20} className="sm:h-6 sm:w-6" />
-                <span className="ml-2 text-sm sm:text-base">Back</span>
-              </a>
+      <div className="relative z-10 min-h-screen w-full px-4 pt-20 pb-12 sm:px-6 lg:px-8 lg:pt-28 lg:pb-20">
+        <div className="mx-auto w-full max-w-4xl">
+          <div className="mb-6 flex items-center justify-between">
+            <Link href="/" className="inline-flex items-center text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
+              <ChevronLeft size={16} className="mr-1" />
+              Back
             </Link>
-            <h1 className="text-right text-lg font-bold text-[var(--text-primary)] sm:text-2xl">
-              <span className="inline-flex items-center gap-2 sm:gap-3">
-                <Music className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'var(--accent)' }} />
-                My Music
-              </span>
+            <h1 className="text-lg font-semibold text-[var(--text-primary)]">
+              My Music
             </h1>
           </div>
 
           <div className="bento-card">
-            <div className="mb-4 sm:mb-5">
-              <h2 className="text-sm font-semibold text-[var(--text-primary)] sm:text-base">Top Tracks</h2>
+            <div className="mb-4">
+              <h2 className="text-sm font-medium text-[var(--text-primary)]">Top Tracks</h2>
             </div>
 
             <motion.div
               initial={{ y: 12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.25 }}
-              className="mb-5 flex justify-center sm:mb-6"
+              className="mb-5 flex justify-center"
             >
-              <div
-                className="inline-flex rounded-full p-0.5 gap-0.5"
-                style={{
-                  background: 'color-mix(in srgb, var(--text-primary) 5%, transparent)',
-                  border: '1px solid var(--card-border)',
-                }}
-              >
+              <div className="flex items-center gap-0.5 rounded-lg p-0.5 border" style={{ borderColor: 'var(--card-border)' }}>
                 {(["short", "medium", "long"] as Period[]).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPeriod(p)}
-                    className="rounded-full px-3 py-1.5 text-xs transition sm:px-4 font-medium"
+                    className="rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200"
                     style={
                       period === p
-                        ? { background: 'var(--accent)', color: 'var(--accent-text)' }
-                        : { color: 'var(--text-secondary)' }
+                        ? { color: 'var(--accent)', borderBottom: '2px solid var(--accent)' }
+                        : { color: 'var(--text-secondary)', borderBottom: '2px solid transparent' }
                     }
-                    onMouseEnter={(e) => {
-                      if (period !== p) e.currentTarget.style.color = 'var(--text-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (period !== p) e.currentTarget.style.color = 'var(--text-secondary)';
-                    }}
                   >
                     {p === "short" ? "1M" : p === "medium" ? "6M" : "1Y"}
                   </button>
@@ -110,7 +93,6 @@ export default function MusicEmbed() {
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-                  <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent)' }} />
                   Loading tracks...
                 </div>
               </div>
@@ -131,21 +113,14 @@ export default function MusicEmbed() {
                       initial={{ y: 16, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: index * 0.03, duration: 0.25 }}
-                      className="group overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-0.5"
+                      className="overflow-hidden rounded-xl transition-all duration-300"
                       style={{
                         border: '1px solid var(--card-border)',
-                        background: 'color-mix(in srgb, var(--text-primary) 3%, transparent)',
+                        background: 'var(--card-bg)',
                       }}
                     >
-                      <div
-                        className="flex items-center justify-between border-b px-3 py-2"
-                        style={{ borderColor: 'var(--card-border)' }}
-                      >
-                        <p className="truncate text-xs font-medium text-[var(--text-primary)]">{track.title}</p>
-                        <span className="text-[9px] uppercase tracking-wide text-[var(--text-secondary)]">Spotify</span>
-                      </div>
                       <iframe
-                        style={{ borderRadius: "0 0 12px 12px" }}
+                        style={{ borderRadius: "12px" }}
                         src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=1`}
                         width="100%"
                         height="152"

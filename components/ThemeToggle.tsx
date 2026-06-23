@@ -9,14 +9,19 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--text-primary)] shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:shadow-xl"
+      className="fixed bottom-5 right-5 z-50 flex h-8 w-8 items-center justify-center rounded-lg border transition-all duration-200"
+      style={{
+        borderColor: 'var(--card-border)',
+        background: 'var(--card-bg)',
+        color: 'var(--text-secondary)',
+      }}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       type="button"
     >
       {theme === 'dark' ? (
-        <Sun className="h-5 w-5 text-zinc-400" />
+        <Sun className="h-3.5 w-3.5" />
       ) : (
-        <Moon className="h-5 w-5 text-zinc-500" />
+        <Moon className="h-3.5 w-3.5" />
       )}
     </button>
   );
