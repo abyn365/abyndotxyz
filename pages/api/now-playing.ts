@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const artistId = song.item.artists[0].id;
     
-    const artistResponse = await fetch(
+    let artistResponse = await fetch(
       `https://api.spotify.com/v1/artists/${artistId}?market=US&locale=en-US`, 
       {
         headers: {
@@ -39,6 +39,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         cache: 'no-store'
       }
     );
+
+    if (artistResponse.status === 401) {
+      console.warn("Spotify now-playing artist fetch returned 401. Force refreshing token...");
+      const freshTokenResult = await getAccessToken(true);
+      const freshAccessToken = freshTokenResult.access_token;
+
+      artistResponse = await fetch(
+        `https://api.spotify.com/v1/artists/${artistId}?market=US&locale=en-US`, 
+        {
+          headers: {
+            'Authorization': `Bearer ${freshAccessToken}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          cache: 'no-store'
+        }
+      );
+    }
     
     let artistGenres = [];
     let isArtistGenre = false;

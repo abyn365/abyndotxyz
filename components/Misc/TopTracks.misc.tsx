@@ -30,7 +30,7 @@ const TopTracks: NextComponentType = () => {
   if (!data?.tracks) return null;
 
   return (
-    <div className="font-sen flex flex-col gap-2 text-sm text-gray-300">
+    <div className="font-inter flex flex-col gap-2 text-sm text-gray-300">
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between w-full px-4 py-2 bg-zinc-900/50 rounded-lg hover:bg-zinc-900/70 transition-all"

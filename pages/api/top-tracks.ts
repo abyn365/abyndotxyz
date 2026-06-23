@@ -81,10 +81,10 @@ export default async function handler(
   }
 
   try {
-    const { access_token } = await getAccessToken();
+    let { access_token } = await getAccessToken();
 
     // ---------- TOP TRACKS ----------
-    const tracksRes = await fetch(
+    let tracksRes = await fetch(
       `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=50`,
       {
         headers: {
@@ -92,6 +92,22 @@ export default async function handler(
         },
       }
     );
+
+    // If 401 Unauthorized, force refresh the access token and try again
+    if (tracksRes.status === 401) {
+      console.warn("Spotify top-tracks fetch returned 401. Force refreshing token...");
+      const freshTokenResult = await getAccessToken(true);
+      access_token = freshTokenResult.access_token;
+
+      tracksRes = await fetch(
+        `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=50`,
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        }
+      );
+    }
 
     if (tracksRes.status === 429) {
       const retryAfter = Number(tracksRes.headers.get('retry-after'));
@@ -123,12 +139,21 @@ export default async function handler(
     const tracksData: { items: SpotifyTrack[] } =
       await tracksRes.json();
 
+    // Handle case where user has no top tracks to prevent subsequent batch fetch crash
+    if (!tracksData.items || tracksData.items.length === 0) {
+      const responseData = { tracks: [] };
+      await kv.set(cacheKey, responseData, {
+        ex: 300, // cache empty state for 5 minutes
+      });
+      return res.status(200).json(responseData);
+    }
+
     // ---------- BATCH ARTISTS ----------
     const artistIds = [
       ...new Set(tracksData.items.map((t) => t.artists[0].id)),
     ];
 
-    const artistsRes = await fetch(
+    let artistsRes = await fetch(
       `https://api.spotify.com/v1/artists?ids=${artistIds.join(',')}`,
       {
         headers: {
@@ -136,6 +161,22 @@ export default async function handler(
         },
       }
     );
+
+    // If 401 Unauthorized, force refresh the access token and try again
+    if (artistsRes.status === 401) {
+      console.warn("Spotify artists fetch returned 401. Force refreshing token...");
+      const freshTokenResult = await getAccessToken(true);
+      access_token = freshTokenResult.access_token;
+
+      artistsRes = await fetch(
+        `https://api.spotify.com/v1/artists?ids=${artistIds.join(',')}`,
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        }
+      );
+    }
 
     if (artistsRes.status === 429) {
       const retryAfter = Number(artistsRes.headers.get('retry-after'));

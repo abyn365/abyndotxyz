@@ -21,13 +21,13 @@
 
 .dark {
   --click-spark-color: #ffffff;
-  --bg-primary: #09090b;
-  --bg-secondary: #111113;
+  --bg-primary: #000000;
+  --bg-secondary: #09090b;
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
-  --border-color: #27272a;
+  --border-color: rgba(39, 39, 42, 0.45);
   --card-bg: rgba(24, 24, 27, 0.5);
-  --card-border: rgba(39, 39, 42, 0.4);
+  --card-border: rgba(39, 39, 42, 0.3);
   --card-bg-mix: color-mix(in srgb, var(--text-primary) 3%, transparent);
   --social-bg-mix: color-mix(in srgb, var(--text-primary) 5%, transparent);
   --accent: #ffffff;
@@ -37,7 +37,7 @@
 }
 
 body {
-  font-family: "Jost", sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
   cursor: pointer;
   position: relative;
 }

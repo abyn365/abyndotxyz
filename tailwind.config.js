@@ -8,14 +8,14 @@ module.exports = {
     extend: {
       colors: {
         banner: "#c5a78b",
-        primary: "#121212",
+        primary: "#000000",
         surface: {
           light: '#ffffff',
           dark: '#09090b',
         },
         card: {
           light: '#f4f4f5',
-          dark: '#18181b',
+          dark: '#09090b',
         },
         border: {
           light: '#e4e4e7',
@@ -23,8 +23,10 @@ module.exports = {
         }
       },
       fontFamily: {
-        jost: ["Jost", "sans-serif"],
-        sen: ["Sen", "sans-serif"],
+        sans: ["var(--font-geist-sans)", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "monospace"],
+        inter: ["var(--font-inter)", "sans-serif"],
+        geist: ["var(--font-geist-sans)", "sans-serif"],
       },
       screens: {
         custom: "400px",
