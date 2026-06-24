@@ -39,7 +39,7 @@ export default function ProjectsPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="mb-8 rounded-[2rem] border p-6 sm:p-8 backdrop-blur-xl"
+            className="mb-8 rounded-[2rem] border p-6 backdrop-blur-xl sm:p-8"
             style={{
               borderColor: 'var(--card-border)',
               background: 'var(--card-bg)',
