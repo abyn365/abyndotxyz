@@ -238,7 +238,7 @@ const ProgressBar = ({
   const percent = Math.min(Math.max((current / safeTotal) * 100, 0), 100);
 
   return (
-    <div className="h-1 w-full overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
+    <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--accent-bar)]">
       <div
         className="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
         style={{ width: `${percent}%` }}

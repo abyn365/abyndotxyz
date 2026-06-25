@@ -24,7 +24,7 @@
 
   --border-color: rgba(15, 15, 18, 0.1);
 
-  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-bg: rgba(255, 255, 255, 0.95);
   --card-border: rgba(15, 15, 18, 0.08);
 
   --card-bg-mix: rgba(255, 255, 255, 0.95);
@@ -32,10 +32,8 @@
 
   --accent: #0284c7;
   --accent-text: #ffffff;
-  --accent-glow: rgba(2, 132, 199, 0.1);
-  --accent-bar: rgba(2, 132, 199, 0.08);
-
-  --grid-dot: rgba(15, 15, 18, 0.04);
+  --accent-glow: rgba(2, 132, 199, 0.12);
+  --accent-bar: rgba(2, 132, 199, 0.15);
 
   --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 24px rgba(0, 0, 0, 0.04);
 
@@ -58,7 +56,7 @@
 
   --border-color: rgba(255, 255, 255, 0.08);
 
-  --card-bg: rgba(10, 10, 10, 0.94);
+  --card-bg: rgba(10, 10, 10, 0.96);
   --card-border: rgba(255, 255, 255, 0.06);
 
   --card-bg-mix: rgba(255, 255, 255, 0.02);
@@ -66,10 +64,8 @@
 
   --accent: #38bdf8;
   --accent-text: #050505;
-  --accent-glow: rgba(56, 189, 248, 0.08);
-  --accent-bar: rgba(56, 189, 248, 0.08);
-
-  --grid-dot: rgba(255, 255, 255, 0.02);
+  --accent-glow: rgba(56, 189, 248, 0.12);
+  --accent-bar: rgba(56, 189, 248, 0.15);
 
   --card-shadow: 0 1px 1px rgba(0, 0, 0, 0.9), 0 12px 40px rgba(0, 0, 0, 0.45);
 
@@ -96,14 +92,6 @@
 
     touch-action: manipulation;
     overscroll-behavior-y: none;
-
-    background-image: radial-gradient(
-      circle,
-      var(--grid-dot) 1px,
-      transparent 1px
-    );
-
-    background-size: 32px 32px;
   }
 }
 
@@ -195,6 +183,12 @@ click-spark {
   -webkit-backdrop-filter: blur(12px);
 }
 
+/* Glass effect for cards using inline styles */
+[style*="var(--card-bg)"] {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 .bento-card::before {
   content: "";
 
@@ -268,7 +262,8 @@ click-spark {
 }
 
 @media (max-width: 640px) {
-  .bento-card {
+  .bento-card,
+  [style*="var(--card-bg)"] {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }

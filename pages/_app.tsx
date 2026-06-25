@@ -10,6 +10,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ThemeProvider } from "../components/ThemeProvider";
 import Navbar from "../components/Navbar";
 import KeyboardShortcuts from "../components/KeyboardShortcuts";
+import Squares from "../components/Squares";
 
 import "@fontsource/jost/400.css";
 import "@fontsource/jost/500.css";
@@ -93,23 +94,29 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Analytics />
 
       <div className="min-h-screen font-sans">
-        <Navbar />
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <Squares direction="diagonal" speed={0.05} squareSize={32} />
+        </div>
 
-        {/* Page transitions */}
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={router.pathname}
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -3 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-          >
-            <Component {...pageProps} />
-          </motion.div>
-        </AnimatePresence>
+        <div className="relative z-10">
+          <Navbar />
 
-        {/* Global keyboard shortcut handler */}
-        <KeyboardShortcuts />
+          {/* Page transitions */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={router.pathname}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -3 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+            >
+              <Component {...pageProps} />
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Global keyboard shortcut handler */}
+          <KeyboardShortcuts />
+        </div>
       </div>
     </ThemeProvider>
   );

@@ -29,7 +29,7 @@ export default function MusicArtistRow({ group, index, maxPlaycount }: Props) {
           style={{
             width: `${barWidth}%`,
             background:
-              "linear-gradient(90deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent)",
+              "linear-gradient(90deg, var(--accent-bar), transparent)",
           }}
         />
       )}
