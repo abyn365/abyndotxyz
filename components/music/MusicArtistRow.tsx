@@ -11,16 +11,21 @@ export type ArtistGroup = {
   rank: number;
 };
 
-type Props = { group: ArtistGroup; index: number; maxPlaycount: number };
+type Props = {
+  group: ArtistGroup;
+  index: number;
+  maxPlaycount: number;
+};
 
 export default function MusicArtistRow({ group, index, maxPlaycount }: Props) {
-  const barWidth = maxPlaycount > 0 ? (group.totalPlaycount / maxPlaycount) * 100 : 0;
+  const barWidth =
+    maxPlaycount > 0 ? (group.totalPlaycount / maxPlaycount) * 100 : 0;
 
   return (
     <div className="relative">
       {barWidth > 0 && (
         <div
-          className="pointer-events-none absolute inset-y-0 left-0 rounded-xl transition-all duration-700"
+          className="pointer-events-none absolute inset-y-0 left-0 transition-all duration-700"
           style={{
             width: `${barWidth}%`,
             background:
@@ -39,15 +44,31 @@ export default function MusicArtistRow({ group, index, maxPlaycount }: Props) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: Math.min(index * 0.015, 0.2) }}
-        className="group relative grid items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-150 hover:bg-[var(--bg-secondary)]"
-        style={{ gridTemplateColumns: "2rem 3.5rem 1fr auto" }}
+        className="
+          group relative
+          grid grid-cols-[56px_1fr] items-center
+          gap-3 px-3
+          py-3 transition-colors
+          duration-150
+
+          hover:bg-[var(--bg-secondary)]
+          sm:grid-cols-[2rem_3.5rem_1fr_auto]
+        "
       >
+        {/* Rank */}
         <span className="hidden text-right font-mono text-xs tabular-nums text-[var(--text-secondary)] sm:block">
           {String(group.rank).padStart(2, "0")}
         </span>
 
+        {/* Cover */}
         <div
-          className="col-start-1 h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border sm:col-start-2"
+          className="
+            h-14 w-14
+            shrink-0
+            overflow-hidden
+            rounded-lg
+            border
+          "
           style={{ borderColor: "var(--card-border)" }}
         >
           <MusicArtwork
@@ -58,15 +79,25 @@ export default function MusicArtistRow({ group, index, maxPlaycount }: Props) {
           />
         </div>
 
-        <div className="min-w-0">
+        {/* Info */}
+        <div className="min-w-0 overflow-hidden">
           <p className="truncate text-sm font-medium text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
             {group.artist}
           </p>
-          <p className="mt-0.5 font-mono text-xs text-[var(--text-secondary)]">
+
+          <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
             {group.trackCount} {group.trackCount === 1 ? "track" : "tracks"}
           </p>
+
+          {/* Mobile plays */}
+          <div className="mt-1 sm:hidden">
+            <span className="font-mono text-[11px] text-[var(--text-secondary)]">
+              {formatPlaycount(group.totalPlaycount)} plays
+            </span>
+          </div>
         </div>
 
+        {/* Desktop plays */}
         <span className="hidden font-mono text-xs tabular-nums text-[var(--text-secondary)] sm:block">
           {formatPlaycount(group.totalPlaycount)}
         </span>

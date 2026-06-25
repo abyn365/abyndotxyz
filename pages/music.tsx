@@ -199,19 +199,25 @@ export default function MusicPage() {
           }}
         >
           <div
-            className="grid items-center border-b px-3 py-2.5"
+            className="
+              grid grid-cols-[56px_1fr] items-center border-b px-3
+              py-2.5
+              sm:grid-cols-[2rem_3.5rem_1fr_auto]
+            "
             style={{
               borderColor: "var(--card-border)",
-              gridTemplateColumns: "2rem 3.5rem 1fr auto",
             }}
           >
-            <span className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
+            <span className="hidden text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] sm:block">
               #
             </span>
-            <span />
-            <span className="pl-3 font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
+
+            <span className="hidden sm:block" />
+
+            <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
               {viewMode === "tracks" ? "Title" : "Artist"}
             </span>
+
             <span className="hidden font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] sm:block">
               Plays
             </span>
@@ -229,7 +235,9 @@ export default function MusicPage() {
                   <div
                     key={i}
                     className="border-b last:border-0"
-                    style={{ borderColor: "var(--card-border)" }}
+                    style={{
+                      borderColor: "rgba(255,255,255,0.03)",
+                    }}
                   >
                     <MusicTrackSkeleton index={i} />
                   </div>

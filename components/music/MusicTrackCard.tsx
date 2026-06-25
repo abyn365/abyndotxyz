@@ -18,17 +18,34 @@ export default function MusicTrackCard({
   const barWidth =
     maxPlaycount > 0 ? (track.playcount / maxPlaycount) * 100 : 0;
 
+  const showBar = barWidth > 0;
+
   return (
-    <div className="relative">
-      {barWidth > 0 && (
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 rounded-xl transition-all duration-700"
-          style={{
-            width: `${barWidth}%`,
-            background:
-              "linear-gradient(90deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent)",
-          }}
-        />
+    <div className="relative overflow-hidden">
+      {/* Top tracks background */}
+      {showBar && barWidth > 0 && (
+        <>
+          {/* Soft glow layer */}
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 transition-all duration-700"
+            style={{
+              width: `${barWidth}%`,
+              background:
+                "linear-gradient(90deg, rgba(56,189,248,0.08), rgba(56,189,248,0.03) 70%, transparent)",
+              filter: "blur(10px)",
+            }}
+          />
+
+          {/* Main bar */}
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 transition-all duration-700"
+            style={{
+              width: `${barWidth}%`,
+              background:
+                "linear-gradient(90deg, var(--accent-bar) 0%, rgba(56,189,248,0.04) 55%, transparent 100%)",
+            }}
+          />
+        </>
       )}
 
       <motion.a
@@ -38,16 +55,45 @@ export default function MusicTrackCard({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: Math.min(index * 0.015, 0.2) }}
-        className="group relative grid items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-150 hover:bg-[var(--bg-secondary)]"
-        style={{ gridTemplateColumns: "2rem 3.5rem 1fr auto" }}
+        className="
+          group
+          relative
+          grid
+          grid-cols-[56px_1fr]
+          items-center
+          gap-3
+          px-3
+          py-3
+          transition-all
+          duration-200
+
+          hover:bg-[rgba(56,189,248,0.04)]
+
+          sm:grid-cols-[2rem_3.5rem_1fr_auto]
+        "
       >
+        {/* Rank */}
         <span className="hidden text-right font-mono text-xs tabular-nums text-[var(--text-secondary)] sm:block">
           {String(track.rank).padStart(2, "0")}
         </span>
 
+        {/* Cover */}
         <div
-          className="col-start-1 h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border sm:col-start-2"
-          style={{ borderColor: "var(--card-border)" }}
+          className="
+            h-14
+            w-14
+            shrink-0
+            overflow-hidden
+            rounded-lg
+            border
+            transition-all
+            duration-200
+
+            group-hover:border-sky-400/20
+          "
+          style={{
+            borderColor: "var(--card-border)",
+          }}
         >
           <MusicArtwork
             src={track.cover}
@@ -57,21 +103,55 @@ export default function MusicTrackCard({
           />
         </div>
 
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
+        {/* Info */}
+        <div className="min-w-0 overflow-hidden">
+          <p
+            className="
+              truncate
+              text-sm
+              font-medium
+              text-[var(--text-primary)]
+              transition-colors
+
+              group-hover:text-[var(--accent)]
+            "
+          >
             {track.title}
           </p>
+
           <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-[var(--text-secondary)]">
             <span className="truncate">{track.artist}</span>
+
             {artistCount > 1 && (
               <span className="shrink-0 font-mono text-[9px] opacity-50">
                 ×{artistCount}
               </span>
             )}
           </p>
+
+          {/* Mobile playcount */}
+          <div className="mt-1 sm:hidden">
+            <span className="font-mono text-[11px] text-[var(--text-secondary)]">
+              {formatPlaycount(track.playcount)} plays
+            </span>
+          </div>
         </div>
 
-        <span className="hidden font-mono text-xs tabular-nums text-[var(--text-secondary)] sm:block">
+        {/* Desktop playcount */}
+        <span
+          className="
+            hidden
+            font-mono
+            text-xs
+            tabular-nums
+            text-[var(--text-secondary)]
+
+            transition-colors
+
+            group-hover:text-[var(--accent)]
+            sm:block
+          "
+        >
           {formatPlaycount(track.playcount)}
         </span>
       </motion.a>

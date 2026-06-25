@@ -3,31 +3,42 @@
 @tailwind components;
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   DESIGN TOKENS — neutral + indigo
+   DESIGN TOKENS — minimal neutral + sky accent
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 :root {
-  /* ── Light: clean neutral ── */
+  /* Typography */
   --font-sans: "Jost";
   --font-display: "Sen";
   --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
     "Courier New", monospace;
 
-  --click-spark-color: #0e0e14;
-  --bg-primary: #f9f9fb;
-  --bg-secondary: #f0f0f4;
-  --text-primary: #0e0e14;
-  --text-secondary: #636378;
-  --border-color: rgba(14, 14, 20, 0.12);
-  --card-bg: #ffffff;
-  --card-border: rgba(14, 14, 20, 0.1);
-  --card-bg-mix: rgba(250, 250, 252, 0.95);
-  --social-bg-mix: rgba(244, 244, 248, 0.9);
+  /* Light theme */
+  --click-spark-color: #0f0f12;
+
+  --bg-primary: #fafafa;
+  --bg-secondary: #f4f4f5;
+
+  --text-primary: #0f0f12;
+  --text-secondary: #71717a;
+
+  --border-color: rgba(15, 15, 18, 0.1);
+
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-border: rgba(15, 15, 18, 0.08);
+
+  --card-bg-mix: rgba(255, 255, 255, 0.95);
+  --social-bg-mix: rgba(248, 248, 250, 0.92);
+
   --accent: #0284c7;
   --accent-text: #ffffff;
   --accent-glow: rgba(2, 132, 199, 0.1);
-  --grid-dot: rgba(14, 14, 20, 0.055);
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --accent-bar: rgba(2, 132, 199, 0.08);
+
+  --grid-dot: rgba(15, 15, 18, 0.04);
+
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 24px rgba(0, 0, 0, 0.04);
+
   --status-online: #16a34a;
   --status-idle: #d97706;
   --status-dnd: #dc2626;
@@ -35,26 +46,37 @@
 }
 
 .dark {
-  /* ── Dark: neutral charcoal — sky accent ── */
-  --click-spark-color: #ededf0;
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #111116;
-  --text-primary: #ededf0;
-  --text-secondary: #888899;
-  --border-color: rgba(100, 100, 120, 0.25);
-  --card-bg: rgba(15, 15, 20, 0.96);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-bg-mix: color-mix(in srgb, var(--text-primary) 3%, transparent);
-  --social-bg-mix: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  /* ── Elegant pure dark ── */
+
+  --click-spark-color: #f5f5f5;
+
+  --bg-primary: #050505;
+  --bg-secondary: #0b0b0b;
+
+  --text-primary: #f5f5f5;
+  --text-secondary: #a1a1aa;
+
+  --border-color: rgba(255, 255, 255, 0.08);
+
+  --card-bg: rgba(10, 10, 10, 0.94);
+  --card-border: rgba(255, 255, 255, 0.06);
+
+  --card-bg-mix: rgba(255, 255, 255, 0.02);
+  --social-bg-mix: rgba(255, 255, 255, 0.03);
+
   --accent: #38bdf8;
-  --accent-text: #0a0a0f;
-  --accent-glow: rgba(56, 189, 248, 0.12);
-  --grid-dot: rgba(255, 255, 255, 0.035);
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --accent-text: #050505;
+  --accent-glow: rgba(56, 189, 248, 0.08);
+  --accent-bar: rgba(56, 189, 248, 0.08);
+
+  --grid-dot: rgba(255, 255, 255, 0.02);
+
+  --card-shadow: 0 1px 1px rgba(0, 0, 0, 0.9), 0 12px 40px rgba(0, 0, 0, 0.45);
+
   --status-online: #4ade80;
   --status-idle: #fb923c;
   --status-dnd: #f87171;
-  --status-offline: #6b7280;
+  --status-offline: #71717a;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -64,19 +86,24 @@
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
   }
 
   body {
     @apply bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300;
+
     font-family: var(--font-sans), system-ui, sans-serif;
+
     touch-action: manipulation;
     overscroll-behavior-y: none;
+
     background-image: radial-gradient(
       circle,
       var(--grid-dot) 1px,
       transparent 1px
     );
-    background-size: 24px 24px;
+
+    background-size: 32px 32px;
   }
 }
 
@@ -85,6 +112,7 @@ body {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
 body::-webkit-scrollbar {
   display: none;
 }
@@ -113,6 +141,7 @@ click-spark {
   100% {
     opacity: 0.45;
   }
+
   50% {
     opacity: 0.85;
   }
@@ -126,6 +155,7 @@ click-spark {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -140,6 +170,7 @@ click-spark {
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.65;
   }
@@ -150,18 +181,50 @@ click-spark {
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   BENTO — kept for DiscordStatus component
+   BENTO CARDS
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 .bento-card {
   @apply relative overflow-hidden rounded-2xl border p-4 transition-all duration-300 sm:p-5;
+
   background: var(--card-bg);
   border-color: var(--card-border);
   box-shadow: var(--card-shadow);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bento-card::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background: radial-gradient(
+    circle at top left,
+    rgba(255, 255, 255, 0.04),
+    transparent 55%
+  );
+
+  opacity: 0;
+  transition: opacity 300ms ease;
 }
 
 .bento-card:hover {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--card-border));
+  transform: translateY(-1px);
+
+  background: color-mix(in srgb, var(--card-bg) 96%, white);
+
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--card-border));
+
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 16px 48px rgba(0, 0, 0, 0.28);
+}
+
+.bento-card:hover::before {
+  opacity: 1;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -172,12 +235,14 @@ click-spark {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
 .badge-tag {
   @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+
   background: var(--bg-secondary);
   border: 1px solid var(--card-border);
   color: var(--text-secondary);
@@ -186,7 +251,7 @@ click-spark {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
