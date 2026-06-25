@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
   ChevronDown,
@@ -92,8 +92,6 @@ function CollapsibleSection({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const [overflowVisible, setOverflowVisible] = useState(defaultOpen);
-
   return (
     <section>
       <button
@@ -117,22 +115,7 @@ function CollapsibleSection({
         </span>
       </button>
 
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            key="body"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            onAnimationStart={() => setOverflowVisible(false)}
-            onAnimationComplete={() => setOverflowVisible(open)}
-            style={{ overflow: overflowVisible ? "visible" : "hidden" }}
-            transition={{ duration: 0.22, ease: "easeInOut" }}
-          >
-            <div className="mt-5">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {open && <div className="mt-5">{children}</div>}
     </section>
   );
 }
