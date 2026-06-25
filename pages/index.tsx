@@ -501,7 +501,7 @@ export function PageFooter() {
       <span className="mx-2" style={{ color: "var(--card-border)" }}>
         ·
       </span>
-      <span className="opacity-50">press ? for shortcuts</span>
+      <span className="opacity-50">press /? for shortcuts</span>
     </footer>
   );
 }
