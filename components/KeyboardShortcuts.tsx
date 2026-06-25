@@ -9,7 +9,7 @@ const SHORTCUTS = [
   { key: "m", label: "Music", description: "Go to /music" },
   { key: "u", label: "Uses", description: "Go to /uses" },
   { key: "g", label: "GitHub", description: "Open GitHub profile" },
-  { key: "?", label: "?", description: "Open / close this panel" },
+  { key: "?", label: "/?", description: "Open / close this panel" },
   { key: "Esc", label: "Esc", description: "Close panel" },
 ];
 
@@ -48,6 +48,7 @@ export default function KeyboardShortcuts() {
           router.push("/uses");
           break;
         case "?":
+        case "/":
           setOpen((o) => !o);
           break;
         case "Escape":
