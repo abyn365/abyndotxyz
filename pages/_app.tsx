@@ -1,127 +1,115 @@
 import type { AppProps } from "next/app";
 import { useEffect } from "react";
+import { useRouter } from "next/router";
 import { Analytics } from "@vercel/analytics/react";
 import { NextSeo } from "next-seo";
 import Head from "next/head";
 import Script from "next/script";
-import { ThemeProvider } from "../components/ThemeProvider";
-import ThemeToggle from "../components/ThemeToggle";
-import Navbar from "../components/Navbar";
+import { AnimatePresence, motion } from "framer-motion";
 
+import { ThemeProvider } from "../components/ThemeProvider";
+import Navbar from "../components/Navbar";
+import KeyboardShortcuts from "../components/KeyboardShortcuts";
+
+import "@fontsource/jost/400.css";
+import "@fontsource/jost/500.css";
+import "@fontsource/jost/600.css";
+import "@fontsource/jost/700.css";
+import "@fontsource/sen/400.css";
+import "@fontsource/sen/700.css";
 import "../styles/globals.css";
 import "../components/ClickSpark/ClickSpark";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
-
-const geistSans = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-});
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
 
 function MyApp({ Component, pageProps }: AppProps) {
-  useEffect(() => {
-    const clickSpark = document.createElement("click-spark");
-    document.body.appendChild(clickSpark);
+  const router = useRouter();
 
+  useEffect(() => {
+    const el = document.createElement("click-spark");
+    document.body.appendChild(el);
     return () => {
-      document.body.removeChild(clickSpark);
+      document.body.removeChild(el);
     };
   }, []);
 
   return (
     <ThemeProvider>
-      <div className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} font-sans min-h-screen`}>
-        {/* Umami Analytics */}
-        {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID &&
-          process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL && (
-            <Script
-              src={process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL}
-              data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
-              strategy="afterInteractive"
-            />
-          )}
-
-        {/* Google Analytics */}
-        <Script
-          strategy="lazyOnload"
-          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}`}
+      <Head>
+        <meta property="og:title" content="Abyan — student developer" />
+        <meta
+          property="og:description"
+          content="Building things from Indonesia."
         />
-        <Script id="google-analytics" strategy="lazyOnload">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}', {
-              page_path: window.location.pathname,
-            });
-          `}
-        </Script>
+        <meta property="og:image" content="https://abyn.xyz/api/og" />
+        <meta property="og:url" content="https://abyn.xyz" />
+        <meta property="og:type" content="website" />
+      </Head>
 
-        <Analytics />
-
-        <NextSeo
-          title="Abyan - Software Developer & Builder"
-          description="Abyan (/uh-bee-an/) - student and software developer building web projects, tools, and experiments. Portfolio, projects, and contact links."
-          canonical="https://abyn.xyz"
-          openGraph={{
-            type: "website",
-            locale: "en_US",
-            url: "https://abyn.xyz",
-            siteName: "abyn.xyz - Portfolio & Projects",
-            title: "Abyan - Software Developer & Builder",
-            description: "Abyan (/uh-bee-an/) - student and software developer building web projects, tools, and experiments.",
-            images: [
-              {
-                url: "https://abyn.xyz/banner.png",
-                width: 1200,
-                height: 630,
-                alt: "Abyan - software developer",
-                type: "image/png",
-              },
-            ],
-          }}
-          twitter={{
-            cardType: "summary_large_image",
-            handle: "@abyn_1",
-            site: "@abyn_1",
-          }}
-          additionalMetaTags={[
+      <NextSeo
+        title="abyn — student developer"
+        description="Abyan (/uh-bee-an/) — student developer from Indonesia building small, thoughtful things for the web."
+        canonical="https://abyn.xyz"
+        openGraph={{
+          type: "website",
+          locale: "en_US",
+          url: "https://abyn.xyz",
+          siteName: "abyn.xyz",
+          title: "abyn — student developer",
+          description: "Building small, thoughtful things for the web.",
+          images: [
             {
-              name: "keywords",
-              content:
-                "Abyan, software developer, portfolio, projects, web developer, builder",
+              url: "https://abyn.xyz/api/og",
+              width: 1200,
+              height: 630,
+              alt: "abyn.xyz",
+              type: "image/png",
             },
-            {
-              name: "author",
-              content: "Abyan",
-            },
-            {
-              name: "theme-color",
-              content: "#000000",
-            },
-          ]}
-        />
+          ],
+        }}
+        twitter={{ cardType: "summary_large_image", handle: "@abyn_1" }}
+        additionalMetaTags={[
+          { name: "author", content: "Abyan" },
+          { name: "theme-color", content: "#0a0a0f" },
+        ]}
+      />
 
-        <Head>
-          <meta property="og:title" content="Abyan - Software Developer & Builder" />
-          <meta property="og:description" content="Abyan (/uh-bee-an/) - student and software developer building web projects, tools, and experiments." />
-          <meta property="og:image" content="https://abyn.xyz/banner.png" />
-          <meta property="og:url" content="https://abyn.xyz" />
-          <meta property="og:type" content="website" />
-        </Head>
+      {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID &&
+        process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL && (
+          <Script
+            src={process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL}
+            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+            strategy="afterInteractive"
+          />
+        )}
+      <Script
+        strategy="lazyOnload"
+        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}`}
+      />
+      <Script id="ga" strategy="lazyOnload">{`
+        window.dataLayer=window.dataLayer||[];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js',new Date());
+        gtag('config','${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}',{page_path:window.location.pathname});
+      `}</Script>
+      <Analytics />
 
+      <div className="min-h-screen font-sans">
         <Navbar />
-        <Component {...pageProps} />
-        <ThemeToggle />
+
+        {/* Page transitions */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={router.pathname}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -3 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+          >
+            <Component {...pageProps} />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Global keyboard shortcut handler */}
+        <KeyboardShortcuts />
       </div>
     </ThemeProvider>
   );

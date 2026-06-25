@@ -1,117 +1,86 @@
 import type { NextComponentType } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import useSWR from "swr";
-import { fetcher } from "../../lib/fetcher";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-
-type Track = {
-  artist: string;
-  title: string;
-  songUrl: string;
-  cover: string;
-  albumYear: string;
-  popularity: number;
-  genre: string[];
-  isArtistGenre: boolean;
-  duration: number;
-};
-
-const formatDuration = (ms: number) => {
-  const minutes = Math.floor(ms / 60000);
-  const seconds = ((ms % 60000) / 1000).toFixed(0);
-  return `${minutes}:${parseInt(seconds) < 10 ? '0' : ''}${seconds}`;
-};
+import MusicArtwork from "../music/MusicArtwork";
+import { useTopTracks } from "../../hooks/useTopTracks";
+import { formatPlaycount } from "../../lib/music";
 
 const TopTracks: NextComponentType = () => {
-  const { data } = useSWR<{ tracks: Track[] }>("/api/top-tracks", fetcher);
+  const { tracks } = useTopTracks();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!data?.tracks) return null;
+  if (!tracks.length) return null;
 
   return (
-    <div className="font-inter flex flex-col gap-2 text-sm text-gray-300">
-      <button 
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between w-full px-4 py-2 bg-zinc-900/50 rounded-lg hover:bg-zinc-900/70 transition-all"
+    <div className="flex flex-col gap-2 text-sm text-[var(--text-secondary)]">
+      <button
+        type="button"
+        onClick={() => setIsExpanded((value) => !value)}
+        className="flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all duration-300"
+        style={{
+          background: "color-mix(in srgb, var(--text-primary) 5%, transparent)",
+          borderColor: "var(--card-border)",
+        }}
       >
-        <span className="text-white hover:text-[var(--accent)] transition-colors truncate">My Top Tracks</span>
-        <svg 
-          className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <div>
+          <p className="font-display text-base font-bold text-[var(--text-primary)]">
+            Top Tracks
+          </p>
+          <p className="text-xs text-[var(--text-secondary)]">
+            Quick look from Last.fm
+          </p>
+        </div>
+        <ChevronDown
+          className={`h-4 w-4 transition-transform ${
+            isExpanded ? "rotate-180" : ""
+          }`}
+        />
       </button>
-      
+
       {isExpanded && (
-        <div className="flex flex-col gap-y-2 mt-1">
-          {data.tracks.map((track, index) => (
-            <div key={track.songUrl} className="flex flex-col">
-              <Link 
-                href={track.songUrl}
-                className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors"
-                target="_blank"
-                rel="noopener noreferrer"
+        <div className="grid gap-2">
+          {tracks.slice(0, 10).map((track) => (
+            <Link
+              key={`${track.songUrl}-${track.rank}`}
+              href={track.songUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-3 rounded-2xl border p-3 transition-all duration-300 hover:-translate-y-0.5"
+              style={{
+                borderColor: "var(--card-border)",
+                background: "var(--card-bg)",
+              }}
+            >
+              <span className="w-5 text-right text-xs font-medium tabular-nums text-[var(--text-secondary)]">
+                {track.rank}
+              </span>
+
+              <div
+                className="h-11 w-11 overflow-hidden rounded-xl border"
+                style={{ borderColor: "var(--card-border)" }}
               >
-              <span className="text-gray-400 w-4">{index + 1}</span>
-              <Image
-                src={track.cover}
-                width={40}
-                height={40}
-                alt={track.title}
-                className="rounded"
-              />
-              <div className="flex flex-col overflow-hidden">
-                <p className="text-white truncate hover:text-[var(--accent)] transition-colors ">
+                <MusicArtwork
+                  src={track.cover}
+                  alt={`${track.title} cover art`}
+                  className="h-full w-full object-cover"
+                  iconClassName="h-4 w-4 opacity-25"
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
                   {track.title}
                 </p>
-                <p className="text-gray-400 text-xs truncate">
+                <p className="truncate text-xs text-[var(--text-secondary)]">
                   {track.artist}
                 </p>
               </div>
+
+              <span className="text-[10px] tabular-nums text-[var(--text-secondary)] opacity-70">
+                {formatPlaycount(track.playcount)}
+              </span>
             </Link>
-              
-              {/* Add stats section */}
-              <div className="ml-11 mt-1 flex flex-col gap-2 text-xs text-gray-400">
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="flex flex-col gap-1">
-                    <span className="opacity-50 text-[10px]">Year</span>
-                    <span className="text-white">{track.albumYear || 'N/A'}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="opacity-50 text-[10px]">Duration</span>
-                    <span className="text-white">{formatDuration(track.duration)}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="opacity-50 text-[10px]">Popularity</span>
-                    <div className="w-16 h-1.5 bg-gray-700 rounded-full">
-                      <div 
-                        className="h-full bg-[var(--accent)] rounded-full" 
-                        style={{ width: `${track.popularity || 0}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-                {track.genre && track.genre.length > 0 && (
-                  <div className="flex flex-wrap gap-1 items-center pt-1 border-t border-gray-700">
-                    <span className="opacity-50 text-[10px]">
-                      {track.isArtistGenre ? 'Artist Genre:' : 'Track Genre:'}
-                    </span>
-                    {track.genre.slice(0, 3).map((genre) => (
-                      <span 
-                        key={genre}
-                        className="px-2 py-0.5 bg-white/5 hover:bg-white/10 rounded-full text-[10px] transition-colors"
-                      >
-                        {genre}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           ))}
         </div>
       )}

@@ -1,243 +1,307 @@
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import Squares from "../components/Squares";
-import { Music, ChevronLeft } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { NextSeo } from "next-seo";
+import { Headphones } from "lucide-react";
+import { useMemo, useState } from "react";
+import MusicArtwork from "../components/music/MusicArtwork";
+import MusicArtistRow, {
+  type ArtistGroup,
+} from "../components/music/MusicArtistRow";
+import MusicPeriodTabs from "../components/music/MusicPeriodTabs";
+import MusicTrackCard from "../components/music/MusicTrackCard";
+import MusicTrackSkeleton from "../components/music/MusicTrackSkeleton";
+import { useTopTracks } from "../hooks/useTopTracks";
+import {
+  DEFAULT_MUSIC_PERIOD,
+  MUSIC_PERIODS,
+  formatPlaycount,
+  type MusicPeriod,
+  type MusicTrack,
+} from "../lib/music";
+import { PageFooter } from "./index";
 
-type Track = {
-  artist: string;
-  title: string;
-  songUrl: string;
-  cover: string;
-  albumYear: string;
-  popularity: number;
-};
+type ViewMode = "tracks" | "artists";
 
-type Period = "short" | "medium" | "long";
+export default function MusicPage() {
+  const [period, setPeriod] = useState<MusicPeriod>(DEFAULT_MUSIC_PERIOD);
+  const [viewMode, setViewMode] = useState<ViewMode>("tracks");
+  const { tracks, isLoading } = useTopTracks(period);
 
-const PERIODS: { value: Period; label: string }[] = [
-  { value: "short", label: "1M" },
-  { value: "medium", label: "6M" },
-  { value: "long", label: "1Y" },
-];
+  const activePeriod =
+    MUSIC_PERIODS.find((p) => p.value === period) ?? MUSIC_PERIODS[0];
+  const top = tracks[0];
 
-function PeriodButton({
-  value,
-  label,
-  active,
-  onClick,
-}: {
-  value: Period;
-  label: string;
-  active: boolean;
-  onClick: (period: Period) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onClick(value)}
-      className="rounded-full px-3 py-1.5 text-xs font-medium transition sm:px-4"
-      style={
-        active
-          ? { background: "var(--accent)", color: "var(--accent-text)" }
-          : { color: "var(--text-secondary)" }
-      }
-    >
-      {label}
-    </button>
+  const maxPlaycount = tracks.reduce((m, t) => Math.max(m, t.playcount), 0);
+
+  const totalScrobbles = tracks.reduce((s, t) => s + t.playcount, 0);
+
+  const artistCounts = useMemo(
+    () =>
+      tracks.reduce<Record<string, number>>((acc, t) => {
+        acc[t.artist] = (acc[t.artist] ?? 0) + 1;
+        return acc;
+      }, {}),
+    [tracks]
   );
-}
 
-function TrackCard({ track, index }: { track: Track; index: number }) {
-  const big = index % 10 === 0;
-  const tall = index % 7 === 0;
+  const artistGroups = useMemo((): ArtistGroup[] => {
+    const grouped = tracks.reduce<Record<string, MusicTrack[]>>((acc, t) => {
+      (acc[t.artist] ??= []).push(t);
+      return acc;
+    }, {});
 
-  const mobileShape = big
-    ? "aspect-[4/5]"
-    : tall
-      ? "aspect-[5/6]"
-      : "aspect-square";
+    return Object.entries(grouped)
+      .map(([artist, artistTracks]) => {
+        const sorted = [...artistTracks].sort(
+          (a, b) => b.playcount - a.playcount
+        );
+        return {
+          artist,
+          totalPlaycount: artistTracks.reduce((s, t) => s + t.playcount, 0),
+          trackCount: artistTracks.length,
+          topCover: sorted[0]?.cover ?? "",
+          lastFmUrl: sorted[0]?.songUrl?.replace(/_\/.*/, "") ?? "",
+          rank: 0,
+        };
+      })
+      .sort((a, b) => b.totalPlaycount - a.totalPlaycount)
+      .map((g, i) => ({ ...g, rank: i + 1 }));
+  }, [tracks]);
+
+  const maxArtistPlaycount = artistGroups.reduce(
+    (m, g) => Math.max(m, g.totalPlaycount),
+    0
+  );
 
   return (
-    <motion.a
-      href={track.songUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      initial={{ y: 16, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ delay: index * 0.03, duration: 0.25 }}
-      className={[
-        "group relative block w-full overflow-hidden rounded-2xl transition duration-300",
-        "break-inside-avoid mb-3 md:mb-0",
-        mobileShape,
-        "md:aspect-square",
-        big ? "md:col-span-2 md:row-span-2" : "",
-      ].join(" ")}
-      style={{
-        border: "1px solid var(--card-border)",
-        background: "color-mix(in srgb, var(--text-primary) 3%, transparent)",
-      }}
-    >
-      <img
-        src={track.cover}
-        alt={`${track.title} cover art`}
-        loading="lazy"
-        decoding="async"
-        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:brightness-50"
+    <>
+      <NextSeo
+        title="music — abyn"
+        description="Top tracks and scrobble history via Last.fm."
+        canonical="https://abyn.xyz/music"
       />
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent opacity-90 transition duration-300 group-hover:from-black/85" />
-
-      <div
-        className={[
-          "absolute inset-3 z-20 flex flex-col justify-end transition duration-300",
-          "opacity-100 md:opacity-0 md:group-hover:opacity-100",
-          "translate-y-0 md:translate-y-2 md:group-hover:translate-y-0",
-          big ? "md:inset-4" : "",
-        ].join(" ")}
-      >
-        <p
-          className={[
-            "mb-1 line-clamp-2 font-bold leading-tight text-white",
-            big ? "sm:text-xl" : "text-sm sm:text-base",
-          ].join(" ")}
+      <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
         >
-          {track.title}
-        </p>
-        <p className="line-clamp-1 text-xs text-white/80 sm:text-sm">
-          {track.artist}
-        </p>
-      </div>
-    </motion.a>
-  );
-}
-
-export default function MusicEmbed() {
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [period, setPeriod] = useState<Period>("short");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchTracks = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/top-tracks?period=${period}`, {
-          signal: controller.signal,
-        });
-        const data = await res.json();
-
-        if (!controller.signal.aborted) {
-          setTracks(data?.error ? [] : data?.tracks ?? []);
-        }
-      } catch {
-        if (!controller.signal.aborted) {
-          setTracks([]);
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchTracks();
-    return () => controller.abort();
-  }, [period]);
-
-  return (
-    <div className="relative min-h-screen w-full overflow-hidden">
-      <div className="fixed inset-0 z-0">
-        <Squares speed={0.15} squareSize={40} direction="diagonal" />
-      </div>
-
-      <div className="relative z-10 min-h-screen w-full px-3 py-4 sm:px-6 sm:py-8">
-        <div className="mx-auto w-full max-w-6xl">
-          <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6">
-            <Link
-              href="/"
-              className="inline-flex items-center text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-            >
-              <ChevronLeft size={20} className="sm:h-6 sm:w-6" />
-              <span className="ml-2 text-sm sm:text-base">Back</span>
-            </Link>
-
-            <h1 className="text-right text-lg font-bold text-[var(--text-primary)] sm:text-2xl">
-              <span className="inline-flex items-center gap-2 sm:gap-3">
-                <Music
-                  className="h-5 w-5 sm:h-6 sm:w-6"
-                  style={{ color: "var(--accent)" }}
-                />
-                My Music
-              </span>
+          <div>
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
+              03 — Tracklist
+            </p>
+            <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
+              Music
             </h1>
+            <p className="mt-2 font-mono text-xs text-[var(--text-secondary)]">
+              via Last.fm · {activePeriod.description}
+              {!isLoading &&
+                totalScrobbles > 0 &&
+                ` · ${formatPlaycount(totalScrobbles)} plays`}
+            </p>
           </div>
 
-          <div className="mb-6 sm:mb-8">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)] sm:text-base">
-              Top Tracks
-            </h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <MusicPeriodTabs
+              active={period}
+              onChange={(p) => {
+                setPeriod(p);
+                setViewMode("tracks");
+              }}
+            />
 
-            <motion.div
-              initial={{ y: 12, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.25 }}
-              className="mt-4 flex justify-center"
+            <div
+              className="inline-flex items-center gap-0.5 rounded-full border p-0.5"
+              style={{
+                borderColor: "var(--card-border)",
+                background: "var(--bg-secondary)",
+              }}
             >
-              <div
-                className="inline-flex gap-0.5 rounded-full p-0.5"
-                style={{
-                  background: "color-mix(in srgb, var(--text-primary) 5%, transparent)",
-                  border: "1px solid var(--card-border)",
-                }}
-              >
-                {PERIODS.map(({ value, label }) => (
-                  <PeriodButton
-                    key={value}
-                    value={value}
-                    label={label}
-                    active={period === value}
-                    onClick={setPeriod}
-                  />
-                ))}
+              {(["tracks", "artists"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setViewMode(mode)}
+                  className="rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+                  style={{
+                    background:
+                      viewMode === mode ? "var(--accent)" : "transparent",
+                    color:
+                      viewMode === mode
+                        ? "var(--accent-text)"
+                        : "var(--text-secondary)",
+                  }}
+                >
+                  {mode === "tracks" ? "Tracks" : "Artists"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {!isLoading && top && viewMode === "tracks" && (
+          <motion.a
+            href={top.songUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.04 }}
+            className="group mb-8 flex items-center gap-5 rounded-2xl border p-4 transition-all duration-200 hover:-translate-y-0.5 sm:p-5"
+            style={{
+              borderColor: "var(--card-border)",
+              background: "var(--card-bg)",
+              boxShadow: "var(--card-shadow)",
+            }}
+          >
+            <div
+              className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border sm:h-24 sm:w-24"
+              style={{ borderColor: "var(--card-border)" }}
+            >
+              <MusicArtwork
+                src={top.cover}
+                alt={`${top.title} cover`}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-[var(--accent)]">
+                01 · Top track
               </div>
-            </motion.div>
+              <p className="font-display text-xl font-bold text-[var(--text-primary)] group-hover:text-[var(--accent)] sm:text-2xl">
+                {top.title}
+              </p>
+              <p className="mt-0.5 text-sm text-[var(--text-secondary)]">
+                {top.artist}
+              </p>
+            </div>
+            <div className="hidden shrink-0 text-right sm:block">
+              <div className="flex items-center gap-1.5 font-mono text-xs text-[var(--text-secondary)]">
+                <Headphones className="h-3.5 w-3.5" />
+                {formatPlaycount(top.playcount)}
+              </div>
+              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
+                scrobbles
+              </p>
+            </div>
+          </motion.a>
+        )}
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.08 }}
+          className="overflow-hidden rounded-2xl border"
+          style={{
+            borderColor: "var(--card-border)",
+            background: "var(--card-bg)",
+          }}
+        >
+          <div
+            className="grid items-center border-b px-3 py-2.5"
+            style={{
+              borderColor: "var(--card-border)",
+              gridTemplateColumns: "2rem 3.5rem 1fr auto",
+            }}
+          >
+            <span className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
+              #
+            </span>
+            <span />
+            <span className="pl-3 font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
+              {viewMode === "tracks" ? "Title" : "Artist"}
+            </span>
+            <span className="hidden font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] sm:block">
+              Plays
+            </span>
           </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-                <div
-                  className="h-1.5 w-1.5 animate-pulse rounded-full"
-                  style={{ backgroundColor: "var(--accent)" }}
-                />
-                Loading tracks...
-              </div>
-            </div>
-          ) : tracks.length > 0 ? (
-            <>
+          <AnimatePresence mode="wait">
+            {isLoading ? (
               <motion.div
-                key={period}
+                key={`loading-${period}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="columns-2 gap-3 sm:columns-3 md:columns-1 md:grid md:grid-cols-4 md:gap-3 lg:grid-cols-5 xl:grid-cols-6"
+                exit={{ opacity: 0 }}
               >
-                {tracks.map((track, index) => (
-                  <TrackCard key={track.songUrl} track={track} index={index} />
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="border-b last:border-0"
+                    style={{ borderColor: "var(--card-border)" }}
+                  >
+                    <MusicTrackSkeleton index={i} />
+                  </div>
                 ))}
               </motion.div>
-            </>
-          ) : (
-            <div className="flex items-center justify-center py-16">
-              <div className="text-xs text-[var(--text-secondary)]">
-                No tracks found
-              </div>
-            </div>
-          )}
+            ) : viewMode === "tracks" && tracks.length > 0 ? (
+              <motion.div
+                key={`tracks-${period}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {tracks.map((track, index) => (
+                  <div
+                    key={`${track.songUrl}-${track.rank}`}
+                    className="border-b last:border-0"
+                    style={{ borderColor: "var(--card-border)" }}
+                  >
+                    <MusicTrackCard
+                      track={track}
+                      index={index}
+                      maxPlaycount={maxPlaycount}
+                      artistCount={artistCounts[track.artist]}
+                    />
+                  </div>
+                ))}
+              </motion.div>
+            ) : viewMode === "artists" && artistGroups.length > 0 ? (
+              <motion.div
+                key={`artists-${period}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {artistGroups.map((group, index) => (
+                  <div
+                    key={group.artist}
+                    className="border-b last:border-0"
+                    style={{ borderColor: "var(--card-border)" }}
+                  >
+                    <MusicArtistRow
+                      group={group}
+                      index={index}
+                      maxPlaycount={maxArtistPlaycount}
+                    />
+                  </div>
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`empty-${period}-${viewMode}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="px-6 py-14 text-center"
+              >
+                <p className="font-display text-xl font-bold text-[var(--text-primary)]">
+                  No tracks found
+                </p>
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                  Nothing was scrobbled in this window.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        <div className="mt-12">
+          <PageFooter />
         </div>
-      </div>
-    </div>
+      </main>
+    </>
   );
 }

@@ -1,25 +1,52 @@
-import { Sun, Moon } from 'lucide-react';
-import { useTheme } from './ThemeProvider';
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "./ThemeProvider";
 
-const ThemeToggle = () => {
+type ThemeToggleProps = {
+  inline?: boolean;
+};
+
+export default function ThemeToggle({ inline = false }: ThemeToggleProps) {
   const { theme, toggleTheme, mounted } = useTheme();
-
   if (!mounted) return null;
+
+  const isDark = theme === "dark";
+
+  if (inline) {
+    return (
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+        className="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors duration-200 hover:border-[var(--accent)]"
+        style={{
+          borderColor: "var(--card-border)",
+          background: "var(--card-bg)",
+          color: "var(--text-secondary)",
+        }}
+      >
+        {isDark ? (
+          <Sun className="h-3.5 w-3.5" />
+        ) : (
+          <Moon className="h-3.5 w-3.5" />
+        )}
+      </button>
+    );
+  }
 
   return (
     <button
-      onClick={toggleTheme}
-      className="fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--text-primary)] shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:shadow-xl"
-      aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       type="button"
+      onClick={toggleTheme}
+      aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+      className="fixed bottom-5 right-5 z-40 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all duration-200 hover:scale-110"
+      style={{
+        borderColor: "var(--card-border)",
+        background: "var(--card-bg)",
+        color: "var(--text-secondary)",
+        boxShadow: "var(--card-shadow)",
+      }}
     >
-      {theme === 'dark' ? (
-        <Sun className="h-5 w-5 text-zinc-400" />
-      ) : (
-        <Moon className="h-5 w-5 text-zinc-500" />
-      )}
+      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>
   );
-};
-
-export default ThemeToggle;
+}

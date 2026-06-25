@@ -1,72 +1,58 @@
 import type { NextPage } from "next";
-import Image from "next/image";
-import { motion } from "framer-motion";
-import Squares from "../components/Squares";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
 const ErrorPage: NextPage = () => {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Background squares effect */}
-      <div className="fixed inset-0 z-0">
-        <Squares 
-          speed={0.15}
-          squareSize={40}
-          direction="diagonal"
+    <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="w-full max-w-sm text-center"
+      >
+        {/* Big track number */}
+        <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
+          Track not found
+        </p>
+
+        <h1
+          className="mt-2 font-display text-[8rem] font-bold leading-none tracking-tight sm:text-[10rem]"
+          style={{ color: "var(--accent)" }}
+        >
+          404
+        </h1>
+
+        <div
+          className="mx-auto my-6 h-px w-16"
+          style={{ background: "var(--card-border)" }}
         />
-      </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-lg"
-        >
-          <Image
-            src="/assests/404.svg"
-            width={800}
-            height={400}
-            alt="404 illustration"
-            className="w-full h-auto drop-shadow-2xl"
-            priority
-          />
-        </motion.div>
+        <p className="text-sm leading-7 text-[var(--text-secondary)]">
+          This side of the record is blank. Whatever you were looking for
+          wasn&apos;t pressed on this release.
+        </p>
 
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="mt-8 text-center"
-        >
-          <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-2">
-            Whoops! Lost in Space?
-          </h1>
-          <p className="text-base text-[var(--text-secondary)] font-inter mb-8">
-            The page you&apos;re looking for isn&apos;t found :( <br />
-            We suggest you go back to home
-          </p>
-
-          <Link href="/" passHref legacyBehavior>
-            <motion.a
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200"
-              style={{
-                background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
-                color: 'var(--accent)',
-                border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)',
-              }}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </motion.a>
+        <div className="mt-8">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-all duration-150 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            style={{
+              borderColor: "var(--card-border)",
+              background: "var(--card-bg)",
+            }}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to A-side
           </Link>
-        </motion.div>
-      </div>
-    </div>
+        </div>
+
+        <p className="mt-8 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
+          abyn.xyz · {new Date().getFullYear()}
+        </p>
+      </motion.div>
+    </main>
   );
 };
 
