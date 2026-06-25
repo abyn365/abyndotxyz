@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import { useTheme } from "./ThemeProvider";
 
 const SHORTCUTS = [
   { key: "h", label: "Home", description: "Go to /" },
@@ -9,6 +10,7 @@ const SHORTCUTS = [
   { key: "m", label: "Music", description: "Go to /music" },
   { key: "u", label: "Uses", description: "Go to /uses" },
   { key: "g", label: "GitHub", description: "Open GitHub profile" },
+  { key: "t", label: "Theme", description: "Toggle theme" },
   { key: "/?", label: "/?", description: "Open / close this panel" },
   { key: "Esc", label: "Esc", description: "Close panel" },
 ];
@@ -18,6 +20,7 @@ const VIEWPORT_MARGIN = 16;
 
 export default function KeyboardShortcuts() {
   const router = useRouter();
+  const { toggleTheme } = useTheme();
 
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
@@ -83,6 +86,8 @@ export default function KeyboardShortcuts() {
       if (target?.isContentEditable) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
+      const isDesktop = window.matchMedia("(min-width: 640px)").matches;
+
       switch (e.key) {
         case "h":
         case "H":
@@ -109,6 +114,11 @@ export default function KeyboardShortcuts() {
           router.push("/uses");
           break;
 
+        case "t":
+        case "T":
+          if (isDesktop) toggleTheme();
+          break;
+
         case "?":
         case "/":
           if (!open) {
@@ -129,7 +139,7 @@ export default function KeyboardShortcuts() {
     return () => {
       document.removeEventListener("keydown", handleKey);
     };
-  }, [router, open]);
+  }, [router, open, toggleTheme]);
 
   const position = useMemo(() => {
     if (typeof window === "undefined") {

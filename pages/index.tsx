@@ -498,10 +498,13 @@ export function PageFooter() {
       >
         source
       </a>
-      <span className="mx-2" style={{ color: "var(--card-border)" }}>
+      <span
+        className="mx-2 hidden sm:inline"
+        style={{ color: "var(--card-border)" }}
+      >
         ·
       </span>
-      <span className="opacity-50">press /? for shortcuts</span>
+      <span className="hidden opacity-50 sm:inline">press /? for shortcuts</span>
     </footer>
   );
 }
