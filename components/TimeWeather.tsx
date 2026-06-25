@@ -56,7 +56,7 @@ const getIconStyle = (code: number, isNight: boolean) => {
 
   if (code >= 51 && code <= 67) {
     return {
-      className: "text-sky-400",
+      className: "text-[var(--accent)]",
       animate: { y: [0, -1.5, 0, 1.5, 0] },
       transition: { duration: 2.2, repeat: Infinity, ease: "easeInOut" },
     };
@@ -64,7 +64,7 @@ const getIconStyle = (code: number, isNight: boolean) => {
 
   if (code >= 80 && code <= 82) {
     return {
-      className: "text-sky-400",
+      className: "text-[var(--accent)]",
       animate: { y: [0, -2, 0, 2, 0] },
       transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
     };

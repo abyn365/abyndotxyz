@@ -31,7 +31,7 @@ export default function MusicTrackCard({
             style={{
               width: `${barWidth}%`,
               background:
-                "linear-gradient(90deg, rgba(56,189,248,0.08), rgba(56,189,248,0.03) 70%, transparent)",
+                "linear-gradient(90deg, var(--accent-glow), transparent)",
               filter: "blur(10px)",
             }}
           />
@@ -42,7 +42,7 @@ export default function MusicTrackCard({
             style={{
               width: `${barWidth}%`,
               background:
-                "linear-gradient(90deg, var(--accent-bar) 0%, rgba(56,189,248,0.04) 55%, transparent 100%)",
+                "linear-gradient(90deg, var(--accent-bar) 0%, transparent 100%)",
             }}
           />
         </>
@@ -67,7 +67,7 @@ export default function MusicTrackCard({
           transition-all
           duration-200
 
-          hover:bg-[rgba(56,189,248,0.04)]
+          hover:bg-[var(--accent-glow)]
 
           sm:grid-cols-[2rem_3.5rem_1fr_auto]
         "
@@ -89,7 +89,7 @@ export default function MusicTrackCard({
             transition-all
             duration-200
 
-            group-hover:border-sky-400/20
+            group-hover:border-[var(--accent)]
           "
           style={{
             borderColor: "var(--card-border)",

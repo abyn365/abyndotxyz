@@ -95,7 +95,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
       <div className="min-h-screen font-sans">
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <Squares direction="diagonal" speed={0.5} squareSize={32} />
+          <Squares direction="diagonal" speed={0.05} squareSize={32} />
         </div>
 
         <div className="relative z-10">
