@@ -10,6 +10,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ThemeProvider } from "../components/ThemeProvider";
 import Navbar from "../components/Navbar";
 import KeyboardShortcuts from "../components/KeyboardShortcuts";
+import Grainient from "../components/Grainient";
 
 import "@fontsource/jost/400.css";
 import "@fontsource/jost/500.css";
@@ -92,24 +93,30 @@ function MyApp({ Component, pageProps }: AppProps) {
       `}</Script>
       <Analytics />
 
-      <div className="min-h-screen font-sans">
-        <Navbar />
+      <div className="relative min-h-screen overflow-hidden font-sans">
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <Grainient className="site-grainient" />
+        </div>
+        <div className="pointer-events-none fixed inset-0 z-0 bg-[var(--background-scrim)]" />
+        <div className="relative z-10">
+          <Navbar />
 
-        {/* Page transitions */}
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={router.pathname}
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -3 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-          >
-            <Component {...pageProps} />
-          </motion.div>
-        </AnimatePresence>
+          {/* Page transitions */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={router.pathname}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -3 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+            >
+              <Component {...pageProps} />
+            </motion.div>
+          </AnimatePresence>
 
-        {/* Global keyboard shortcut handler */}
-        <KeyboardShortcuts />
+          {/* Global keyboard shortcut handler */}
+          <KeyboardShortcuts />
+        </div>
       </div>
     </ThemeProvider>
   );
