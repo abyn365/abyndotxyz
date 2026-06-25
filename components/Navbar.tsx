@@ -47,10 +47,10 @@ export default function Navbar() {
 
   return (
     <nav
-      className="sticky top-0 z-40 w-full border-b backdrop-blur-sm"
+      className="sticky top-0 z-40 w-full border-b backdrop-blur-xl"
       style={{
-        background: "color-mix(in srgb, var(--bg-primary) 90%, transparent)",
-        borderColor: "var(--card-border)",
+        background: "color-mix(in srgb, var(--card-bg) 42%, transparent)",
+        borderColor: "color-mix(in srgb, var(--card-border) 55%, transparent)",
       }}
     >
       <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6 lg:px-8">

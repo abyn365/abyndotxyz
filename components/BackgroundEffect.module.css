@@ -1,0 +1,20 @@
+.measure {
+  position: fixed;
+  inset: 0;
+  height: 100lvh;
+  pointer-events: none;
+}
+
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  view-transition-name: background;
+}
+
+.base {
+  fill: var(--background-base);
+}

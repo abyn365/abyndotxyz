@@ -10,7 +10,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ThemeProvider } from "../components/ThemeProvider";
 import Navbar from "../components/Navbar";
 import KeyboardShortcuts from "../components/KeyboardShortcuts";
-import Grainient from "../components/Grainient";
+import BackgroundEffect from "../components/BackgroundEffect";
 
 import "@fontsource/jost/400.css";
 import "@fontsource/jost/500.css";
@@ -94,9 +94,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Analytics />
 
       <div className="relative min-h-screen overflow-hidden font-sans">
-        <div className="pointer-events-none fixed inset-0 z-0">
-          <Grainient className="site-grainient" />
-        </div>
+        <BackgroundEffect />
         <div className="pointer-events-none fixed inset-0 z-0 bg-[var(--background-scrim)]" />
         <div className="relative z-10">
           <Navbar />
