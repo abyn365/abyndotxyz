@@ -87,13 +87,15 @@ export default function Navbar() {
                 <span className="hidden font-mono text-[9px] tabular-nums opacity-40 sm:inline">
                   {item.index}
                 </span>
-                <span className="text-xs font-medium">{item.label}</span>
-                {active && (
-                  <span
-                    className="absolute bottom-1 left-1/2 h-0.5 w-3 -translate-x-1/2 rounded-full"
-                    style={{ background: "var(--accent)" }}
-                  />
-                )}
+                <span className="relative text-xs font-medium">
+                  {item.label}
+                  {active && (
+                    <span
+                      className="absolute -bottom-1 left-0 h-0.5 w-full rounded-full"
+                      style={{ background: "var(--accent)" }}
+                    />
+                  )}
+                </span>
               </Link>
             );
           })}
