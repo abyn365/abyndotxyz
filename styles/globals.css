@@ -16,26 +16,28 @@
   /* Light theme */
   --click-spark-color: #0f0f12;
 
-  --bg-primary: #fafafa;
-  --bg-secondary: #f4f4f5;
+  --bg-primary: #ffffff;
+  --bg-secondary: #fafafa;
 
-  --text-primary: #0f0f12;
-  --text-secondary: #71717a;
+  --text-primary: #000000;
+  --text-secondary: #666666;
 
   --border-color: rgba(15, 15, 18, 0.1);
 
   --card-bg: rgba(255, 255, 255, 0.95);
-  --card-border: rgba(15, 15, 18, 0.08);
+  --card-border: rgba(0, 0, 0, 0.1);
 
   --card-bg-mix: rgba(255, 255, 255, 0.95);
   --social-bg-mix: rgba(248, 248, 250, 0.92);
 
-  --accent: #0284c7;
+  --accent: #000000;
   --accent-text: #ffffff;
   --accent-glow: rgba(2, 132, 199, 0.12);
   --accent-bar: rgba(2, 132, 199, 0.15);
 
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 24px rgba(0, 0, 0, 0.04);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --nav-bg: rgba(255, 255, 255, 0.82);
+  --geist-success: #0070f3;
 
   --status-online: #16a34a;
   --status-idle: #d97706;
@@ -48,26 +50,28 @@
 
   --click-spark-color: #f5f5f5;
 
-  --bg-primary: #050505;
-  --bg-secondary: #0b0b0b;
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
 
   --text-primary: #f5f5f5;
   --text-secondary: #a1a1aa;
 
   --border-color: rgba(255, 255, 255, 0.08);
 
-  --card-bg: rgba(10, 10, 10, 0.96);
-  --card-border: rgba(255, 255, 255, 0.06);
+  --card-bg: rgba(0, 0, 0, 0.96);
+  --card-border: rgba(255, 255, 255, 0.12);
 
   --card-bg-mix: rgba(255, 255, 255, 0.02);
   --social-bg-mix: rgba(255, 255, 255, 0.03);
 
-  --accent: #38bdf8;
-  --accent-text: #050505;
+  --accent: #ffffff;
+  --accent-text: #000000;
   --accent-glow: rgba(56, 189, 248, 0.12);
   --accent-bar: rgba(56, 189, 248, 0.15);
 
-  --card-shadow: 0 1px 1px rgba(0, 0, 0, 0.9), 0 12px 40px rgba(0, 0, 0, 0.45);
+  --card-shadow: 0 1px 1px rgba(0, 0, 0, 0.9);
+  --nav-bg: rgba(0, 0, 0, 0.78);
+  --geist-success: #3291ff;
 
   --status-online: #4ade80;
   --status-idle: #fb923c;
@@ -166,6 +170,85 @@ click-spark {
 
 .progress-active {
   animation: progress-pulse 2s ease-in-out infinite;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   VERCEL-INSPIRED SURFACES
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.vercel-panel {
+  border: 1px solid var(--card-border);
+  border-radius: 28px;
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+
+.vercel-card {
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+
+.vercel-grid-mask {
+  pointer-events: none;
+  background-image: linear-gradient(var(--card-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--card-border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at 30% 20%, black, transparent 68%);
+  opacity: 0.55;
+}
+
+.vercel-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  padding: 0 1.15rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: transform 160ms ease, border-color 160ms ease,
+    background 160ms ease;
+}
+
+.vercel-button:hover {
+  transform: translateY(-1px);
+}
+
+.vercel-button-primary {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+.vercel-button-secondary {
+  border: 1px solid var(--card-border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.vercel-terminal {
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
+  padding: 1rem;
+}
+
+.vercel-signal-card {
+  display: flex;
+  min-height: 5.5rem;
+  align-items: center;
+  gap: 0.875rem;
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  background: var(--bg-secondary);
+  padding: 1rem;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.vercel-signal-card:hover {
+  border-color: var(--text-primary);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

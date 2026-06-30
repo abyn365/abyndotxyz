@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 
 const NAV = [
-  { label: "Home", href: "/", index: "H" },
-  { label: "Projects", href: "/projects", index: "P" },
-  { label: "Music", href: "/music", index: "M" },
-  { label: "Uses", href: "/uses", index: "U" },
+  { label: "Home", href: "/" },
+  { label: "Projects", href: "/projects" },
+  { label: "Music", href: "/music" },
+  { label: "Uses", href: "/uses" },
 ];
 
 const STATUS_DOT: Record<string, string> = {
@@ -46,63 +46,68 @@ export default function Navbar() {
   const dotColor = STATUS_DOT[discordStatus];
 
   return (
-    <nav
-      className="sticky top-0 z-40 w-full border-b backdrop-blur-sm"
-      style={{
-        background: "color-mix(in srgb, var(--bg-primary) 90%, transparent)",
-        borderColor: "var(--card-border)",
-      }}
-    >
-      <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Brand + status dot */}
+    <nav className="sticky top-0 z-40 w-full border-b border-[var(--card-border)] bg-[var(--nav-bg)] backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="group inline-flex items-center gap-2 transition-opacity hover:opacity-70"
+          className="group inline-flex items-center gap-3"
           title={dotColor ? STATUS_LABEL[discordStatus] : undefined}
         >
-          <span className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
+          <span className="grid h-8 w-8 place-items-center rounded-full border border-[var(--card-border)] bg-[var(--text-primary)] text-xs font-bold text-[var(--bg-primary)] transition-transform group-hover:scale-95">
+            A
+          </span>
+          <span className="hidden text-sm font-semibold tracking-tight text-[var(--text-primary)] sm:inline">
             abyn
           </span>
           {dotColor && (
             <span
-              className="h-1.5 w-1.5 rounded-full transition-opacity"
+              className="h-1.5 w-1.5 rounded-full"
               style={{ backgroundColor: dotColor }}
             />
           )}
         </Link>
 
-        {/* Nav links + toggle */}
-        <div className="flex items-center gap-0.5">
-          {NAV.map((item) => {
-            const active = router.pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="relative inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 transition-colors duration-150 sm:px-3"
-                style={{
-                  color: active ? "var(--accent)" : "var(--text-secondary)",
-                }}
-              >
-                <span className="hidden font-mono text-[9px] tabular-nums opacity-40 sm:inline">
-                  {item.index}
-                </span>
-                <span className="relative text-xs font-medium">
+        <div className="flex items-center gap-2">
+          <div className="hidden items-center rounded-full border border-[var(--card-border)] bg-[var(--bg-secondary)] p-1 sm:flex">
+            {NAV.map((item) => {
+              const active = router.pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-full px-3 py-1.5 text-sm font-medium transition-colors"
+                  style={{
+                    background: active ? "var(--text-primary)" : "transparent",
+                    color: active
+                      ? "var(--bg-primary)"
+                      : "var(--text-secondary)",
+                  }}
+                >
                   {item.label}
-                  {active && (
-                    <span
-                      className="absolute -bottom-1 left-0 h-0.5 w-full rounded-full"
-                      style={{ background: "var(--accent)" }}
-                    />
-                  )}
-                </span>
-              </Link>
-            );
-          })}
-
-          <div className="ml-1.5">
-            <ThemeToggle inline />
+                </Link>
+              );
+            })}
           </div>
+          <div className="flex items-center gap-0.5 sm:hidden">
+            {NAV.map((item) => {
+              const active = router.pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="px-2 py-2 text-xs font-medium"
+                  style={{
+                    color: active
+                      ? "var(--text-primary)"
+                      : "var(--text-secondary)",
+                  }}
+                >
+                  {item.label[0]}
+                </Link>
+              );
+            })}
+          </div>
+          <ThemeToggle inline />
         </div>
       </div>
     </nav>

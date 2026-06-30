@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
-  ChevronDown,
+  CheckCircle2,
   FolderOpen,
+  Globe2,
   Headphones,
   Mail,
   Music,
+  Sparkles,
+  Terminal,
 } from "lucide-react";
 import { FiGithub, FiInstagram } from "react-icons/fi";
 import { SiDiscord, SiPinterest, SiSpotify, SiTiktok } from "react-icons/si";
@@ -17,8 +20,6 @@ import VisitorStats from "../components/Misc/VisitorStats.misc";
 import TimeWeather from "../components/TimeWeather";
 import { useTopTracks } from "../hooks/useTopTracks";
 import { formatPlaycount } from "../lib/music";
-
-/* ─── Age counter ─────────────────────────────────────── */
 
 const BIRTH = new Date(2009, 3, 8);
 
@@ -47,8 +48,6 @@ function LiveAge() {
   return <span ref={ref} className="font-mono tabular-nums" />;
 }
 
-/* ─── Discord helpers ─────────────────────────────────── */
-
 const DISCORD_ID = "877018055815868426";
 
 function makeAvatarUrl(id: string, hash: string) {
@@ -67,8 +66,6 @@ const STATUS_DOT: Record<string, string> = {
   dnd: "var(--status-dnd)",
 };
 
-/* ─── Socials ─────────────────────────────────────────── */
-
 const SOCIALS = [
   { icon: FiGithub, label: "GitHub", href: "/github" },
   { icon: SiDiscord, label: "Discord", href: "/discord" },
@@ -78,71 +75,22 @@ const SOCIALS = [
   { icon: SiPinterest, label: "Pinterest", href: "/pinterest" },
 ];
 
-/* ─── Collapsible section ─────────────────────────────── */
+const metrics = [
+  { label: "Origin", value: "Indonesia" },
+  { label: "Stack", value: "Next.js" },
+  { label: "Focus", value: "Live data" },
+];
 
-function CollapsibleSection({
-  index,
-  label,
-  defaultOpen = true,
-  children,
-}: {
-  index: string;
-  label: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  const [overflowVisible, setOverflowVisible] = useState(defaultOpen);
-
-  return (
-    <section>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="group flex w-full items-center gap-3 py-0.5"
-      >
-        <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
-          {index}
-        </span>
-        <span
-          className="flex-1 border-t transition-colors duration-200 group-hover:border-[var(--accent)]"
-          style={{ borderColor: "var(--card-border)" }}
-        />
-        <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] transition-colors duration-200 group-hover:text-[var(--text-primary)]">
-          {label}
-          <ChevronDown
-            className="h-3 w-3 transition-transform duration-200"
-            style={{ transform: open ? "rotate(0deg)" : "rotate(-90deg)" }}
-          />
-        </span>
-      </button>
-
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            key="body"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            onAnimationStart={() => setOverflowVisible(false)}
-            onAnimationComplete={() => setOverflowVisible(open)}
-            style={{ overflow: overflowVisible ? "visible" : "hidden" }}
-            transition={{ duration: 0.22, ease: "easeInOut" }}
-          >
-            <div className="mt-5">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
-  );
-}
-
-/* ─── Page ────────────────────────────────────────────── */
+const principles = [
+  "Fast by default",
+  "Small details matter",
+  "Built in public",
+];
 
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 10 },
+  initial: { opacity: 0, y: 16 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.35, delay, ease: "easeOut" },
+  transition: { duration: 0.42, delay, ease: "easeOut" },
 });
 
 type SpotifyNow = { song: string; artist: string; url: string } | null;
@@ -153,7 +101,6 @@ export default function Home() {
   const [spotify, setSpotify] = useState<SpotifyNow>(null);
   const [scrobbles, setScrobbles] = useState<number | null>(null);
 
-  // Discord / Spotify presence
   useEffect(() => {
     const poll = async () => {
       try {
@@ -182,7 +129,6 @@ export default function Home() {
     return () => clearInterval(id);
   }, []);
 
-  // Last.fm total scrobbles
   useEffect(() => {
     fetch("/api/lastfm-stats")
       .then((r) => r.json())
@@ -192,257 +138,219 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  // Top track from Last.fm (for cross-link to /music)
   const { tracks: topTracks } = useTopTracks("short");
   const topTrack = topTracks[0];
-
   const dotColor = STATUS_DOT[status];
   const glowColor = STATUS_GLOW[status];
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
-      {/* ── Hero card ────────────────────────────────── */}
-      <motion.section {...fadeUp(0)} className="mb-5">
-        <div
-          className="rounded-2xl border p-5 sm:p-6"
-          style={{
-            borderColor: "var(--card-border)",
-            background: "var(--card-bg)",
-            boxShadow: "var(--card-shadow)",
-          }}
-        >
-          <div className="flex flex-col-reverse gap-5 sm:flex-row sm:items-start sm:justify-between">
-            {/* Text column */}
-            <div className="min-w-0 flex-1">
-              <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
-                Abyan
+    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-14">
+      <motion.section {...fadeUp(0)} className="vercel-panel overflow-hidden">
+        <div className="grid lg:grid-cols-[1fr_390px]">
+          <div className="relative px-6 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-20">
+            <div className="vercel-grid-mask absolute inset-0" />
+            <div className="relative">
+              <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] bg-[var(--bg-secondary)] px-3 py-1 text-xs font-medium text-[var(--text-secondary)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--geist-success)]" />
+                Available for shipping tiny, polished things
+              </div>
+
+              <h1 className="max-w-4xl text-balance font-display text-5xl font-bold tracking-[-0.05em] text-[var(--text-primary)] sm:text-7xl lg:text-8xl">
+                Building calm interfaces for a noisy internet.
               </h1>
-              <p className="mt-0.5 font-mono text-xs text-[var(--text-secondary)]">
-                / uh-bee-an /
+
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-secondary)]">
+                I&apos;m Abyan — a student developer from Indonesia designing
+                and deploying concise web experiences around music, presence,
+                and live data.
               </p>
 
-              {/* Live age pill */}
-              <div
-                className="mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5"
-                style={{
-                  borderColor: "var(--card-border)",
-                  background: "var(--bg-secondary)",
-                }}
-              >
-                <span
-                  className="relative inline-flex h-1.5 w-1.5 rounded-full"
-                  style={{ background: "var(--accent)" }}
-                >
-                  <span
-                    className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-                    style={{ background: "var(--accent)" }}
-                  />
-                </span>
-                <span className="font-mono text-[11px] tabular-nums text-[var(--text-secondary)]">
-                  <LiveAge /> <span>yrs</span>
-                </span>
-              </div>
-
-              <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)] sm:text-base">
-                Student developer from Indonesia. I build small, considered
-                things for the web — usually involving live data, music, or
-                whatever has my attention that week.
-              </p>
-
-              {/* Meta row */}
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <VisitorStats />
-                {dotColor && (
-                  <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
-                    <span
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: dotColor }}
-                    />
-                    {status === "dnd" ? "busy" : status}
-                  </span>
-                )}
-                {scrobbles !== null && (
-                  <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
-                    ♫ {formatPlaycount(scrobbles)}
-                  </span>
-                )}
-              </div>
-
-              {/* Now playing — fully clickable */}
-              {spotify && (
-                <a
-                  href={spotify.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group mt-3 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors hover:border-[var(--accent)]"
-                  style={{
-                    borderColor: "var(--card-border)",
-                    background: "var(--bg-secondary)",
-                  }}
-                >
-                  <Music
-                    className="h-3.5 w-3.5 shrink-0"
-                    style={{ color: "var(--accent)" }}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-[var(--text-secondary)]">
-                    <span className="font-medium text-[var(--text-primary)]">
-                      {spotify.song}
-                    </span>
-                    {" — "}
-                    {spotify.artist}
-                  </span>
-                  <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[var(--text-secondary)] opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-60" />
-                </a>
-              )}
-
-              {/* CTAs */}
-              <div className="mt-5 flex flex-wrap items-center gap-2.5">
+              <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link
                   href="/projects"
-                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-85"
-                  style={{
-                    background: "var(--accent)",
-                    color: "var(--accent-text)",
-                  }}
+                  className="vercel-button vercel-button-primary"
                 >
-                  <FolderOpen className="h-4 w-4" />
-                  Projects
-                </Link>
-                <Link
-                  href="/music"
-                  className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]"
-                  style={{
-                    borderColor: "var(--card-border)",
-                    background: "var(--bg-secondary)",
-                  }}
-                >
-                  <Headphones className="h-4 w-4" />
-                  Music
+                  Explore projects <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a
                   href="mailto:abyn@abyn.xyz"
-                  className="inline-flex items-center gap-1.5 px-1 py-2.5 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+                  className="vercel-button vercel-button-secondary"
                 >
-                  <Mail className="h-4 w-4" />
-                  Say hi
+                  <Mail className="h-4 w-4" /> Contact
                 </a>
               </div>
-            </div>
 
-            {/* Avatar column */}
-            {avatar && (
-              <div className="flex-shrink-0 self-center sm:self-start">
-                <div
-                  className="relative rounded-2xl p-0.5 transition-shadow duration-500"
-                  style={{
-                    boxShadow: glowColor
-                      ? `0 0 0 2px ${glowColor}55, 0 0 18px ${glowColor}30`
-                      : "0 0 0 1px var(--card-border)",
-                  }}
-                >
-                  <div className="relative h-24 w-24 overflow-hidden rounded-[calc(1rem-2px)] sm:h-28 sm:w-28">
+              <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-[var(--card-border)] bg-[var(--card-border)] sm:grid-cols-3">
+                {metrics.map((metric) => (
+                  <div key={metric.label} className="bg-[var(--card-bg)] p-5">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
+                      {metric.label}
+                    </p>
+                    <p className="mt-2 text-lg font-semibold text-[var(--text-primary)]">
+                      {metric.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <aside className="border-t border-[var(--card-border)] bg-[var(--bg-secondary)] p-4 lg:border-l lg:border-t-0">
+            <div className="vercel-card h-full p-5">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
+                    Profile deployment
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-[var(--text-primary)]">
+                    abyn.xyz
+                  </p>
+                </div>
+                <Sparkles className="h-4 w-4 text-[var(--text-secondary)]" />
+              </div>
+
+              <div className="flex items-center gap-4 rounded-2xl border border-[var(--card-border)] bg-[var(--bg-primary)] p-4">
+                {avatar && (
+                  <div
+                    className="relative h-16 w-16 overflow-hidden rounded-full border border-[var(--card-border)]"
+                    style={{
+                      boxShadow: glowColor
+                        ? `0 0 28px ${glowColor}55`
+                        : undefined,
+                    }}
+                  >
                     <Image
                       src={avatar}
                       alt="Abyan"
                       fill
-                      sizes="112px"
+                      sizes="64px"
                       priority
                       className="object-cover"
                     />
                   </div>
-                  {dotColor && (
-                    <span
-                      className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2"
-                      style={{
-                        backgroundColor: dotColor,
-                        borderColor: "var(--card-bg)",
-                      }}
-                    />
-                  )}
+                )}
+                <div className="min-w-0">
+                  <p className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">
+                    Abyan
+                  </p>
+                  <p className="font-mono text-xs text-[var(--text-secondary)]">
+                    / uh-bee-an /
+                  </p>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                    {dotColor && (
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: dotColor }}
+                      />
+                    )}
+                    <LiveAge /> yrs
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                <div className="vercel-terminal">
+                  <div className="mb-3 flex items-center gap-2 text-[var(--text-secondary)]">
+                    <Terminal className="h-4 w-4" />
+                    <span className="font-mono text-xs">pnpm deploy</span>
+                  </div>
+                  {principles.map((item) => (
+                    <p
+                      key={item}
+                      className="flex items-center gap-2 py-1 text-sm text-[var(--text-secondary)]"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5 text-[var(--geist-success)]" />
+                      {item}
+                    </p>
+                  ))}
+                </div>
+
+                <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--bg-primary)] p-4 text-sm">
+                  <TimeWeather />
+                </div>
+                <DiscordStatus />
+              </div>
+            </div>
+          </aside>
+        </div>
+      </motion.section>
+
+      <motion.section
+        {...fadeUp(0.06)}
+        className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.8fr]"
+      >
+        <div className="vercel-card p-6 sm:p-7">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
+                Status
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text-primary)]">
+                Live signals
+              </h2>
+            </div>
+            <VisitorStats />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {spotify && (
+              <a
+                href={spotify.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="vercel-signal-card group"
+              >
+                <Music className="h-5 w-5 text-[var(--text-secondary)]" />
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-[var(--text-primary)]">
+                    {spotify.song}
+                  </p>
+                  <p className="truncate text-sm text-[var(--text-secondary)]">
+                    {spotify.artist}
+                  </p>
+                </div>
+                <ArrowRight className="ml-auto h-4 w-4 text-[var(--text-secondary)] transition-transform group-hover:translate-x-1" />
+              </a>
+            )}
+            {topTrack && (
+              <Link href="/music" className="vercel-signal-card group">
+                <Headphones className="h-5 w-5 text-[var(--text-secondary)]" />
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-[var(--text-primary)]">
+                    {topTrack.title}
+                  </p>
+                  <p className="truncate text-sm text-[var(--text-secondary)]">
+                    {topTrack.artist} · {formatPlaycount(topTrack.playcount)}{" "}
+                    plays
+                  </p>
+                </div>
+                <ArrowRight className="ml-auto h-4 w-4 text-[var(--text-secondary)] transition-transform group-hover:translate-x-1" />
+              </Link>
+            )}
+            {scrobbles !== null && (
+              <div className="vercel-signal-card">
+                <Globe2 className="h-5 w-5 text-[var(--text-secondary)]" />
+                <div>
+                  <p className="font-medium text-[var(--text-primary)]">
+                    {formatPlaycount(scrobbles)}
+                  </p>
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    total scrobbles
+                  </p>
                 </div>
               </div>
             )}
           </div>
         </div>
-      </motion.section>
 
-      {/* ── Top track cross-link → /music ────────────── */}
-      {topTrack && (
-        <motion.div {...fadeUp(0.04)} className="mb-5">
-          <Link
-            href="/music"
-            className="group flex items-center gap-4 rounded-2xl border p-4 transition-all duration-200 hover:-translate-y-px hover:border-[var(--accent)]"
-            style={{
-              borderColor: "var(--card-border)",
-              background: "var(--card-bg)",
-              boxShadow: "var(--card-shadow)",
-            }}
-          >
-            <div
-              className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border"
-              style={{ borderColor: "var(--card-border)" }}
-            >
-              {topTrack.cover ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={topTrack.cover}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div
-                  className="flex h-full w-full items-center justify-center"
-                  style={{ background: "var(--bg-secondary)" }}
-                >
-                  <Music
-                    className="h-5 w-5 opacity-20"
-                    style={{ color: "var(--text-primary)" }}
-                  />
-                </div>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p
-                className="font-mono text-[9px] uppercase tracking-widest"
-                style={{ color: "var(--accent)" }}
-              >
-                Most played this month
-              </p>
-              <p className="mt-0.5 truncate text-sm font-medium text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
-                {topTrack.title}
-              </p>
-              <p className="truncate text-xs text-[var(--text-secondary)]">
-                {topTrack.artist} · {formatPlaycount(topTrack.playcount)} plays
-              </p>
-            </div>
-            <ArrowRight className="h-4 w-4 shrink-0 text-[var(--text-secondary)] transition-all group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
-          </Link>
-        </motion.div>
-      )}
-
-      {/* ── Collapsible sections ──────────────────────── */}
-      <motion.div {...fadeUp(0.08)} className="mb-12 space-y-6">
-        <CollapsibleSection index="01" label="Right now" defaultOpen>
-          <div className="space-y-3">
-            <div
-              className="rounded-xl border px-4 py-3 text-sm"
-              style={{
-                borderColor: "var(--card-border)",
-                background: "var(--card-bg)",
-              }}
-            >
-              <TimeWeather />
-            </div>
-            <DiscordStatus />
-          </div>
-        </CollapsibleSection>
-
-        <CollapsibleSection
-          index="02"
-          label="Around the web/socials"
-          defaultOpen={false}
-        >
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="vercel-card p-6 sm:p-7">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
+            Network
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text-primary)]">
+            Around the web
+          </h2>
+          <div className="mt-5 grid grid-cols-2 gap-2">
             {SOCIALS.map((s) => {
               const Icon = s.icon;
               return (
@@ -451,60 +359,37 @@ export default function Home() {
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-xl border px-4 py-3 transition-all duration-150 hover:-translate-y-px hover:border-[var(--accent)]"
-                  style={{
-                    borderColor: "var(--card-border)",
-                    background: "var(--card-bg)",
-                  }}
+                  className="group flex items-center gap-2 rounded-xl border border-[var(--card-border)] bg-[var(--bg-secondary)] px-3 py-3 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--text-primary)]"
                 >
-                  <Icon className="h-4 w-4 shrink-0 text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent)]" />
-                  <span className="text-sm font-medium text-[var(--text-primary)]">
-                    {s.label}
-                  </span>
-                  <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-[var(--text-secondary)] opacity-0 transition-all duration-150 group-hover:translate-x-0.5 group-hover:opacity-100" />
+                  <Icon className="h-4 w-4 text-[var(--text-secondary)] transition-colors group-hover:text-[var(--text-primary)]" />
+                  {s.label}
                 </a>
               );
             })}
           </div>
-        </CollapsibleSection>
-      </motion.div>
+        </div>
+      </motion.section>
 
       <PageFooter />
     </main>
   );
 }
 
-/* ─── Shared footer ───────────────────────────────────── */
-
 export function PageFooter() {
   return (
-    <footer
-      className="border-t pt-6 text-center font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]"
-      style={{ borderColor: "var(--card-border)" }}
-    >
+    <footer className="mt-12 border-t border-[var(--card-border)] pt-6 text-center font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
       <span>abyn.xyz</span>
-      <span className="mx-2" style={{ color: "var(--card-border)" }}>
-        ·
-      </span>
+      <span className="mx-2 text-[var(--card-border)]">·</span>
       <span>{new Date().getFullYear()}</span>
-      <span className="mx-2" style={{ color: "var(--card-border)" }}>
-        ·
-      </span>
+      <span className="mx-2 text-[var(--card-border)]">·</span>
       <a
         href="https://github.com/abyn365/abyndotxyz"
         target="_blank"
         rel="noopener noreferrer"
-        className="transition-colors hover:text-[var(--accent)]"
+        className="transition-colors hover:text-[var(--text-primary)]"
       >
         source
       </a>
-      <span
-        className="mx-2 hidden sm:inline"
-        style={{ color: "var(--card-border)" }}
-      >
-        ·
-      </span>
-      <span className="hidden opacity-50 sm:inline">press /? for shortcuts</span>
     </footer>
   );
 }
