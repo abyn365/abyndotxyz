@@ -47,9 +47,9 @@ export default function Navbar() {
 
   return (
     <nav
-      className="sticky top-0 z-40 w-full border-b backdrop-blur-sm"
+      className="sticky top-0 z-40 w-full border-b backdrop-blur-xl"
       style={{
-        background: "color-mix(in srgb, var(--bg-primary) 90%, transparent)",
+        background: "color-mix(in srgb, var(--bg-elevated) 86%, transparent)",
         borderColor: "var(--card-border)",
       }}
     >

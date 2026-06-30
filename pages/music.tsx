@@ -91,7 +91,7 @@ export default function MusicPage() {
             <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
               03 — Tracklist
             </p>
-            <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
+            <h1 className="gradient-text font-display text-5xl font-bold tracking-tight sm:text-6xl">
               Music
             </h1>
             <p className="mt-2 font-mono text-xs text-[var(--text-secondary)]">
@@ -148,7 +148,7 @@ export default function MusicPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.04 }}
-            className="group mb-8 flex items-center gap-5 rounded-2xl border p-4 transition-all duration-200 hover:-translate-y-0.5 sm:p-5"
+            className="surface-card interactive-lift group mb-8 flex items-center gap-5 rounded-2xl p-4 sm:p-5"
             style={{
               borderColor: "var(--card-border)",
               background: "var(--card-bg)",

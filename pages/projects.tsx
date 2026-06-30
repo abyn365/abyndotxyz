@@ -22,7 +22,7 @@ export default function ProjectsPage() {
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
             02 — Archive
           </p>
-          <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
+          <h1 className="gradient-text font-display text-5xl font-bold tracking-tight sm:text-6xl">
             Projects
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--text-secondary)]">

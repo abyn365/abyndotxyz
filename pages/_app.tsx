@@ -94,7 +94,11 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Analytics />
 
       <div className="min-h-screen font-sans">
-        <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+          <div className="absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-sky-400/10 blur-3xl" />
+          <div className="absolute bottom-10 right-0 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" />
+        </div>
+        <div className="pointer-events-none fixed inset-0 z-0">
           <Squares direction="diagonal" speed={0.05} squareSize={32} />
         </div>
 

@@ -34,7 +34,7 @@ export default function ProjectCard({
         target="_blank"
         rel="noopener noreferrer"
         className={[
-          "block overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-0.5",
+          "surface-card interactive-lift block rounded-2xl",
           isFeatured ? "sm:grid sm:grid-cols-[1.1fr_0.9fr]" : "",
         ].join(" ")}
         style={{

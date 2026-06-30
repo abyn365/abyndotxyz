@@ -204,7 +204,7 @@ export default function Home() {
       {/* ── Hero card ────────────────────────────────── */}
       <motion.section {...fadeUp(0)} className="mb-5">
         <div
-          className="rounded-2xl border p-5 sm:p-6"
+          className="surface-card rounded-[2rem] p-5 sm:p-7"
           style={{
             borderColor: "var(--card-border)",
             background: "var(--card-bg)",
@@ -214,7 +214,7 @@ export default function Home() {
           <div className="flex flex-col-reverse gap-5 sm:flex-row sm:items-start sm:justify-between">
             {/* Text column */}
             <div className="min-w-0 flex-1">
-              <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
+              <h1 className="gradient-text font-display text-5xl font-bold tracking-tight sm:text-6xl">
                 Abyan
               </h1>
               <p className="mt-0.5 font-mono text-xs text-[var(--text-secondary)]">
@@ -299,11 +299,7 @@ export default function Home() {
               <div className="mt-5 flex flex-wrap items-center gap-2.5">
                 <Link
                   href="/projects"
-                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-85"
-                  style={{
-                    background: "var(--accent)",
-                    color: "var(--accent-text)",
-                  }}
+                  className="primary-action inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-transform hover:-translate-y-0.5"
                 >
                   <FolderOpen className="h-4 w-4" />
                   Projects
@@ -371,7 +367,7 @@ export default function Home() {
         <motion.div {...fadeUp(0.04)} className="mb-5">
           <Link
             href="/music"
-            className="group flex items-center gap-4 rounded-2xl border p-4 transition-all duration-200 hover:-translate-y-px hover:border-[var(--accent)]"
+            className="surface-card interactive-lift group flex items-center gap-4 rounded-2xl p-4"
             style={{
               borderColor: "var(--card-border)",
               background: "var(--card-bg)",
@@ -504,7 +500,9 @@ export function PageFooter() {
       >
         ·
       </span>
-      <span className="hidden opacity-50 sm:inline">press /? for shortcuts</span>
+      <span className="hidden opacity-50 sm:inline">
+        press /? for shortcuts
+      </span>
     </footer>
   );
 }
