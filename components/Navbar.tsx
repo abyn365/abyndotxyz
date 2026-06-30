@@ -47,20 +47,20 @@ export default function Navbar() {
 
   return (
     <nav
-      className="sticky top-0 z-40 w-full border-b backdrop-blur-sm"
+      className="sticky top-0 z-40 w-full border-b backdrop-blur-xl"
       style={{
-        background: "color-mix(in srgb, var(--bg-primary) 90%, transparent)",
+        background: "color-mix(in srgb, var(--bg-primary) 78%, transparent)",
         borderColor: "var(--card-border)",
       }}
     >
-      <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="premium-shell flex h-16 items-center justify-between">
         {/* Brand + status dot */}
         <Link
           href="/"
-          className="group inline-flex items-center gap-2 transition-opacity hover:opacity-70"
+          className="group inline-flex items-center gap-2 rounded-full transition-opacity hover:opacity-80"
           title={dotColor ? STATUS_LABEL[discordStatus] : undefined}
         >
-          <span className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
+          <span className="font-display text-lg font-bold tracking-[-0.03em] text-[var(--text-primary)]">
             abyn
           </span>
           {dotColor && (
@@ -72,14 +72,20 @@ export default function Navbar() {
         </Link>
 
         {/* Nav links + toggle */}
-        <div className="flex items-center gap-0.5">
+        <div
+          className="flex items-center gap-1 rounded-full border p-1"
+          style={{
+            borderColor: "var(--card-border)",
+            background: "var(--card-bg)",
+          }}
+        >
           {NAV.map((item) => {
             const active = router.pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="relative inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 transition-colors duration-150 sm:px-3"
+                className="relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-2 transition-all duration-150 hover:bg-[var(--accent-muted)] sm:px-3"
                 style={{
                   color: active ? "var(--accent)" : "var(--text-secondary)",
                 }}
@@ -100,7 +106,7 @@ export default function Navbar() {
             );
           })}
 
-          <div className="ml-1.5">
+          <div className="ml-0.5">
             <ThemeToggle inline />
           </div>
         </div>

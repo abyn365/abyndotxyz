@@ -200,26 +200,24 @@ export default function Home() {
   const glowColor = STATUS_GLOW[status];
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+    <main className="premium-shell py-12 sm:py-16 lg:py-20">
       {/* ── Hero card ────────────────────────────────── */}
-      <motion.section {...fadeUp(0)} className="mb-5">
+      <motion.section {...fadeUp(0)} className="mb-6">
         <div
-          className="rounded-2xl border p-5 sm:p-6"
+          className="premium-card p-6 sm:p-8 lg:p-10"
           style={{
             borderColor: "var(--card-border)",
             background: "var(--card-bg)",
             boxShadow: "var(--card-shadow)",
           }}
         >
-          <div className="flex flex-col-reverse gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-start">
             {/* Text column */}
             <div className="min-w-0 flex-1">
-              <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
+              <h1 className="font-display text-5xl font-bold tracking-[-0.04em] text-[var(--text-primary)] sm:text-7xl">
                 Abyan
               </h1>
-              <p className="mt-0.5 font-mono text-xs text-[var(--text-secondary)]">
-                / uh-bee-an /
-              </p>
+              <p className="eyebrow mt-3">/ uh-bee-an /</p>
 
               {/* Live age pill */}
               <div
@@ -243,10 +241,10 @@ export default function Home() {
                 </span>
               </div>
 
-              <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)] sm:text-base">
-                Student developer from Indonesia. I build small, considered
-                things for the web — usually involving live data, music, or
-                whatever has my attention that week.
+              <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--text-secondary)] sm:text-lg">
+                Student developer from Indonesia crafting calm, fast, and useful
+                web experiences — small products with live data, music, and the
+                details that make software feel personal.
               </p>
 
               {/* Meta row */}
@@ -296,10 +294,10 @@ export default function Home() {
               )}
 
               {/* CTAs */}
-              <div className="mt-5 flex flex-wrap items-center gap-2.5">
+              <div className="mt-7 flex flex-wrap items-center gap-3">
                 <Link
                   href="/projects"
-                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-85"
+                  className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-transform hover:-translate-y-0.5"
                   style={{
                     background: "var(--accent)",
                     color: "var(--accent-text)",
@@ -310,7 +308,7 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/music"
-                  className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]"
+                  className="inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold text-[var(--text-primary)] transition-all hover:-translate-y-0.5 hover:border-[var(--accent)]"
                   style={{
                     borderColor: "var(--card-border)",
                     background: "var(--bg-secondary)",
@@ -331,7 +329,7 @@ export default function Home() {
 
             {/* Avatar column */}
             {avatar && (
-              <div className="flex-shrink-0 self-center sm:self-start">
+              <div className="flex-shrink-0 justify-self-center lg:justify-self-end">
                 <div
                   className="relative rounded-2xl p-0.5 transition-shadow duration-500"
                   style={{
@@ -340,7 +338,7 @@ export default function Home() {
                       : "0 0 0 1px var(--card-border)",
                   }}
                 >
-                  <div className="relative h-24 w-24 overflow-hidden rounded-[calc(1rem-2px)] sm:h-28 sm:w-28">
+                  <div className="relative h-28 w-28 overflow-hidden rounded-[calc(1.5rem-2px)] sm:h-36 sm:w-36">
                     <Image
                       src={avatar}
                       alt="Abyan"
@@ -371,7 +369,7 @@ export default function Home() {
         <motion.div {...fadeUp(0.04)} className="mb-5">
           <Link
             href="/music"
-            className="group flex items-center gap-4 rounded-2xl border p-4 transition-all duration-200 hover:-translate-y-px hover:border-[var(--accent)]"
+            className="premium-card group flex items-center gap-4 p-4 transition-all duration-200 hover:border-[var(--accent)]"
             style={{
               borderColor: "var(--card-border)",
               background: "var(--card-bg)",
@@ -421,7 +419,10 @@ export default function Home() {
       )}
 
       {/* ── Collapsible sections ──────────────────────── */}
-      <motion.div {...fadeUp(0.08)} className="mb-12 space-y-6">
+      <motion.div
+        {...fadeUp(0.08)}
+        className="mb-14 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]"
+      >
         <CollapsibleSection index="01" label="Right now" defaultOpen>
           <div className="space-y-3">
             <div
@@ -442,7 +443,7 @@ export default function Home() {
           label="Around the web/socials"
           defaultOpen={false}
         >
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {SOCIALS.map((s) => {
               const Icon = s.icon;
               return (
@@ -451,7 +452,7 @@ export default function Home() {
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-xl border px-4 py-3 transition-all duration-150 hover:-translate-y-px hover:border-[var(--accent)]"
+                  className="group flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all duration-150 hover:-translate-y-px hover:border-[var(--accent)]"
                   style={{
                     borderColor: "var(--card-border)",
                     background: "var(--card-bg)",
@@ -504,7 +505,9 @@ export function PageFooter() {
       >
         ·
       </span>
-      <span className="hidden opacity-50 sm:inline">press /? for shortcuts</span>
+      <span className="hidden opacity-50 sm:inline">
+        press /? for shortcuts
+      </span>
     </footer>
   );
 }

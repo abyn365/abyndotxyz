@@ -34,7 +34,7 @@ export default function ProjectCard({
         target="_blank"
         rel="noopener noreferrer"
         className={[
-          "block overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-0.5",
+          "premium-card block overflow-hidden transition-all duration-300 hover:-translate-y-0.5",
           isFeatured ? "sm:grid sm:grid-cols-[1.1fr_0.9fr]" : "",
         ].join(" ")}
         style={{
@@ -51,7 +51,7 @@ export default function ProjectCard({
         >
           <div>
             {/* Meta row */}
-            <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
+            <div className="eyebrow mb-3 flex items-center gap-2">
               {project.github ? (
                 <FaGithub className="h-3 w-3" />
               ) : project.homepage ? (
@@ -69,7 +69,7 @@ export default function ProjectCard({
 
             <h3
               className={[
-                "font-display font-bold tracking-tight text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]",
+                "font-display font-bold tracking-[-0.03em] text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]",
                 isFeatured ? "text-2xl sm:text-3xl" : "text-lg",
               ].join(" ")}
             >
