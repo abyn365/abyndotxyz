@@ -391,13 +391,7 @@ const ActivityPanel = ({
       : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.015),transparent_40%)]";
 
   return (
-    <div
-      className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
-      style={{
-        borderColor: "var(--card-border)",
-        background: "var(--card-bg)",
-      }}
-    >
+    <div className="relative flex h-full flex-col justify-between overflow-hidden px-1 py-1 sm:px-2 sm:py-2">
       <div className={overlayClass} />
       <div className="relative grid h-full items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
         <div className="relative shrink-0">
@@ -510,13 +504,7 @@ const SpotifyPanel = ({
       : "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,0,0,0.015),transparent_40%)]";
 
   return (
-    <div
-      className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
-      style={{
-        borderColor: "var(--card-border)",
-        background: "var(--card-bg)",
-      }}
-    >
+    <div className="relative flex h-full flex-col justify-between overflow-hidden px-1 py-1 sm:px-2 sm:py-2">
       <div className={overlayClass} />
       <div className="relative grid h-full items-center gap-3 [grid-template-columns:auto_minmax(0,1fr)]">
         <div className="relative shrink-0">
@@ -717,13 +705,7 @@ const DiscordStatus: NextComponentType = () => {
         ) : null}
 
         {!hasActivity && !hasSpotify ? (
-          <div
-            className="rounded-2xl border px-3 py-3 sm:px-4 sm:py-3.5"
-            style={{
-              borderColor: "var(--card-border)",
-              background: "var(--card-bg)",
-            }}
-          >
+          <div className="px-1 py-2">
             <div className="flex items-center gap-2 text-[var(--text-secondary)]">
               <Activity className="h-4 w-4 text-[var(--text-secondary)]" />
               <span className="text-sm font-medium">Discord activity</span>

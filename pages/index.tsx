@@ -56,11 +56,6 @@ function makeAvatarUrl(id: string, hash: string) {
   return `https://cdn.discordapp.com/avatars/${id}/${hash}.${ext}?size=256`;
 }
 
-const STATUS_GLOW: Record<string, string> = {
-  online: "var(--status-online)",
-  idle: "var(--status-idle)",
-};
-
 const STATUS_DOT: Record<string, string> = {
   online: "var(--status-online)",
   idle: "var(--status-idle)",
@@ -197,38 +192,23 @@ export default function Home() {
   const topTrack = topTracks[0];
 
   const dotColor = STATUS_DOT[status];
-  const glowColor = STATUS_GLOW[status];
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+    <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       {/* ── Hero card ────────────────────────────────── */}
-      <motion.section {...fadeUp(0)} className="mb-5">
-        <div
-          className="rounded-2xl border p-5 sm:p-6"
-          style={{
-            borderColor: "var(--card-border)",
-            background: "var(--card-bg)",
-            boxShadow: "var(--card-shadow)",
-          }}
-        >
-          <div className="flex flex-col-reverse gap-5 sm:flex-row sm:items-start sm:justify-between">
-            {/* Text column */}
-            <div className="min-w-0 flex-1">
-              <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
-                Abyan
-              </h1>
-              <p className="mt-0.5 font-mono text-xs text-[var(--text-secondary)]">
-                / uh-bee-an /
-              </p>
+      <motion.section {...fadeUp(0)} className="mb-10">
+        <div className="flex flex-col-reverse gap-8 sm:flex-row sm:items-start sm:justify-between">
+          {/* Text column */}
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
+              Abyan
+            </h1>
+            <p className="mt-0.5 font-mono text-xs text-[var(--text-secondary)]">
+              / uh-bee-an /
+            </p>
 
               {/* Live age pill */}
-              <div
-                className="mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5"
-                style={{
-                  borderColor: "var(--card-border)",
-                  background: "var(--bg-secondary)",
-                }}
-              >
+              <div className="mt-4 inline-flex items-center gap-2 rounded-full px-0 py-1.5">
                 <span
                   className="relative inline-flex h-1.5 w-1.5 rounded-full"
                   style={{ background: "var(--accent)" }}
@@ -238,22 +218,22 @@ export default function Home() {
                     style={{ background: "var(--accent)" }}
                   />
                 </span>
-                <span className="font-mono text-[11px] tabular-nums text-[var(--text-secondary)]">
+                <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--text-secondary)] tabular-nums">
                   <LiveAge /> <span>yrs</span>
                 </span>
               </div>
 
-              <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)] sm:text-base">
+              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[var(--text-secondary)] sm:text-base">
                 Student developer from Indonesia. I build small, considered
                 things for the web — usually involving live data, music, or
                 whatever has my attention that week.
               </p>
 
               {/* Meta row */}
-              <div className="mt-4 flex flex-wrap items-center gap-3">
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-[var(--text-secondary)]">
                 <VisitorStats />
                 {dotColor && (
-                  <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
+                  <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)]">
                     <span
                       className="h-1.5 w-1.5 rounded-full"
                       style={{ backgroundColor: dotColor }}
@@ -262,7 +242,7 @@ export default function Home() {
                   </span>
                 )}
                 {scrobbles !== null && (
-                  <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
+                  <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)]">
                     ♫ {formatPlaycount(scrobbles)}
                   </span>
                 )}
@@ -274,11 +254,7 @@ export default function Home() {
                   href={spotify.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group mt-3 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors hover:border-[var(--accent)]"
-                  style={{
-                    borderColor: "var(--card-border)",
-                    background: "var(--bg-secondary)",
-                  }}
+                  className="group mt-3 flex items-center gap-2 px-0 py-1.5 text-xs transition-colors hover:text-[var(--accent)]"
                 >
                   <Music
                     className="h-3.5 w-3.5 shrink-0"
@@ -310,78 +286,58 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/music"
-                  className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]"
-                  style={{
-                    borderColor: "var(--card-border)",
-                    background: "var(--bg-secondary)",
-                  }}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-secondary)]"
                 >
                   <Headphones className="h-4 w-4" />
                   Music
                 </Link>
                 <a
                   href="mailto:abyn@abyn.xyz"
-                  className="inline-flex items-center gap-1.5 px-1 py-2.5 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-2.5 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
                 >
                   <Mail className="h-4 w-4" />
                   Say hi
                 </a>
               </div>
-            </div>
-
-            {/* Avatar column */}
-            {avatar && (
-              <div className="flex-shrink-0 self-center sm:self-start">
-                <div
-                  className="relative rounded-2xl p-0.5 transition-shadow duration-500"
-                  style={{
-                    boxShadow: glowColor
-                      ? `0 0 0 2px ${glowColor}55, 0 0 18px ${glowColor}30`
-                      : "0 0 0 1px var(--card-border)",
-                  }}
-                >
-                  <div className="relative h-24 w-24 overflow-hidden rounded-[calc(1rem-2px)] sm:h-28 sm:w-28">
-                    <Image
-                      src={avatar}
-                      alt="Abyan"
-                      fill
-                      sizes="112px"
-                      priority
-                      className="object-cover"
-                    />
-                  </div>
-                  {dotColor && (
-                    <span
-                      className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2"
-                      style={{
-                        backgroundColor: dotColor,
-                        borderColor: "var(--card-bg)",
-                      }}
-                    />
-                  )}
-                </div>
-              </div>
-            )}
           </div>
+
+          {/* Avatar column */}
+          {avatar && (
+            <div className="flex-shrink-0 self-center sm:self-start">
+              <div className="relative">
+                <div className="relative h-24 w-24 overflow-hidden rounded-2xl sm:h-28 sm:w-28">
+                  <Image
+                    src={avatar}
+                    alt="Abyan"
+                    fill
+                    sizes="112px"
+                    priority
+                    className="object-cover"
+                  />
+                </div>
+                {dotColor && (
+                  <span
+                    className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2"
+                    style={{
+                      backgroundColor: dotColor,
+                      borderColor: "var(--bg-primary)",
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </motion.section>
 
       {/* ── Top track cross-link → /music ────────────── */}
       {topTrack && (
-        <motion.div {...fadeUp(0.04)} className="mb-5">
+        <motion.div {...fadeUp(0.04)} className="mb-8">
           <Link
             href="/music"
-            className="group flex items-center gap-4 rounded-2xl border p-4 transition-all duration-200 hover:-translate-y-px hover:border-[var(--accent)]"
-            style={{
-              borderColor: "var(--card-border)",
-              background: "var(--card-bg)",
-              boxShadow: "var(--card-shadow)",
-            }}
+            className="group flex items-center gap-4 rounded-2xl px-1 py-2 transition-colors hover:bg-[var(--bg-secondary)]"
           >
-            <div
-              className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border"
-              style={{ borderColor: "var(--card-border)" }}
-            >
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl">
               {topTrack.cover ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -403,7 +359,7 @@ export default function Home() {
             </div>
             <div className="min-w-0 flex-1">
               <p
-                className="font-mono text-[9px] uppercase tracking-widest"
+                className="font-mono text-[9px] uppercase tracking-[0.26em]"
                 style={{ color: "var(--accent)" }}
               >
                 Most played this month
@@ -422,18 +378,14 @@ export default function Home() {
 
       {/* ── Collapsible sections ──────────────────────── */}
       <motion.div {...fadeUp(0.08)} className="mb-12 space-y-6">
-        <CollapsibleSection index="01" label="Right now" defaultOpen>
-          <div className="space-y-3">
-            <div
-              className="rounded-xl border px-4 py-3 text-sm"
-              style={{
-                borderColor: "var(--card-border)",
-                background: "var(--card-bg)",
-              }}
-            >
+        <CollapsibleSection index="01" label="Right now" defaultOpen={false}>
+          <div className="space-y-4">
+            <div className="text-sm">
               <TimeWeather />
             </div>
-            <DiscordStatus />
+            <div className="pt-1">
+              <DiscordStatus />
+            </div>
           </div>
         </CollapsibleSection>
 
@@ -451,11 +403,7 @@ export default function Home() {
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-xl border px-4 py-3 transition-all duration-150 hover:-translate-y-px hover:border-[var(--accent)]"
-                  style={{
-                    borderColor: "var(--card-border)",
-                    background: "var(--card-bg)",
-                  }}
+                  className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[var(--bg-secondary)]"
                 >
                   <Icon className="h-4 w-4 shrink-0 text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent)]" />
                   <span className="text-sm font-medium text-[var(--text-primary)]">
