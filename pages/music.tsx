@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { NextSeo } from "next-seo";
-import { ArrowLeft, ArrowRight, Radio, Sparkles } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, Radio, Sparkles, Music } from "lucide-react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import useSWR from "swr";
 import MusicArtwork from "../components/music/MusicArtwork";
 import MusicPeriodTabs from "../components/music/MusicPeriodTabs";
@@ -16,6 +16,9 @@ import {
   type MusicPeriod,
 } from "../lib/music";
 import { PageFooter } from "./index";
+
+// Change this to your actual Discord ID
+const DISCORD_ID = "877018055815868426";
 
 const formatHour = (hour: number) => `${hour.toString().padStart(2, "0")}:00`;
 const formatSeconds = (seconds: number) =>
@@ -32,6 +35,21 @@ const dayLabels: Record<string, string> = {
 
 type TooltipState = { title: string; lines: string[]; x: number; y: number };
 
+interface LanyardResponse {
+  data: {
+    discord_status: "online" | "idle" | "dnd" | "offline";
+    listening_to_spotify: boolean;
+    spotify: {
+      track_id: string;
+      song: string;
+      artist: string;
+      album: string;
+      album_art_url: string;
+    } | null;
+  };
+  success: boolean;
+}
+
 function Tooltip({ tooltip }: { tooltip: TooltipState | null }) {
   return (
     <AnimatePresence>
@@ -40,24 +58,23 @@ function Tooltip({ tooltip }: { tooltip: TooltipState | null }) {
           initial={{ opacity: 0, y: 6, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 6, scale: 0.98 }}
-          transition={{ duration: 0.16 }}
-          className="pointer-events-none fixed z-50 min-w-36 rounded-xl border px-3 py-2 text-xs shadow-2xl"
+          transition={{ duration: 0.12, ease: "easeOut" }}
+          className="pointer-events-none fixed z-50 min-w-40 rounded-xl border px-3 py-2 text-xs shadow-xl backdrop-blur-md"
           style={{
             left: tooltip.x + 14,
             top: tooltip.y + 14,
             borderColor: "var(--card-border)",
-            background:
-              "color-mix(in srgb, var(--card-bg) 94%, var(--bg-primary))",
+            background: "color-mix(in srgb, var(--card-bg) 90%, var(--bg-primary))",
             color: "var(--text-primary)",
           }}
         >
-          <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
             {tooltip.title}
           </p>
-          {tooltip.lines.map((line) => (
+          {tooltip.lines.map((line, idx) => (
             <p
-              key={line}
-              className="mt-0.5 font-medium text-[var(--text-primary)]"
+              key={idx}
+              className="mt-0.5 font-medium text-[var(--text-primary)] last:text-[var(--text-secondary)] last:font-normal"
             >
               {line}
             </p>
@@ -91,6 +108,84 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
+function LivePresenceCard() {
+  const { data: presence } = useSWR<LanyardResponse>(
+    `https://api.lanyard.rest/v1/users/${DISCORD_ID}`,
+    fetcher,
+    { refreshInterval: 12000 }
+  );
+
+  const statusColor = useMemo(() => {
+    switch (presence?.data?.discord_status) {
+      case "online": return "bg-emerald-500";
+      case "idle": return "bg-amber-400";
+      case "dnd": return "bg-rose-500";
+      default: return "bg-zinc-400";
+    }
+  }, [presence?.data?.discord_status]);
+
+  if (!presence?.success) {
+    return (
+      <div className="rounded-2xl border p-4" style={{ borderColor: "var(--card-border)", background: "var(--social-bg-mix)" }}>
+        <Radio className="mb-2 h-4 w-4 text-[var(--text-secondary)] animate-pulse" />
+        <p className="text-sm font-medium text-[var(--text-primary)]">Connecting…</p>
+      </div>
+    );
+  }
+
+  const isSpotify = presence.data.listening_to_spotify && presence.data.spotify;
+
+  return (
+    <div className="rounded-2xl border p-4 transition-all duration-300" style={{ borderColor: "var(--card-border)", background: "var(--social-bg-mix)" }}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5">
+          <span className={`h-2 w-2 rounded-full ${statusColor}`} />
+          <p className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)]">
+            {isSpotify ? "Live on Spotify" : "Status"}
+          </p>
+        </div>
+        {isSpotify && (
+          <div className="flex items-end gap-[2px] h-3 w-3 mb-1">
+            <span className="w-[2px] bg-emerald-500 animate-[bounce_1s_infinite_100ms]" />
+            <span className="w-[2px] bg-emerald-500 animate-[bounce_1s_infinite_300ms] h-full" />
+            <span className="w-[2px] bg-emerald-500 animate-[bounce_1s_infinite_200ms]" />
+          </div>
+        )}
+      </div>
+
+      {isSpotify ? (
+        <a
+          href={`https://open.spotify.com/track/${presence.data.spotify?.track_id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 group"
+        >
+          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border" style={{ borderColor: "var(--card-border)" }}>
+            <img src={presence.data.spotify?.album_art_url} alt="Album Art" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-emerald-500 transition-colors">
+              {presence.data.spotify?.song}
+            </p>
+            <p className="truncate text-xs text-[var(--text-secondary)]">
+              {presence.data.spotify?.artist}
+            </p>
+          </div>
+        </a>
+      ) : (
+        <div>
+          <p className="text-sm font-medium text-[var(--text-primary)]">
+            {presence.data.discord_status === "offline" ? "Offline" : "Not listening right now"}
+          </p>
+          <p className="text-xs text-[var(--text-secondary)] truncate">
+            {presence.data.discord_status === "offline" ? "Last seen recently" : "Idling on Discord"}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StatCard({
   label,
   value,
@@ -104,10 +199,10 @@ function StatCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.24, delay }}
-      className="group flex min-h-28 flex-col justify-between rounded-2xl border p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl"
+      transition={{ duration: 0.2, delay, ease: "easeOut" }}
+      className="group flex min-h-28 flex-col justify-between rounded-2xl border p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
       style={{
         borderColor: "var(--card-border)",
         background: "var(--card-bg)",
@@ -120,14 +215,14 @@ function StatCard({
       <div>
         <motion.p
           key={value}
-          initial={{ opacity: 0, y: 4 }}
+          initial={{ opacity: 0, y: 2 }}
           animate={{ opacity: 1, y: 0 }}
           className="font-display text-2xl font-black tabular-nums tracking-tight text-[var(--text-primary)] sm:text-3xl"
         >
           {value}
         </motion.p>
         {detail && (
-          <p className="mt-1 truncate text-[11px] text-[var(--text-secondary)]">
+          <p className="mt-0.5 truncate text-[11px] text-[var(--text-secondary)] font-medium opacity-80">
             {detail}
           </p>
         )}
@@ -147,15 +242,15 @@ function ChartCard({
 }) {
   return (
     <motion.div
-      layout
-      className={`rounded-2xl border p-4 ${className}`}
+      layout="position"
+      className={`rounded-2xl border p-4 transition-shadow duration-300 ${className}`}
       style={{
         borderColor: "var(--card-border)",
         background: "var(--card-bg)",
         boxShadow: "var(--card-shadow)",
       }}
     >
-      <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)]">
+      <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-3">
         {title}
       </p>
       {children}
@@ -173,94 +268,116 @@ function DonutChart({
   emptyText: string;
 }) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-  const total = data.reduce((sum, item) => sum + item.plays, 0) || 1;
-  let offset = 25;
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  const slicedData = useMemo(() => data.slice(0, 6), [data]);
+  const total = useMemo(() => slicedData.reduce((sum, item) => sum + item.plays, 0) || 1, [slicedData]);
+
+  // Comprehensive mathematical angle calculations to achieve flawless pointer bounding targets
+  const handleMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
+    if (!svgRef.current || !slicedData.length) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = event.clientX - centerX;
+    const dy = event.clientY - centerY;
+    
+    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    angle = (angle + 90 + 360) % 360; 
+    const percentage = (angle / 360) * 100;
+
+    let currentSum = 0;
+    let foundIndex = 0;
+    for (let i = 0; i < slicedData.length; i++) {
+      const slicePct = (slicedData[i].plays / total) * 100;
+      if (percentage >= currentSum && percentage <= currentSum + slicePct) {
+        foundIndex = i;
+        break;
+      }
+      currentSum += slicePct;
+    }
+
+    setActiveIndex(foundIndex);
+    setTooltip({
+      title: slicedData[foundIndex].name,
+      lines: [
+        `${formatPlaycount(slicedData[foundIndex].plays)} plays`,
+        `${slicedData[foundIndex].share}% Share`,
+        `Rank #${foundIndex + 1}`
+      ],
+      x: event.clientX,
+      y: event.clientY,
+    });
+  };
+
+  let cumulativeOffset = 25;
+
   return (
-    <ChartCard title={label} className="min-h-[190px]">
+    <ChartCard title={label}>
       <Tooltip tooltip={tooltip} />
       {!data.length ? (
-        <div className="mt-4">
-          <EmptyState message={emptyText} />
-        </div>
+        <EmptyState message={emptyText} />
       ) : (
-        <div className="mt-4 grid gap-4 sm:grid-cols-[136px_1fr] sm:items-center">
+        <div className="grid gap-4 sm:grid-cols-[120px_1fr] sm:items-center">
           <svg
+            ref={svgRef}
             viewBox="0 0 42 42"
-            className="mx-auto h-32 w-32 -rotate-90"
-            role="img"
-            aria-label={`${label} distribution`}
+            className="mx-auto h-28 w-28 -rotate-90 select-none outline-none"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => {
+              setTooltip(null);
+              setActiveIndex(null);
+            }}
           >
-            <circle
-              cx="21"
-              cy="21"
-              r="15.915"
-              fill="transparent"
-              stroke="var(--bg-secondary)"
-              strokeWidth="7"
-            />
-            {data.slice(0, 6).map((item, index) => {
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--bg-secondary)" strokeWidth="6.5" />
+            {slicedData.map((item, index) => {
               const dash = (item.plays / total) * 100;
-              const current = offset;
-              offset += dash;
+              const currentOffset = cumulativeOffset;
+              cumulativeOffset += dash;
+              const isHovered = activeIndex === index;
+              const isAnyHovered = activeIndex !== null;
+
               return (
                 <motion.circle
                   key={item.name}
                   initial={{ strokeDasharray: `0 100` }}
-                  animate={{ strokeDasharray: `${dash} ${100 - dash}` }}
-                  transition={{ duration: 0.45, delay: index * 0.04 }}
+                  animate={{ 
+                    strokeDasharray: `${dash} ${100 - dash}`,
+                    strokeWidth: isHovered ? 7.5 : 6.5,
+                  }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
                   cx="21"
                   cy="21"
                   r="15.915"
                   fill="transparent"
-                  stroke={`color-mix(in srgb, var(--text-primary) ${
-                    92 - index * 10
-                  }%, var(--bg-secondary))`}
-                  strokeWidth="7"
-                  strokeDashoffset={100 - current}
+                  stroke={isHovered ? "var(--accent)" : `color-mix(in srgb, var(--text-primary) ${90 - index * 12}%, var(--bg-secondary))`}
+                  strokeDashoffset={100 - currentOffset}
                   strokeLinecap="round"
-                  className="cursor-pointer transition-opacity hover:opacity-70"
-                  onMouseMove={(event) =>
-                    setTooltip({
-                      title: item.name,
-                      lines: [
-                        `${formatPlaycount(item.plays)} plays`,
-                        `${item.share}%`,
-                      ],
-                      x: event.clientX,
-                      y: event.clientY,
-                    })
-                  }
-                  onMouseLeave={() => setTooltip(null)}
+                  style={{
+                    opacity: isAnyHovered && !isHovered ? 0.45 : 1,
+                    transition: "opacity 0.2s ease, stroke 0.2s ease",
+                  }}
                 />
               );
             })}
           </svg>
-          <div className="space-y-1.5">
-            {data.slice(0, 6).map((item) => (
-              <button
+          <div className="space-y-1">
+            {slicedData.map((item, idx) => (
+              <div
                 key={item.name}
-                type="button"
-                className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-1 text-left text-sm transition-colors hover:bg-[var(--bg-secondary)]"
-                onMouseMove={(event) =>
-                  setTooltip({
-                    title: item.name,
-                    lines: [
-                      `${formatPlaycount(item.plays)} plays`,
-                      `${item.share}%`,
-                    ],
-                    x: event.clientX,
-                    y: event.clientY,
-                  })
-                }
-                onMouseLeave={() => setTooltip(null)}
+                className="flex items-center justify-between gap-3 rounded-lg px-2 py-0.5 text-sm transition-colors duration-200"
+                style={{
+                  background: activeIndex === idx ? "var(--bg-secondary)" : "transparent",
+                }}
               >
-                <span className="truncate text-[var(--text-primary)]">
+                <span className={`truncate transition-colors ${activeIndex === idx ? "text-[var(--accent)] font-medium" : "text-[var(--text-primary)]"}`}>
                   {item.name}
                 </span>
-                <span className="font-mono text-xs text-[var(--text-secondary)]">
+                <span className="font-mono text-xs text-[var(--text-secondary)] shrink-0">
                   {item.share}%
                 </span>
-              </button>
+              </div>
             ))}
           </div>
         </div>
@@ -279,70 +396,68 @@ function ListeningClock({
   quietHour: number;
 }) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [hoveredHour, setHoveredHour] = useState<number | null>(null);
   const max = Math.max(...data.map((d) => d.plays), 1);
+
   return (
-    <ChartCard title="Listening clock" className="h-full min-h-[260px]">
+    <ChartCard title="Listening clock" className="h-full">
       <Tooltip tooltip={tooltip} />
-      <div className="mt-1 flex items-start justify-between gap-4">
-        <h2 className="font-display text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <h2 className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
           24-hour rhythm
         </h2>
-        <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
-          Peak {formatHour(peakHour)}
+        <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
+          <span className="text-[var(--accent)] font-semibold">Peak {formatHour(peakHour)}</span>
           <br />
           Quiet {formatHour(quietHour)}
         </p>
       </div>
       {!data.some((item) => item.plays) ? (
-        <div className="mt-4">
-          <EmptyState message="No listening history for this period." />
-        </div>
+        <EmptyState message="No listening history for this period." />
       ) : (
         <div
-          className="mt-5 grid gap-1"
+          className="grid gap-[3px] h-36 items-end"
           style={{ gridTemplateColumns: "repeat(24, minmax(0, 1fr))" }}
-          role="img"
-          aria-label="Hourly listening activity chart"
         >
           {data.map((item) => {
             const isPeak = item.hour === peakHour;
-            const isQuiet = item.hour === quietHour;
+            const isHovered = hoveredHour === item.hour;
+            const isAnyHovered = hoveredHour !== null;
+
             return (
               <button
                 key={item.hour}
                 type="button"
-                aria-label={`${formatHour(item.hour)} ${item.plays} scrobbles`}
-                className="group flex h-32 items-end justify-center rounded-full bg-[var(--bg-secondary)] p-0.5 transition-transform duration-200 hover:-translate-y-1"
-                onMouseMove={(event) =>
+                className="group relative flex h-full items-end justify-center rounded-sm transition-all duration-200"
+                onMouseMove={(event) => {
+                  setHoveredHour(item.hour);
                   setTooltip({
                     title: formatHour(item.hour),
                     lines: [
                       `${formatPlaycount(item.plays)} scrobbles`,
-                      isPeak
-                        ? "Peak listening hour"
-                        : isQuiet
-                        ? "Quiet hour"
-                        : "Listening activity",
+                      isPeak ? "Peak listening hour" : "Hourly activity",
                     ],
                     x: event.clientX,
                     y: event.clientY,
-                  })
-                }
-                onMouseLeave={() => setTooltip(null)}
+                  });
+                }}
+                onMouseLeave={() => {
+                  setHoveredHour(null);
+                  setTooltip(null);
+                }}
               >
                 <motion.span
-                  key={`${item.hour}-${item.plays}`}
                   initial={{ height: 0 }}
-                  whileInView={{
-                    height: `${Math.max(8, (item.plays / max) * 100)}%`,
-                  }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.45, ease: "easeOut" }}
-                  className="w-full rounded-full transition-colors duration-200 group-hover:bg-[var(--accent)]"
+                  animate={{ height: `${Math.max(6, (item.plays / max) * 100)}%` }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="w-full rounded-t-[3px] transition-all duration-200"
                   style={{
-                    background: isPeak
+                    background: isHovered
                       ? "var(--accent)"
-                      : "color-mix(in srgb, var(--text-primary) 42%, transparent)",
+                      : isPeak
+                      ? "color-mix(in srgb, var(--accent) 70%, var(--text-primary))"
+                      : "color-mix(in srgb, var(--text-primary) 35%, transparent)",
+                    opacity: isAnyHovered && !isHovered ? 0.4 : 1,
                   }}
                 />
               </button>
@@ -350,13 +465,127 @@ function ListeningClock({
           })}
         </div>
       )}
-      <div className="mt-2 flex justify-between font-mono text-[9px] text-[var(--text-secondary)]">
-        <span>00</span>
-        <span>06</span>
-        <span>12</span>
-        <span>18</span>
-        <span>23</span>
+      <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2" style={{ borderColor: "var(--card-border)" }}>
+        <span>00:00</span>
+        <span>06:00</span>
+        <span>12:00</span>
+        <span>18:00</span>
+        <span>23:00</span>
       </div>
+    </ChartCard>
+  );
+}
+
+function ListeningHistory({
+  data,
+}: {
+  data: { label: string; plays: number }[];
+}) {
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const max = Math.max(...data.map((x) => x.plays), 1);
+
+  return (
+    <ChartCard title="Listening timeline">
+      <Tooltip tooltip={tooltip} />
+      {!data.length ? (
+        <EmptyState message="No listening history for this period." />
+      ) : (
+        <div className="flex h-36 items-end gap-1.5 pt-2">
+          {data.map((d, idx) => {
+            const isHovered = hoveredIdx === idx;
+            return (
+              <button
+                key={d.label}
+                type="button"
+                className="group flex h-full flex-1 flex-col items-center justify-end"
+                onMouseMove={(event) => {
+                  setHoveredIdx(idx);
+                  setTooltip({
+                    title: d.label,
+                    lines: [`${formatPlaycount(d.plays)} scrobbles`, "Daily total"],
+                    x: event.clientX,
+                    y: event.clientY,
+                  });
+                }}
+                onMouseLeave={() => {
+                  setHoveredIdx(null);
+                  setTooltip(null);
+                }}
+              >
+                <motion.span
+                  initial={{ height: 0 }}
+                  animate={{ height: `${Math.max(6, (d.plays / max) * 100)}%` }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="w-full rounded-t-[4px] transition-all duration-200"
+                  style={{
+                    background: isHovered ? "var(--accent)" : "color-mix(in srgb, var(--text-primary) 65%, transparent)",
+                    opacity: hoveredIdx !== null && !isHovered ? 0.5 : 1,
+                  }}
+                />
+                <span className={`mt-2 font-mono text-[9px] transition-colors duration-200 ${isHovered ? "text-[var(--accent)] font-bold" : "text-[var(--text-secondary)]"}`}>
+                  {d.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </ChartCard>
+  );
+}
+
+function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const max = Math.max(...data.map((x) => x.plays), 1);
+  const active = useMemo(() => data.reduce(
+    (best, item) => (item.plays > best.plays ? item : best),
+    data[0] ?? { day: "", plays: 0 }
+  ), [data]);
+
+  return (
+    <ChartCard title="Weekly activity heatmap">
+      <Tooltip tooltip={tooltip} />
+      {!data.some((d) => d.plays) ? (
+        <EmptyState message="No weekly activity for this period." />
+      ) : (
+        <div className="grid grid-cols-7 gap-2 pt-1">
+          {data.map((d) => {
+            const intensity = Math.round(15 + (d.plays / max) * 70);
+            const isPeak = d.day === active.day;
+            return (
+              <button
+                key={d.day}
+                type="button"
+                className="relative rounded-xl py-3 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm"
+                style={{
+                  background: `color-mix(in srgb, var(--text-primary) ${intensity}%, var(--bg-secondary))`,
+                  border: isPeak ? "1px solid var(--text-primary)" : "1px solid transparent",
+                }}
+                onMouseMove={(event) =>
+                  setTooltip({
+                    title: dayLabels[d.day] ?? d.day,
+                    lines: [
+                      `${formatPlaycount(d.plays)} streams`,
+                      isPeak ? "Highest activity day" : "Weekly metric"
+                    ],
+                    x: event.clientX,
+                    y: event.clientY,
+                  })
+                }
+                onMouseLeave={() => setTooltip(null)}
+              >
+                <p className="font-mono text-[10px] text-[var(--card-bg)] mix-blend-difference font-semibold opacity-80">
+                  {d.day}
+                </p>
+                <p className="mt-0.5 font-display text-base font-black text-[var(--card-bg)] mix-blend-difference">
+                  {d.plays}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </ChartCard>
   );
 }
@@ -371,54 +600,51 @@ function TrackCarousel({
   const ref = useRef<HTMLDivElement>(null);
   const scroll = (dir: number) =>
     ref.current?.scrollBy({
-      left: dir * Math.min(460, ref.current.clientWidth * 0.9),
+      left: dir * Math.min(460, ref.current.clientWidth * 0.85),
       behavior: "smooth",
     });
+
   return (
     <section className="overflow-hidden">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="font-display text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+          <h2 className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
             Top Tracks
           </h2>
           <p className="text-xs text-[var(--text-secondary)]">
-            Swipe through the tracks defining this range.
+            A rotation of tracks leading your metrics.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           <button
-            aria-label="Previous top tracks"
+            aria-label="Previous tracks"
             onClick={() => scroll(-1)}
             className="rounded-full border p-2 transition-colors hover:bg-[var(--bg-secondary)]"
             style={{ borderColor: "var(--card-border)" }}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3.5 w-3.5" />
           </button>
           <button
-            aria-label="Next top tracks"
+            aria-label="Next tracks"
             onClick={() => scroll(1)}
             className="rounded-full border p-2 transition-colors hover:bg-[var(--bg-secondary)]"
             style={{ borderColor: "var(--card-border)" }}
           >
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
       <div
         ref={ref}
         tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowRight") scroll(1);
-          if (e.key === "ArrowLeft") scroll(-1);
-        }}
-        className="music-carousel -mx-4 flex max-w-[100vw] snap-x gap-3 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-3 sm:-mx-6 sm:px-6"
-        aria-label="Scrollable top tracks"
+        className="music-carousel -mx-4 flex max-w-[100vw] snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 px-4 sm:-mx-6 sm:px-6 style-scrollbar"
+        style={{ scrollbarWidth: "none" }}
       >
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="w-[76vw] max-w-[286px] shrink-0 snap-start rounded-2xl border p-3 sm:w-64"
+              className="w-[72vw] max-w-[240px] shrink-0 snap-start rounded-2xl border p-3 sm:w-56"
               style={{ borderColor: "var(--card-border)" }}
             >
               <MusicTrackSkeleton index={i} />
@@ -431,7 +657,7 @@ function TrackCarousel({
               href={track.songUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="group w-[76vw] max-w-[286px] shrink-0 snap-start rounded-2xl border p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl sm:w-64"
+              className="group w-[72vw] max-w-[240px] shrink-0 snap-start rounded-2xl border p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-56"
               style={{
                 borderColor: "var(--card-border)",
                 background: "var(--card-bg)",
@@ -445,17 +671,17 @@ function TrackCarousel({
                 <MusicArtwork
                   src={track.cover}
                   alt={`${track.title} cover`}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="absolute inset-0 bg-black/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               </div>
-              <p className="mt-3 font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] transition-opacity duration-200 group-hover:opacity-70">
+              <p className="mt-2.5 font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] transition-opacity duration-300 group-hover:opacity-80">
                 #{track.rank} · {formatPlaycount(track.playcount)} plays
               </p>
-              <h3 className="mt-1 truncate font-display text-lg font-bold text-[var(--text-primary)] group-hover:text-[var(--accent)]">
+              <h3 className="mt-0.5 truncate font-display text-base font-bold text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
                 {track.title}
               </h3>
-              <p className="truncate text-sm text-[var(--text-secondary)]">
+              <p className="truncate text-xs text-[var(--text-secondary)]">
                 {track.artist}
               </p>
             </a>
@@ -470,197 +696,34 @@ function TrackCarousel({
   );
 }
 
-function ListeningHistory({
-  data,
-}: {
-  data: { label: string; plays: number }[];
-}) {
-  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-  const max = Math.max(...data.map((x) => x.plays), 1);
-  return (
-    <ChartCard
-      title="Listening history"
-      className="min-h-[240px] lg:col-span-3"
-    >
-      <Tooltip tooltip={tooltip} />
-      {!data.length ? (
-        <div className="mt-4">
-          <EmptyState message="No listening history for this period." />
-        </div>
-      ) : (
-        <div className="mt-5 flex h-36 items-end gap-2">
-          {data.map((d) => (
-            <button
-              key={d.label}
-              type="button"
-              className="group flex h-full flex-1 flex-col items-center justify-end gap-2"
-              onMouseMove={(event) =>
-                setTooltip({
-                  title: d.label,
-                  lines: [`${formatPlaycount(d.plays)} scrobbles`],
-                  x: event.clientX,
-                  y: event.clientY,
-                })
-              }
-              onMouseLeave={() => setTooltip(null)}
-            >
-              <motion.span
-                key={`${d.label}-${d.plays}`}
-                initial={{ height: 0 }}
-                animate={{ height: `${Math.max(6, (d.plays / max) * 100)}%` }}
-                transition={{ duration: 0.35 }}
-                className="w-full rounded-t-lg bg-[var(--accent)] opacity-70 transition-all duration-200 group-hover:opacity-100"
-              />
-              <span className="font-mono text-[9px] text-[var(--text-secondary)]">
-                {d.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-    </ChartCard>
-  );
-}
-
-function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
-  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-  const max = Math.max(...data.map((x) => x.plays), 1);
-  const active = data.reduce(
-    (best, item) => (item.plays > best.plays ? item : best),
-    data[0] ?? { day: "", plays: 0 }
-  );
-  return (
-    <ChartCard title="Weekly heatmap" className="min-h-[240px] lg:col-span-2">
-      <Tooltip tooltip={tooltip} />
-      <div className="mt-2 flex items-center justify-between text-xs text-[var(--text-secondary)]">
-        <span>Selected range</span>
-        <span className="font-mono">Peak {active?.day || "—"}</span>
-      </div>
-      {!data.some((d) => d.plays) ? (
-        <div className="mt-4">
-          <EmptyState message="No weekly activity for this period." />
-        </div>
-      ) : (
-        <div className="mt-5 grid grid-cols-7 gap-2">
-          {data.map((d) => {
-            const intensity = Math.round(18 + (d.plays / max) * 62);
-            return (
-              <button
-                key={d.day}
-                type="button"
-                className="rounded-xl p-3 text-center transition-all duration-200 hover:-translate-y-1"
-                style={{
-                  background: `color-mix(in srgb, var(--accent) ${intensity}%, var(--bg-secondary))`,
-                  outline:
-                    d.day === active.day ? "1px solid var(--accent)" : "none",
-                }}
-                onMouseMove={(event) =>
-                  setTooltip({
-                    title: dayLabels[d.day] ?? d.day,
-                    lines: [`${formatPlaycount(d.plays)} plays`],
-                    x: event.clientX,
-                    y: event.clientY,
-                  })
-                }
-                onMouseLeave={() => setTooltip(null)}
-              >
-                <p className="font-mono text-[9px] text-[var(--accent-text)] opacity-80">
-                  {d.day}
-                </p>
-                <motion.p
-                  key={d.plays}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mt-1 font-display text-lg font-bold text-[var(--accent-text)]"
-                >
-                  {d.plays}
-                </motion.p>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </ChartCard>
-  );
-}
-
 export default function MusicPage() {
   const [period, setPeriod] = useState<MusicPeriod>(DEFAULT_MUSIC_PERIOD);
   const { tracks, isLoading: tracksLoading } = useTopTracks(period);
   const { data: stats, isValidating } = useSWR<MusicDashboardStats>(
     `/api/lastfm-stats?period=${period}`,
     fetcher,
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
-  const activePeriod =
-    MUSIC_PERIODS.find((p) => p.value === period) ?? MUSIC_PERIODS[0];
+  
+  const activePeriod = MUSIC_PERIODS.find((p) => p.value === period) ?? MUSIC_PERIODS[0];
   const isStatsLoading = !stats || isValidating;
+  
   const statsCards = useMemo(
     () =>
       stats
         ? [
-            [
-              "Streams",
-              formatPlaycount(stats.totals.streams),
-              "Selected range",
-            ],
-            [
-              "Minutes",
-              formatPlaycount(stats.totals.minutes),
-              `${formatPlaycount(stats.totals.hours)} hours`,
-            ],
-            [
-              "Tracks",
-              formatPlaycount(stats.profile.trackCount),
-              "Unique top tracks",
-            ],
-            [
-              "Albums",
-              formatPlaycount(stats.profile.albumCount),
-              `${formatPlaycount(stats.totals.averageAlbumPlays)} avg plays`,
-            ],
-            [
-              "Artists",
-              formatPlaycount(stats.profile.artistCount),
-              `${formatPlaycount(stats.totals.averageArtistPlays)} avg plays`,
-            ],
-            [
-              "Daily avg",
-              formatPlaycount(stats.totals.averagePlaysPerDay),
-              "Plays per day",
-            ],
-            [
-              "Streak",
-              `${stats.insights.longestListeningStreak}d`,
-              "Recent sample",
-            ],
-            [
-              "Track length",
-              formatSeconds(stats.totals.averageTrackLength),
-              "Estimated avg",
-            ],
-            [
-              "Growth",
-              `+${formatPlaycount(stats.totals.weeklyGrowth)}`,
-              activePeriod.description,
-            ],
-            [
-              "Recent",
-              `+${formatPlaycount(stats.totals.monthlyGrowth)}`,
-              "From recent tracks",
-            ],
-            [
-              "Account age",
-              `${formatPlaycount(stats.totals.accountAgeDays)}d`,
-              stats.profile.registeredAt
-                ? new Date(stats.profile.registeredAt).toLocaleDateString()
-                : "Registered",
-            ],
-            [
-              "Active day",
-              stats.insights.mostActiveListeningDay,
-              stats.insights.favoriteListeningPeriod,
-            ],
+            ["Streams", formatPlaycount(stats.totals.streams), "Selected range"],
+            ["Minutes", formatPlaycount(stats.totals.minutes), `${formatPlaycount(stats.totals.hours)} hours`],
+            ["Tracks", formatPlaycount(stats.profile.trackCount), "Unique top tracks"],
+            ["Albums", formatPlaycount(stats.profile.albumCount), `${formatPlaycount(stats.totals.averageAlbumPlays)} avg plays`],
+            ["Artists", formatPlaycount(stats.profile.artistCount), `${formatPlaycount(stats.totals.averageArtistPlays)} avg plays`],
+            ["Daily avg", formatPlaycount(stats.totals.averagePlaysPerDay), "Plays per day"],
+            ["Streak", `${stats.insights.longestListeningStreak}d`, "Recent sample"],
+            ["Track length", formatSeconds(stats.totals.averageTrackLength), "Estimated avg"],
+            ["Growth", `+${formatPlaycount(stats.totals.weeklyGrowth)}`, activePeriod.description],
+            ["Recent", `+${formatPlaycount(stats.totals.monthlyGrowth)}`, "From recent tracks"],
+            ["Account age", `${formatPlaycount(stats.totals.accountAgeDays)}d`, stats.profile.registeredAt ? new Date(stats.profile.registeredAt).toLocaleDateString() : "Registered"],
+            ["Active day", stats.insights.mostActiveListeningDay, stats.insights.favoriteListeningPeriod],
           ]
         : [],
     [activePeriod.description, stats]
@@ -673,52 +736,30 @@ export default function MusicPage() {
         description="A modern Last.fm music analytics dashboard."
         canonical="https://abyn.xyz/music"
       />
-      <main className="mx-auto w-full max-w-6xl overflow-hidden px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <motion.section
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 overflow-hidden rounded-3xl border p-5 sm:p-7"
-          style={{
-            borderColor: "var(--card-border)",
-            background: "var(--card-bg)",
-            boxShadow: "var(--card-shadow)",
-          }}
+          transition={{ duration: 0.3 }}
+          className="mb-8 overflow-hidden rounded-3xl border p-6 sm:p-8 bg-white border-zinc-200 shadow-sm"
         >
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)]">
                 03 — Music dashboard
               </p>
-              <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-6xl">
+              <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
                 Last.fm replay
               </h1>
-              <p className="mt-3 max-w-lg text-sm leading-6 text-[var(--text-secondary)] sm:text-base">
-                <strong className="font-medium text-[var(--text-primary)]">
+              <p className="mt-2.5 max-w-lg text-sm leading-relaxed text-[var(--text-secondary)]">
+                <strong className="font-semibold text-[var(--text-primary)]">
                   My music history.
                 </strong>{" "}
                 Every scrobble tells a story.
               </p>
             </div>
-            <div className="grid gap-2 sm:min-w-[300px] sm:grid-cols-2">
-              <div
-                className="rounded-2xl border p-4"
-                style={{
-                  borderColor: "var(--card-border)",
-                  background: "var(--social-bg-mix)",
-                }}
-              >
-                <Radio className="mb-2 h-4 w-4 text-[var(--accent)]" />
-                <p className="text-sm font-medium text-[var(--text-primary)]">
-                  {stats?.current.isPlaying
-                    ? "Currently listening"
-                    : "Listening status"}
-                </p>
-                <p className="truncate text-xs text-[var(--text-secondary)]">
-                  {stats?.current.isPlaying
-                    ? `${stats.current.track} — ${stats.current.artist}`
-                    : "No active scrobble"}
-                </p>
-              </div>
+            <div className="grid gap-3 sm:min-w-[340px] sm:grid-cols-2">
+              <LivePresenceCard />
               <div
                 className="rounded-2xl border p-4"
                 style={{
@@ -737,12 +778,14 @@ export default function MusicPage() {
             </div>
           </div>
         </motion.section>
+
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="font-mono text-xs text-[var(--text-secondary)]">
             {activePeriod.description}
           </p>
           <MusicPeriodTabs active={period} onChange={setPeriod} />
         </div>
+
         <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
           {isStatsLoading && !stats
             ? Array.from({ length: 12 }).map((_, i) => (
@@ -754,34 +797,42 @@ export default function MusicPage() {
                   label={label}
                   value={value}
                   detail={detail}
-                  delay={i * 0.015}
+                  delay={i * 0.012}
                 />
               ))}
         </div>
+
         <div className="mb-8">
           <TrackCarousel tracks={tracks} isLoading={tracksLoading} />
         </div>
+
         {isStatsLoading && !stats ? (
           <div className="grid gap-4 lg:grid-cols-5">
-            <SkeletonBlock className="h-64 lg:col-span-3" />
-            <SkeletonBlock className="h-64 lg:col-span-2" />
-            <SkeletonBlock className="h-56 lg:col-span-3" />
-            <SkeletonBlock className="h-56 lg:col-span-2" />
+            <div className="space-y-4 lg:col-span-3">
+              <SkeletonBlock className="h-64" />
+              <SkeletonBlock className="h-56" />
+            </div>
+            <div className="space-y-4 lg:col-span-2">
+              <SkeletonBlock className="h-44" />
+              <SkeletonBlock className="h-44" />
+              <SkeletonBlock className="h-56" />
+            </div>
           </div>
         ) : (
           stats && (
-            <motion.div
-              layout
-              className="grid items-stretch gap-4 lg:grid-cols-5"
-            >
-              <div className="lg:col-span-3">
+            <div className="grid items-start gap-4 lg:grid-cols-5">
+              {/* Left Column - Large Components */}
+              <div className="space-y-4 lg:col-span-3 flex flex-col h-full justify-between">
                 <ListeningClock
                   data={stats.charts.listeningClock}
                   peakHour={stats.insights.peakHour}
                   quietHour={stats.insights.quietHour}
                 />
+                <ListeningHistory data={stats.charts.listeningHistory} />
               </div>
-              <div className="grid gap-4 lg:col-span-2">
+
+              {/* Right Column - Secondary Share Data & Matrices */}
+              <div className="space-y-4 lg:col-span-2">
                 <DonutChart
                   label="Top artists share"
                   data={stats.charts.topArtists}
@@ -792,13 +843,12 @@ export default function MusicPage() {
                   data={stats.charts.topAlbums}
                   emptyText="No albums available for this period."
                 />
+                <WeeklyHeatmap data={stats.charts.weeklyActivity} />
               </div>
-              <ListeningHistory data={stats.charts.listeningHistory} />
-              <WeeklyHeatmap data={stats.charts.weeklyActivity} />
-            </motion.div>
+            </div>
           )
         )}
-        <div className="mt-10">
+        <div className="mt-12 border-t pt-6" style={{ borderColor: "var(--card-border)" }}>
           <PageFooter />
         </div>
       </main>
