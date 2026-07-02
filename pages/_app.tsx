@@ -23,7 +23,7 @@ import "../components/ClickSpark/ClickSpark";
 
 declare global {
   interface Console {
-    load?: (url?: string, size?: number) => Promise<void>;
+    load: (url?: string, size?: number) => Promise<void>;
   }
 
   interface Window {
@@ -41,7 +41,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (!window.__consoleMessageShown) {
       window.__consoleMessageShown = true;
 
-      // Asynchronous binary conversion helper to safely bypass Chromium network console filters
+      // Safe binary converter to bypass network security blocks on console assets
       const convertToBase64 = async (url: string): Promise<string | null> => {
         try {
           const res = await fetch(url);
@@ -58,49 +58,67 @@ function MyApp({ Component, pageProps }: AppProps) {
         }
       };
 
-      // Bind the custom load signature onto global scope console to prevent undefined invocation crashes
-      console.load ??= (url?: string, size = 88) =>
-        new Promise<void>((resolve) => {
-          const target = url || "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
-          convertToBase64(target).then((base64) => {
-            if (base64) {
+      // FIXED: Defined console.load to match your chaining template layout perfectly
+      console.load = (url?: string, size = 88) => {
+        const target = url || "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
+        return convertToBase64(target).then((base64) => {
+          if (base64) {
+            console.log(
+              "%c ",
+              `
+                font-size: 1px;
+                padding: ${size / 2}px;
+                background: url(${base64}) center/cover no-repeat;
+                border-radius: 0px;
+              `
+            );
+          }
+        });
+      };
+
+      const bannerUrl = "https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif";
+
+      // EXECUTION: Chains exactly like your example snippet to keep execution output unified
+      console
+        .load("https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg", 88)
+        .then(() => {
+          console.log(
+            "%c> hello, explorer.",
+            "color:#60a5fa;font-size:18px;font-weight:bold;"
+          );
+
+          console.log(
+            "%cYou weren't supposed to find anything interesting here :p",
+            "color:#9ca3af;font-size:13px;"
+          );
+
+          console.log(
+            "%cIf you discovered a bug, have feedback, or want to collaborate,",
+            "color:#e5e7eb;font-size:13px;"
+          );
+
+          console.log(
+            "%cmy inbox is always open → abyn@abyn.xyz",
+            "color:#22c55e;font-size:13px;font-weight:600;"
+          );
+
+          // Loads the background banner asset seamlessly right underneath the text logs
+          convertToBase64(bannerUrl).then((bannerBase64) => {
+            if (bannerBase64) {
               console.log(
                 "%c ",
                 `
                   font-size: 1px;
-                  padding: ${size / 2}px;
-                  background: url(${base64}) center/cover no-repeat;
-                  border-radius: 0px;
+                  /* FIXED: Scaled padding dimensions down to make the footer banner look crisp and subtle */
+                  padding: 55px 125px; 
+                  margin-top: 14px;
+                  background: url(${bannerBase64}) center/cover no-repeat;
+                  border-radius: 8px;
                 `
               );
             }
-            resolve();
           });
         });
-
-      const pfpUrl = "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
-      const bannerUrl = "https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif";
-
-      // Synchronize asset loads concurrently
-      Promise.all([convertToBase64(pfpUrl), convertToBase64(bannerUrl)]).then(([pfpBase64, bannerBase64]) => {
-        // FIXED: Wrap the single consolidated block into a slight timeout window 
-        // This ensures the DevTools rendering layer is fully active and catches all assets on initialization
-        setTimeout(() => {
-          console.log(
-            "%c \n\n%c> hello, explorer.\n%cYou weren't supposed to find anything interesting here :p\n%cIf you discovered a bug, have feedback, or want to collaborate,\n%cmy inbox is always open → abyn@abyn.xyz\n\n%c ",
-            pfpBase64 
-              ? `font-size: 1px; padding: 44px; background: url(${pfpBase64}) center/cover no-repeat; border-radius: 0px; line-height: 88px; display: inline-block;` 
-              : "display: none;",
-            "color: #60a5fa; font-size: 18px; font-weight: bold; font-family: monospace;",
-            "color: #9ca3af; font-size: 13px; font-family: monospace;",
-            "color: #e5e7eb; font-size: 13px; font-family: monospace;",
-            "color: #22c55e; font-size: 13px; font-weight: 600; font-family: monospace;",
-            bannerBase64 
-              ? `font-size: 1px; padding: 110px 190px; background: url(${bannerBase64}) center/cover no-repeat; border-radius: 12px; line-height: 220px; display: inline-block;` 
-              : "display: none;"
-          );
-        }, 200);
-      });
     }
 
     return () => {
