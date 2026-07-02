@@ -126,7 +126,7 @@ const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
   }, [isPlaying]);
 
   return (
-    <div className="flex h-3 items-end gap-[2px]" aria-hidden="true">
+    <div className="flex h-2.5 items-end gap-[2px]" aria-hidden="true">
       {barHeights.map((height, index) => (
         <motion.span
           key={index}
@@ -169,7 +169,7 @@ function LivePresenceCard() {
   const isSpotify = !!(presence.data.listening_to_spotify && presence.data.spotify);
 
   return (
-    <div className="rounded-2xl border p-4 transition-all duration-300 flex flex-col justify-between" style={{ borderColor: "var(--card-border)", background: "var(--social-bg-mix)" }}>
+    <div className="rounded-2xl border p-4 transition-all duration-300 flex flex-col justify-center" style={{ borderColor: "var(--card-border)", background: "var(--social-bg-mix)" }}>
       <div className="flex items-center gap-1.5 mb-2">
         <span className={`h-2 w-2 rounded-full ${statusColor}`} />
         <p className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)]">
@@ -187,33 +187,28 @@ function LivePresenceCard() {
           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border" style={{ borderColor: "var(--card-border)" }}>
             <img src={presence.data.spotify?.album_art_url} alt="Album Art" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           </div>
-          <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
-                {presence.data.spotify?.song}
-              </p>
-              <p className="truncate text-xs text-[var(--text-secondary)]">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
+              {presence.data.spotify?.song}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5 min-w-0">
+              <p className="truncate text-xs text-[var(--text-secondary)] max-w-[80%]">
                 {presence.data.spotify?.artist}
               </p>
-            </div>
-            <div className="shrink-0 pb-1">
-              <Visualizer isPlaying={isSpotify} />
+              <div className="shrink-0 flex items-center h-3">
+                <Visualizer isPlaying={isSpotify} />
+              </div>
             </div>
           </div>
         </a>
       ) : (
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-[var(--text-primary)]">
-              {presence.data.discord_status === "offline" ? "Offline" : "Not listening right now"}
-            </p>
-            <p className="text-xs text-[var(--text-secondary)] truncate">
-              {presence.data.discord_status === "offline" ? "Last seen recently" : "Idling on Discord"}
-            </p>
-          </div>
-          <div className="shrink-0 pb-1">
-            <Visualizer isPlaying={isSpotify} />
-          </div>
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-[var(--text-primary)]">
+            {presence.data.discord_status === "offline" ? "Offline" : "Not listening right now"}
+          </p>
+          <p className="text-xs text-[var(--text-secondary)] truncate">
+            {presence.data.discord_status === "offline" ? "Last seen recently" : "Idling on Discord"}
+          </p>
         </div>
       )}
     </div>
@@ -295,7 +290,7 @@ function ChartCard({
         boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
       }}
     >
-      <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-3">
+      <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2">
         {title}
       </p>
       {children}
@@ -329,7 +324,7 @@ function DonutChart({
       data: slicedData.map(d => d.plays),
       backgroundColor: equalSaturationPalette,
       borderWidth: 0,
-      hoverOffset: 6
+      hoverOffset: 4
     }]
   }), [slicedData, equalSaturationPalette]);
 
@@ -343,7 +338,7 @@ function DonutChart({
         bodyColor: "#e4e4e7",
         titleFont: { family: "ui-monospace, monospace", size: 11, weight: "bold" as const },
         bodyFont: { family: "sans-serif", size: 12 },
-        padding: 10,
+        padding: 8,
         cornerRadius: 10,
         borderColor: "rgba(255, 255, 255, 0.08)",
         borderWidth: 1,
@@ -360,7 +355,7 @@ function DonutChart({
     maintainAspectRatio: false,
     responsive: true,
     layout: {
-      padding: 8
+      padding: 4
     }
   }), [slicedData]);
 
@@ -371,25 +366,25 @@ function DonutChart({
       {!data.length ? (
         <EmptyState message={emptyText} />
       ) : (
-        <div className="flex flex-col sm:flex-row items-center gap-6 min-w-0 w-full">
+        <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0 w-full py-0.5">
           <div className="flex flex-col items-center justify-center shrink-0">
-            <div className="h-32 w-32 relative flex items-center justify-center">
+            <div className="h-24 w-24 relative flex items-center justify-center">
               <Doughnut data={chartData} options={chartOptions} />
             </div>
-            <div className="mt-2 text-center select-none pointer-events-none">
-              <span className="font-display text-[11px] font-black tracking-wider text-[var(--text-primary)] uppercase">
+            <div className="mt-1 text-center select-none pointer-events-none">
+              <span className="font-display text-[10px] font-black tracking-wider text-[var(--text-primary)] uppercase">
                 {isArtist ? "Artists" : "Albums"}
               </span>
-              <span className="font-mono text-[9px] text-[var(--text-secondary)] block font-bold">
+              <span className="font-mono text-[9px] text-[var(--text-secondary)] block font-bold leading-none">
                 100%
               </span>
             </div>
           </div>
-          <div className="space-y-1.5 min-w-0 flex-1 w-full">
+          <div className="space-y-1 min-w-0 flex-1 w-full">
             {slicedData.map((item, idx) => (
               <div
                 key={item.name}
-                className="flex items-center justify-between gap-3 rounded-lg px-2 py-0.5 text-sm min-w-0"
+                className="flex items-center justify-between gap-3 rounded-lg px-2 py-0.5 text-xs min-w-0"
               >
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: equalSaturationPalette[idx] }} />
@@ -426,8 +421,8 @@ function ListeningClock({
     <ChartCard title="Listening clock" className="flex flex-col h-full justify-between flex-1">
       <Tooltip tooltip={tooltip} />
       <div>
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <h2 className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <h2 className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
             24-hour rhythm
           </h2>
           <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
@@ -440,7 +435,7 @@ function ListeningClock({
           <EmptyState message="No listening history for this period." />
         ) : (
           <div
-            className="relative grid gap-[4px] h-40 items-end px-1 rounded-xl"
+            className="relative grid gap-[4px] h-36 items-end px-1 rounded-xl"
             style={{ 
               gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
               backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
@@ -495,7 +490,7 @@ function ListeningClock({
           </div>
         )}
       </div>
-      <div className="mt-4 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold" style={{ borderColor: "var(--card-border)" }}>
+      <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold" style={{ borderColor: "var(--card-border)" }}>
         <span>12 AM</span>
         <span>6 AM</span>
         <span>12 PM</span>
@@ -521,7 +516,7 @@ function ListeningHistory({
       {!data.length ? (
         <EmptyState message="No listening history for this period." />
       ) : (
-        <div className="flex h-40 items-end gap-2 pt-2 px-1">
+        <div className="flex h-36 items-end gap-2 pt-2 px-1">
           {data.map((d, idx) => {
             const isHovered = hoveredIdx === idx;
             return (
@@ -590,17 +585,17 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
       {!data.some((d) => d.plays) ? (
         <EmptyState message="No weekly activity for this period." />
       ) : (
-        <div className="flex justify-between items-center gap-2 pt-2 overflow-x-auto pb-1 hide-scrollbar">
+        <div className="flex justify-between items-center gap-2 pt-1 overflow-x-auto pb-1 hide-scrollbar">
           {data.map((d) => {
             const level = d.plays === 0 ? 0 : Math.min(4, Math.max(1, Math.floor((d.plays / max) * 4)));
             const isPeak = d.day === active.day && d.plays > 0;
 
             return (
-              <div key={d.day} className="flex flex-col items-center flex-1 min-w-[40px]">
+              <div key={d.day} className="flex flex-col items-center flex-1 min-w-[36px]">
                 <button
                   type="button"
                   aria-label={`Activity level for ${d.day}`}
-                  className="w-10 h-10 rounded-lg transition-all duration-300 outline-none select-none cursor-default"
+                  className="w-9 h-9 rounded-lg transition-all duration-300 outline-none select-none cursor-default"
                   style={{
                     background: heatmapColors[level],
                     border: isPeak ? "2px solid rgba(255,255,255,0.15)" : "1px solid transparent",
@@ -619,7 +614,7 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                   }
                   onMouseLeave={() => setTooltip(null)}
                 />
-                <span className="mt-2 font-mono text-[10px] text-[var(--text-secondary)] font-bold">
+                <span className="mt-1.5 font-mono text-[9px] text-[var(--text-secondary)] font-bold">
                   {d.day}
                 </span>
                 <span className="font-display text-xs font-black text-[var(--text-primary)] mt-0.5">
@@ -869,9 +864,9 @@ export default function MusicPage() {
           </div>
         ) : (
           stats && (
-            <div className="grid items-stretch gap-4 lg:grid-cols-5 animate-fadeIn">
-              {/* Proportional Grid Scaling Left Column */}
-              <div className="lg:col-span-3 flex flex-col gap-4 h-full">
+            <div className="grid items-start gap-4 lg:grid-cols-5 animate-fadeIn">
+              {/* Left Column Section */}
+              <div className="lg:col-span-3 flex flex-col gap-4 h-full self-stretch">
                 <div className="flex-1 min-h-0">
                   <ListeningClock
                     data={stats.charts.listeningClock}
@@ -884,8 +879,8 @@ export default function MusicPage() {
                 </div>
               </div>
 
-              {/* Grid Scaling Right Column Sidebar */}
-              <div className="space-y-4 lg:col-span-2 flex flex-col h-full justify-between">
+              {/* Scaled-Down Right Column Sidebar Section */}
+              <div className="space-y-4 lg:col-span-2 flex flex-col h-full justify-between self-stretch">
                 <DonutChart
                   label="Top artists share"
                   data={stats.charts.topArtists}
