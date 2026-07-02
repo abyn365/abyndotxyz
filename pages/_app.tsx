@@ -23,7 +23,6 @@ import "../components/ClickSpark/ClickSpark";
 
 declare global {
   interface Console {
-    // FIXED: Changed url to an optional parameter to support 0-argument execution calls
     load?: (url?: string, size?: number) => Promise<void>;
   }
 
@@ -42,42 +41,35 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (!window.__consoleMessageShown) {
       window.__consoleMessageShown = true;
 
-      // FIXED: Adjusted implementation signature to accept an optional url string parameter
       console.load ??= (url?: string, size = 88) =>
         new Promise<void>((resolve) => {
+          // FIXED: Set default path to your GIF file instead of the static GitHub avatar string
+          const targetUrl =
+            url || "https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif";
+
           const img = new Image();
           img.crossOrigin = "anonymous";
 
           img.onload = () => {
-            const canvas = document.createElement("canvas");
-            canvas.width = size;
-            canvas.height = size;
-
-            const ctx = canvas.getContext("2d");
-            if (!ctx) return resolve();
-
-            ctx.beginPath();
-            ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
-            ctx.closePath();
-            ctx.clip();
-
-            ctx.drawImage(img, 0, 0, size, size);
-
+            // FIXED: Bypassed HTML5 Canvas completely to preserve native GIF animation timelines and remove rounding clip mask
             console.log(
               "%c ",
               `
-                font-size:1px;
-                padding:${size / 2}px;
-                background:url(${canvas.toDataURL()}) center/cover no-repeat;
+                font-size: 1px;
+                padding: ${size / 2}px;
+                background: url(${targetUrl}) center/cover no-repeat;
+                border-radius: 0px;
               `
             );
-
             resolve();
           };
 
-          // Use optional parameter value if provided, otherwise default smoothly to fallback avatar
-          img.src =
-            url || "https://avatars.githubusercontent.com/u/190515700?v=4";
+          // Graceful fallback error boundary
+          img.onerror = () => {
+            resolve();
+          };
+
+          img.src = targetUrl;
         });
 
       console.load().then(() => {
@@ -104,12 +96,11 @@ function MyApp({ Component, pageProps }: AppProps) {
         console.log(
           "%c ",
           `
-            font-size:1px;
-            padding:110px 190px;
-            margin-top:12px;
-            background:url(https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif)
-            center/cover no-repeat;
-            border-radius:12px;
+            font-size: 1px;
+            padding: 110px 190px;
+            margin-top: 12px;
+            background: url(https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif) center/cover no-repeat;
+            border-radius: 12px;
           `
         );
       });
