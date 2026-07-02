@@ -57,11 +57,22 @@ function formatEvent(event: GitHubEvent) {
   switch (event.type) {
     case "PushEvent": {
       const commits = event.payload?.commits || [];
-      const lastCommit = commits[commits.length - 1];
-      const msg = lastCommit?.message?.split("\n")[0]?.slice(0, 50);
+      // Robust commit selection: checks both ends of the payload array for safety
+      const targetCommit = commits[commits.length - 1] || commits[0];
+      const msg = targetCommit?.message?.split("\n")[0]?.slice(0, 50)?.trim();
+      
+      if (msg) {
+        return {
+          icon: "⬆",
+          text: msg,
+          repo: event.repo?.name,
+        };
+      }
+      // If commits array is uniquely empty, display the target branch name as a distinct identifier
+      const branch = event.payload?.ref?.replace("refs/heads/", "");
       return {
         icon: "⬆",
-        text: msg || `pushed to ${repo}`,
+        text: branch ? `pushed to branch ${branch}` : `updated ${repo}`,
         repo: event.repo?.name,
       };
     }
@@ -391,7 +402,7 @@ function GitHubGraph() {
         }
       }
 
-      // Continuous Toroidal Screen Edge Wrapping Engine Feature
+      // Toroidal Screen Edge Wrapping
       let nextX = (pos.x + dir.x + COLS) % COLS;
       let nextY = (pos.y + dir.y + ROWS) % ROWS;
       pos = { x: nextX, y: nextY };
@@ -399,13 +410,13 @@ function GitHubGraph() {
       const activeBody = path.slice(-tailLengthMax);
       const cellNode = activeGrid[pos.x]?.[pos.y];
 
-      // Validate core critical layout hit collision vectors (Body parts and obstacles)
+      // Validate hit collision vectors
       if (activeBody.some((b) => b.x === pos.x && b.y === pos.y) || cellNode?.isObstacle) {
         triggerResetSequence(activeGrid, currentLevel, startingScore, manualControlActive, "red");
         return;
       }
 
-      // Check for consumption
+      // Check for digestion
       if (cellNode && cellNode.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
         localEaten.add(key(pos.x, pos.y));
         tailLengthMax = 3 + localEaten.size;
@@ -416,7 +427,7 @@ function GitHubGraph() {
       path = [...path, { ...pos }].slice(-tailLengthMax);
       setSnake([...path]);
 
-      // Verify level completion status loops
+      // Complete clearance verify step
       if (localEaten.size >= totalTargetFoodCells && totalTargetFoodCells > 0) {
         triggerResetSequence(activeGrid, currentLevel, startingScore + localEaten.size, manualControlActive, "green");
       }
@@ -432,13 +443,14 @@ function GitHubGraph() {
       stopSnake();
       setFlashStatus(status);
 
-      // Flash animation lasts for 2 seconds
+      // Flash animation screen alert timer holds for 2 seconds
       snakeTimeoutRef.current = setTimeout(() => {
         setFlashStatus(null);
         setSnake([]);
         setEatenPositions(new Set());
 
         if (status === "red") {
+          // Failure State: Drop map back to default matrix and enforce a 3-second delay standby countdown
           const resetGrid = rawFetchedGridRef.current;
           setWeeks(resetGrid);
           
@@ -446,6 +458,7 @@ function GitHubGraph() {
             startSnakeGame(resetGrid, 1, 0, false);
           }, 3000);
         } else {
+          // Success State: Process advanced map configuration levels, clear view, and standby 3 seconds before launch
           const nextLevel = lvl + 1;
           const proceduralGrid = generateProceduralLevel(nextLevel);
           setWeeks(proceduralGrid);
@@ -483,7 +496,7 @@ function GitHubGraph() {
 
   return (
     <div className="mt-1">
-      {/* Header Metric Line */}
+      {/* Header Metric Line updates instantly between user records and arcade loops */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--text-secondary)]">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {isManual ? (
@@ -530,7 +543,7 @@ function GitHubGraph() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Matrix Grid Sandbox Wrapper */}
+        {/* Matrix Grid Window Container */}
         <div 
           className={`overflow-x-auto pb-2 lg:col-span-2 rounded-xl p-2 transition-all duration-300 select-none ${
             flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
@@ -579,7 +592,7 @@ function GitHubGraph() {
           </div>
         </div>
 
-        {/* RIGHT SIDE PANEL: Displays unique chronological logs or d-pad */}
+        {/* RIGHT SIDE PANEL: Displays distinct chronological logs or tactical dpad inputs */}
         <div className="min-w-0">
           {isManual ? (
             <div className="flex flex-col items-center justify-center p-4 border border-dashed border-[var(--card-border)] rounded-xl bg-zinc-100/40 dark:bg-zinc-900/30 min-h-[140px] relative select-none">
@@ -633,7 +646,7 @@ function GitHubGraph() {
                     return (
                       <div key={i} className="flex items-center gap-2 font-mono text-[11px]">
                         <span className="w-3 text-center flex-shrink-0 text-zinc-400">{f.icon}</span>
-                        {/* FIXED: Uses unique event payload parameters directly to render distinct names */}
+                        {/* Displays specific commit names from the independent payload object context */}
                         <span className="text-[var(--text-secondary)] truncate">{f.text}</span>
                         <a
                           href={`https://github.com/${f.repo}`}
@@ -772,77 +785,4 @@ export default function Projects() {
                 key={i}
                 className="h-52 animate-pulse rounded-2xl border"
                 style={{
-                  borderColor: "var(--card-border)",
-                  background: "var(--bg-secondary)",
-                }}
-              />
-            ))}
-          </div>
-        ) : items.length === 0 ? (
-          <div
-            className="rounded-2xl border px-6 py-16 text-center"
-            style={{
-              borderColor: "var(--card-border)",
-              background: "var(--bg-secondary)",
-            }}
-          >
-            <p className="font-display text-xl font-bold text-[var(--text-primary)]">
-              Nothing here yet
-            </p>
-            <p className="mt-2 text-sm text-[var(--text-secondary)]">
-              Check back soon.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div
-              className={
-                tab === "selected" ? "grid gap-5" : "grid gap-4 md:grid-cols-2"
-              }
-            >
-              {paged.map((project, i) => (
-                <ProjectCard
-                  key={`${project.name}-${i}`}
-                  project={project}
-                  index={i}
-                  variant={tab === "selected" ? "featured" : "grid"}
-                />
-              ))}
-            </div>
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
-                  style={{
-                    borderColor: "var(--card-border)",
-                    background: "var(--bg-secondary)",
-                  }}
-                >
-                  <ChevronLeft className="h-4 w-4 text-[var(--text-primary)]" />
-                </button>
-                <span className="font-mono text-xs text-[var(--text-secondary)]">
-                  {page} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
-                  style={{
-                    borderColor: "var(--card-border)",
-                    background: "var(--bg-secondary)",
-                  }}
-                >
-                  <ChevronRight className="h-4 w-4 text-[var(--text-primary)]" />
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
+                  borderColor: "
