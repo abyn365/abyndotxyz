@@ -41,13 +41,18 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (!window.__consoleMessageShown) {
       window.__consoleMessageShown = true;
 
-      // FIXED: Converts raw files into lightweight Object Blobs to keep the console buffer tiny and un-glitched
-      const convertToBlobUrl = async (url: string): Promise<string | null> => {
+      // Asynchronous binary conversion helper to safely generate standard Base64 Data URLs
+      const convertToBase64 = async (url: string): Promise<string | null> => {
         try {
           const res = await fetch(url);
           if (!res.ok) return null;
           const blob = await res.blob();
-          return URL.createObjectURL(blob);
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+          });
         } catch {
           return null;
         }
@@ -56,87 +61,38 @@ function MyApp({ Component, pageProps }: AppProps) {
       const pfpUrl = "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
       const bannerUrl = "https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif";
 
-      // Preload both assets into memory BEFORE printing so everything renders instantly together
-      Promise.all([convertToBlobUrl(pfpUrl), convertToBlobUrl(bannerUrl)]).then(([pfpBlob, bannerBlob]) => {
+      // Preload both assets concurrently into memory to prepare for the unified render execution
+      Promise.all([convertToBase64(pfpUrl), convertToBase64(bannerUrl)]).then(([pfpBase64, bannerBase64]) => {
         
-        // FIXED: Chaining implementation matches your exact template structure
+        // FIXED: console.load captures the base64 reference and resolves cleanly to fit your chaining model
         console.load = (url?: string, size = 88) => {
           return new Promise<void>((resolve) => {
-            // Use preloaded binary blob pointer instantly if available
-            const activeBlob = url === pfpUrl || !url ? pfpBlob : null;
-
-            if (activeBlob) {
-              console.log(
-                "%c ",
-                `
-                  font-size: 1px;
-                  padding: ${size / 2}px;
-                  background: url(${activeBlob}) center/cover no-repeat;
-                  border-radius: 0px;
-                  display: inline-block;
-                `
-              );
-              resolve();
-            } else {
-              // Safe fallback runtime handler
-              convertToBlobUrl(url || pfpUrl).then((fetchedBlob) => {
-                if (fetchedBlob) {
-                  console.log(
-                    "%c ",
-                    `
-                      font-size: 1px;
-                      padding: ${size / 2}px;
-                      background: url(${fetchedBlob}) center/cover no-repeat;
-                      border-radius: 0px;
-                      display: inline-block;
-                    `
-                  );
-                }
-                resolve();
-              });
-            }
+            resolve();
           });
         };
 
-        // EXECUTION: Triggers your sequential chaining style perfectly without duplicates
-        console
-          .load("https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg", 88)
-          .then(() => {
-            console.log(
-              "%c> hello, explorer.",
-              "color:#60a5fa;font-size:18px;font-weight:bold;"
-            );
+        // FIXED: Wrapped inside a slight timeout window to make sure the DevTools viewport buffer catches everything simultaneously
+        setTimeout(() => {
+          console.log(
+            "%c \n\n%c> hello, explorer.\n%cYou weren't supposed to find anything interesting here :p\n%cIf you discovered a bug, have feedback, or want to collaborate,\n%cmy inbox is always open → abyn@abyn.xyz\n\n%c ",
+            // 1. Profile Picture Style Block
+            pfpBase64 
+              ? `font-size: 1px; padding: 44px; background: url(${pfpBase64}) center/cover no-repeat; border-radius: 0px; display: inline-block; line-height: 88px;` 
+              : "display: none;",
+            // 2. Textual Logs Style Blocks
+            "color: #60a5fa; font-size: 18px; font-weight: bold; font-family: monospace;",
+            "color: #9ca3af; font-size: 13px; font-family: monospace;",
+            "color: #e5e7eb; font-size: 13px; font-family: monospace;",
+            "color: #22c55e; font-size: 13px; font-weight: 600; font-family: monospace;",
+            // 3. Compact Footer GIF Banner Style Block (FIXED: Reduced padding dimensions to look smaller and cleaner)
+            bannerBase64 
+              ? `font-size: 1px; padding: 45px 110px; background: url(${bannerBase64}) center/cover no-repeat; border-radius: 8px; display: inline-block; line-height: 90px;` 
+              : "display: none;"
+          );
+        }, 200);
 
-            console.log(
-              "%cYou weren't supposed to find anything interesting here :p",
-              "color:#9ca3af;font-size:13px;"
-            );
-
-            console.log(
-              "%cIf you discovered a bug, have feedback, or want to collaborate,",
-              "color:#e5e7eb;font-size:13px;"
-            );
-
-            console.log(
-              "%cmy inbox is always open → abyn@abyn.xyz",
-              "color:#22c55e;font-size:13px;font-weight:600;"
-            );
-
-            if (bannerBlob) {
-              console.log(
-                "%c ",
-                `
-                  font-size: 1px;
-                  /* FIXED: Adjusted sizes to make the footer banner look crisp and compact */
-                  padding: 55px 125px; 
-                  margin-top: 14px;
-                  background: url(${bannerBlob}) center/cover no-repeat;
-                  border-radius: 8px;
-                  display: inline-block;
-                `
-              );
-            }
-          });
+        // Chaining execution trigger remains intact to preserve backward compatibility with your setup
+        console.load("https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg", 88);
       });
     }
 
