@@ -350,7 +350,6 @@ function GitHubGraph() {
     snakeIntervalRef.current = setInterval(tick, 110);
   };
 
-  // High contrast palette tailored for pristine execution in light mode and subtle depth in dark mode
   const getColor = (count: number, isEaten: boolean) => {
     if (count === 0 || isEaten) {
       return "bg-zinc-200 dark:bg-zinc-800/60 transition-all duration-300";
@@ -532,7 +531,8 @@ export default function Projects() {
 
   useEffect(() => {
     fetch("/api/github-projects")
-      .then((r) => r.json())\n      .then((d) => {
+      .then((r) => r.json())
+      .then((d) => {
         if (d?.repos) setGithubRepos(d.repos);
       })
       .catch(console.error)
