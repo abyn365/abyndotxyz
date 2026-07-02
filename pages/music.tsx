@@ -169,15 +169,12 @@ function LivePresenceCard() {
   const isSpotify = !!(presence.data.listening_to_spotify && presence.data.spotify);
 
   return (
-    <div className="rounded-2xl border p-4 transition-all duration-300" style={{ borderColor: "var(--card-border)", background: "var(--social-bg-mix)" }}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1.5">
-          <span className={`h-2 w-2 rounded-full ${statusColor}`} />
-          <p className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)]">
-            {isSpotify ? "Live on Spotify" : "Status"}
-          </p>
-        </div>
-        <Visualizer isPlaying={isSpotify} />
+    <div className="rounded-2xl border p-4 transition-all duration-300 flex flex-col justify-between" style={{ borderColor: "var(--card-border)", background: "var(--social-bg-mix)" }}>
+      <div className="flex items-center gap-1.5 mb-2">
+        <span className={`h-2 w-2 rounded-full ${statusColor}`} />
+        <p className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)]">
+          {isSpotify ? "Live on Spotify" : "Status"}
+        </p>
       </div>
 
       {isSpotify ? (
@@ -185,28 +182,38 @@ function LivePresenceCard() {
           href={`https://open.spotify.com/track/${presence.data.spotify?.track_id}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 group"
+          className="flex items-center gap-3 group min-w-0"
         >
           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border" style={{ borderColor: "var(--card-border)" }}>
             <img src={presence.data.spotify?.album_art_url} alt="Album Art" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
-              {presence.data.spotify?.song}
-            </p>
-            <p className="truncate text-xs text-[var(--text-secondary)]">
-              {presence.data.spotify?.artist}
-            </p>
+          <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
+                {presence.data.spotify?.song}
+              </p>
+              <p className="truncate text-xs text-[var(--text-secondary)]">
+                {presence.data.spotify?.artist}
+              </p>
+            </div>
+            <div className="shrink-0 pb-1">
+              <Visualizer isPlaying={isSpotify} />
+            </div>
           </div>
         </a>
       ) : (
-        <div>
-          <p className="text-sm font-medium text-[var(--text-primary)]">
-            {presence.data.discord_status === "offline" ? "Offline" : "Not listening right now"}
-          </p>
-          <p className="text-xs text-[var(--text-secondary)] truncate">
-            {presence.data.discord_status === "offline" ? "Last seen recently" : "Idling on Discord"}
-          </p>
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-[var(--text-primary)]">
+              {presence.data.discord_status === "offline" ? "Offline" : "Not listening right now"}
+            </p>
+            <p className="text-xs text-[var(--text-secondary)] truncate">
+              {presence.data.discord_status === "offline" ? "Last seen recently" : "Idling on Discord"}
+            </p>
+          </div>
+          <div className="shrink-0 pb-1">
+            <Visualizer isPlaying={isSpotify} />
+          </div>
         </div>
       )}
     </div>
@@ -416,77 +423,79 @@ function ListeningClock({
   const max = Math.max(...data.map((d) => d.plays), 1);
 
   return (
-    <ChartCard title="Listening clock" className="h-full">
+    <ChartCard title="Listening clock" className="flex flex-col h-full justify-between flex-1">
       <Tooltip tooltip={tooltip} />
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <h2 className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
-          24-hour rhythm
-        </h2>
-        <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
-          <span className="text-indigo-500 dark:text-indigo-400 font-black">Peak {formatHour12(peakHour)}</span>
-          <br />
-          Quiet {formatHour12(quietHour)}
-        </p>
-      </div>
-      {!data.some((item) => item.plays) ? (
-        <EmptyState message="No listening history for this period." />
-      ) : (
-        <div
-          className="relative grid gap-[4px] h-36 items-end px-1 rounded-xl"
-          style={{ 
-            gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
-            backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
-            backgroundSize: "100% 20px"
-          }}
-        >
-          {data.map((item) => {
-            const isPeak = item.hour === peakHour;
-            const isHovered = hoveredHour === item.hour;
-            const isAnyHovered = hoveredHour !== null;
-
-            return (
-              <button
-                key={item.hour}
-                type="button"
-                className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none"
-                onMouseMove={(event) => {
-                  setHoveredHour(item.hour);
-                  setTooltip({
-                    title: formatHour12(item.hour),
-                    lines: [
-                      `${item.plays} plays`,
-                      isPeak ? "Peak listening hour" : "Hourly activity",
-                    ],
-                    x: event.clientX,
-                    y: event.clientY,
-                  });
-                }}
-                onMouseLeave={() => {
-                  setHoveredHour(null);
-                  setTooltip(null);
-                }}
-              >
-                <motion.span
-                  initial={{ height: 0 }}
-                  animate={{ height: `${Math.max(8, (item.plays / max) * 100)}%` }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="w-full rounded-t-[3px] transition-all duration-200"
-                  style={{
-                    background: isPeak
-                      ? "linear-gradient(180deg, #8b5cf6, #6366f1)"
-                      : isHovered
-                      ? "linear-gradient(180deg, #a5b4fc, #6366f1)"
-                      : "linear-gradient(180deg, rgba(99,102,241,0.35), rgba(99,102,241,0.7))",
-                    boxShadow: isPeak ? "0 0 18px rgba(99,102,241,0.45)" : "none",
-                    opacity: isAnyHovered && !isHovered ? 0.65 : 1,
-                  }}
-                />
-              </button>
-            );
-          })}
+      <div>
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <h2 className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
+            24-hour rhythm
+          </h2>
+          <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
+            <span className="text-indigo-500 dark:text-indigo-400 font-black">Peak {formatHour12(peakHour)}</span>
+            <br />
+            Quiet {formatHour12(quietHour)}
+          </p>
         </div>
-      )}
-      <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold" style={{ borderColor: "var(--card-border)" }}>
+        {!data.some((item) => item.plays) ? (
+          <EmptyState message="No listening history for this period." />
+        ) : (
+          <div
+            className="relative grid gap-[4px] h-40 items-end px-1 rounded-xl"
+            style={{ 
+              gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
+              backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
+              backgroundSize: "100% 20px"
+            }}
+          >
+            {data.map((item) => {
+              const isPeak = item.hour === peakHour;
+              const isHovered = hoveredHour === item.hour;
+              const isAnyHovered = hoveredHour !== null;
+
+              return (
+                <button
+                  key={item.hour}
+                  type="button"
+                  className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none"
+                  onMouseMove={(event) => {
+                    setHoveredHour(item.hour);
+                    setTooltip({
+                      title: formatHour12(item.hour),
+                      lines: [
+                        `${item.plays} plays`,
+                        isPeak ? "Peak listening hour" : "Hourly activity",
+                      ],
+                      x: event.clientX,
+                      y: event.clientY,
+                    });
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredHour(null);
+                    setTooltip(null);
+                  }}
+                >
+                  <motion.span
+                    initial={{ height: 0 }}
+                    animate={{ height: `${Math.max(8, (item.plays / max) * 100)}%` }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="w-full rounded-t-[3px] transition-all duration-200"
+                    style={{
+                      background: isPeak
+                        ? "linear-gradient(180deg, #8b5cf6, #6366f1)"
+                        : isHovered
+                        ? "linear-gradient(180deg, #a5b4fc, #6366f1)"
+                        : "linear-gradient(180deg, rgba(99,102,241,0.35), rgba(99,102,241,0.7))",
+                      boxShadow: isPeak ? "0 0 18px rgba(99,102,241,0.45)" : "none",
+                      opacity: isAnyHovered && !isHovered ? 0.65 : 1,
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      <div className="mt-4 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold" style={{ borderColor: "var(--card-border)" }}>
         <span>12 AM</span>
         <span>6 AM</span>
         <span>12 PM</span>
@@ -507,12 +516,12 @@ function ListeningHistory({
   const max = Math.max(...data.map((x) => x.plays), 1);
 
   return (
-    <ChartCard title="Listening timeline">
+    <ChartCard title="Listening timeline" className="flex flex-col justify-between flex-1">
       <Tooltip tooltip={tooltip} />
       {!data.length ? (
         <EmptyState message="No listening history for this period." />
       ) : (
-        <div className="flex h-36 items-end gap-2 pt-2 px-1">
+        <div className="flex h-40 items-end gap-2 pt-2 px-1">
           {data.map((d, idx) => {
             const isHovered = hoveredIdx === idx;
             return (
@@ -801,7 +810,7 @@ export default function MusicPage() {
             <div className="grid gap-3 sm:min-w-[340px] sm:grid-cols-2">
               <LivePresenceCard />
               <div
-                className="rounded-2xl border p-4"
+                className="rounded-2xl border p-4 animate-fadeIn"
                 style={{
                   borderColor: "var(--card-border)",
                   background: "var(--social-bg-mix)",
@@ -860,17 +869,23 @@ export default function MusicPage() {
           </div>
         ) : (
           stats && (
-            <div className="grid items-start gap-4 lg:grid-cols-5 animate-fadeIn">
-              <div className="space-y-4 lg:col-span-3 flex flex-col h-full justify-between">
-                <ListeningClock
-                  data={stats.charts.listeningClock}
-                  peakHour={stats.insights.peakHour}
-                  quietHour={stats.insights.quietHour}
-                />
-                <ListeningHistory data={stats.charts.listeningHistory} />
+            <div className="grid items-stretch gap-4 lg:grid-cols-5 animate-fadeIn">
+              {/* Proportional Grid Scaling Left Column */}
+              <div className="lg:col-span-3 flex flex-col gap-4 h-full">
+                <div className="flex-1 min-h-0">
+                  <ListeningClock
+                    data={stats.charts.listeningClock}
+                    peakHour={stats.insights.peakHour}
+                    quietHour={stats.insights.quietHour}
+                  />
+                </div>
+                <div className="flex-1 min-h-0">
+                  <ListeningHistory data={stats.charts.listeningHistory} />
+                </div>
               </div>
 
-              <div className="space-y-4 lg:col-span-2">
+              {/* Grid Scaling Right Column Sidebar */}
+              <div className="space-y-4 lg:col-span-2 flex flex-col h-full justify-between">
                 <DonutChart
                   label="Top artists share"
                   data={stats.charts.topArtists}
