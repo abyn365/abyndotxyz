@@ -23,9 +23,15 @@ ChartJS.register(ArcElement, ChartTooltip, Legend);
 
 const DISCORD_ID = "877018055815868426";
 
-const formatHour = (hour: number) => `${hour.toString().padStart(2, "0")}:00`;
+const formatHour12 = (hour: number) => {
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+  return `${displayHour}:00 ${ampm}`;
+};
+
 const formatSeconds = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+
 const dayLabels: Record<string, string> = {
   Mon: "Monday",
   Tue: "Tuesday",
@@ -123,7 +129,7 @@ const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
         <motion.span
           key={index}
           className={`w-[2px] rounded-full transition-colors duration-300 ${
-            isPlaying ? "bg-[var(--accent)]" : "bg-[var(--card-border)]"
+            isPlaying ? "bg-indigo-500" : "bg-[var(--card-border)]"
           }`}
           animate={{ height: `${height}%` }}
           transition={{ duration: 0.15, ease: "easeOut" }}
@@ -299,14 +305,13 @@ function DonutChart({
 }) {
   const slicedData = useMemo(() => data.slice(0, 6), [data]);
 
-  // Perfectly balanced high-vibrancy identical saturation metrics palette
   const equalSaturationPalette = useMemo(() => [
-    "#818CF8", // Soft Indigo
-    "#60A5FA", // Premium Blue
-    "#22D3EE", // Vivid Cyan
-    "#34D399", // Emerald Green
-    "#C084FC", // Luminous Purple
-    "#FB7185"  // Radiant Rose
+    "#818CF8", 
+    "#60A5FA", 
+    "#22D3EE", 
+    "#34D399", 
+    "#C084FC", 
+    "#FB7185" 
   ], []);
 
   const chartData = useMemo(() => ({
@@ -354,25 +359,27 @@ function DonutChart({
       {!data.length ? (
         <EmptyState message={emptyText} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-[120px_1fr] sm:items-center">
-          <div className="relative h-28 w-28 mx-auto">
-            <Doughnut data={chartData} options={chartOptions} />
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-              <span className="font-display text-[11px] font-black tracking-wider text-[var(--text-primary)] uppercase leading-none">
+        <div className="grid gap-4 sm:grid-cols-[120px_1fr] sm:items-center min-w-0 w-full">
+          <div className="flex flex-col items-center justify-center shrink-0">
+            <div className="relative h-28 w-28">
+              <Doughnut data={chartData} options={chartOptions} />
+            </div>
+            <div className="mt-2 text-center select-none pointer-events-none">
+              <span className="font-display text-[11px] font-black tracking-wider text-[var(--text-primary)] uppercase">
                 {isArtist ? "Artists" : "Albums"}
               </span>
-              <span className="font-mono text-[9px] text-[var(--text-secondary)] mt-0.5 font-bold">
+              <span className="font-mono text-[9px] text-[var(--text-secondary)] block font-bold">
                 100%
               </span>
             </div>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 min-w-0 flex-1">
             {slicedData.map((item, idx) => (
               <div
                 key={item.name}
-                className="flex items-center justify-between gap-3 rounded-lg px-2 py-0.5 text-sm"
+                className="flex items-center justify-between gap-3 rounded-lg px-2 py-0.5 text-sm min-w-0"
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: equalSaturationPalette[idx] }} />
                   <span className="truncate text-[var(--text-primary)] font-semibold dark:text-zinc-100">
                     {item.name}
@@ -411,9 +418,9 @@ function ListeningClock({
           24-hour rhythm
         </h2>
         <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
-          <span className="text-indigo-500 dark:text-indigo-400 font-black">Peak {formatHour(peakHour)}</span>
+          <span className="text-indigo-500 dark:text-indigo-400 font-black">Peak {formatHour12(peakHour)}</span>
           <br />
-          Quiet {formatHour(quietHour)}
+          Quiet {formatHour12(quietHour)}
         </p>
       </div>
       {!data.some((item) => item.plays) ? (
@@ -440,9 +447,9 @@ function ListeningClock({
                 onMouseMove={(event) => {
                   setHoveredHour(item.hour);
                   setTooltip({
-                    title: formatHour(item.hour),
+                    title: formatHour12(item.hour),
                     lines: [
-                      `${formatPlaycount(item.plays)} scrobbles`,
+                      `${item.plays} plays`,
                       isPeak ? "Peak listening hour" : "Hourly activity",
                     ],
                     x: event.clientX,
@@ -475,11 +482,11 @@ function ListeningClock({
         </div>
       )}
       <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold" style={{ borderColor: "var(--card-border)" }}>
-        <span>00:00</span>
-        <span>06:00</span>
-        <span>12:00</span>
-        <span>18:00</span>
-        <span>23:00</span>
+        <span>12 AM</span>
+        <span>6 AM</span>
+        <span>12 PM</span>
+        <span>6 PM</span>
+        <span>11 PM</span>
       </div>
     </ChartCard>
   );
@@ -512,7 +519,7 @@ function ListeningHistory({
                   setHoveredIdx(idx);
                   setTooltip({
                     title: d.label,
-                    lines: [`${formatPlaycount(d.plays)} scrobbles`, "Daily total"],
+                    lines: [`${d.plays} plays`],
                     x: event.clientX,
                     y: event.clientY,
                   });
@@ -555,7 +562,6 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
     data[0] ?? { day: "", plays: 0 }
   ), [data]);
 
-  // Premium 5-stop fixed GitHub style contribution stops
   const heatmapColors = useMemo(() => [
     "var(--bg-secondary)", 
     "#312e81", 
@@ -590,7 +596,7 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                     setTooltip({
                       title: dayLabels[d.day] ?? d.day,
                       lines: [
-                        `${formatPlaycount(d.plays)} streams`,
+                        `${d.plays} plays`,
                         isPeak ? "Highest activity day" : "Weekly metric"
                       ],
                       x: event.clientX,
@@ -661,7 +667,7 @@ function TrackCarousel({
       <div
         ref={ref}
         tabIndex={0}
-        className="music-carousel -mx-4 flex max-w-[100vw] snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 px-4 sm:-mx-6 sm:px-6 style-scrollbar"
+        className="music-carousel -mx-4 flex max-w-[100vw] snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 px-4 sm:-mx-6 sm:px-6 scroll-pl-4 sm:scroll-pl-6 style-scrollbar"
         style={{ scrollbarWidth: "none" }}
       >
         {isLoading ? (
