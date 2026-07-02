@@ -36,6 +36,12 @@ module.exports = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "cloud.abyn.xyz",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
   async redirects() {
