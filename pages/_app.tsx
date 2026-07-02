@@ -74,17 +74,24 @@ function MyApp({ Component, pageProps }: AppProps) {
         // FIXED: Wrapped inside a slight timeout window to make sure the DevTools viewport buffer catches everything simultaneously
         setTimeout(() => {
           console.log(
-            "%c \n\n%c> hello, explorer.\n%cYou weren't supposed to find anything interesting here :p\n%cIf you discovered a bug, have feedback, or want to collaborate,\n%cmy inbox is always open → abyn@abyn.xyz\n\n%c ",
-            // 1. Profile Picture Style Block
+            // Added an extra %c before the \n\n to reset the style
+            "%c %c\n\n%c> hello, explorer.\n%cYou weren't supposed to find anything interesting here :p\n%cIf you discovered a bug, have feedback, or want to collaborate,\n%cmy inbox is always open → abyn@abyn.xyz\n\n%c ",
+            
+            // 1. Profile Picture Style Block (Now only applies to the first space)
             pfpBase64 
               ? `font-size: 1px; padding: 44px; background: url(${pfpBase64}) center/cover no-repeat; border-radius: 0px; display: inline-block; line-height: 88px;` 
               : "display: none;",
-            // 2. Textual Logs Style Blocks
+            
+            // 2. Clear styling for the \n\n so the background doesn't repeat
+            "",
+            
+            // 3. Textual Logs Style Blocks
             "color: #60a5fa; font-size: 18px; font-weight: bold; font-family: monospace;",
             "color: #9ca3af; font-size: 13px; font-family: monospace;",
             "color: #e5e7eb; font-size: 13px; font-family: monospace;",
             "color: #22c55e; font-size: 13px; font-weight: 600; font-family: monospace;",
-            // 3. Compact Footer GIF Banner Style Block (FIXED: Reduced padding dimensions to look smaller and cleaner)
+            
+            // 4. Compact Footer GIF Banner Style Block
             bannerBase64 
               ? `font-size: 1px; padding: 45px 110px; background: url(${bannerBase64}) center/cover no-repeat; border-radius: 8px; display: inline-block; line-height: 90px;` 
               : "display: none;"
