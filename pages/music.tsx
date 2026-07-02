@@ -446,17 +446,19 @@ function ListeningClock({
   data,
   peakHour,
   quietHour,
+  className = "",
 }: {
   data: { hour: number; plays: number }[];
   peakHour: number;
   quietHour: number;
+  className?: string;
 }) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [hoveredHour, setHoveredHour] = useState<number | null>(null);
   const max = Math.max(...data.map((d) => d.plays), 1);
 
   return (
-    <ChartCard title="Listening clock" className="h-full flex-1">
+    <ChartCard title="Listening clock" className={className}>
       <Tooltip tooltip={tooltip} />
       <div className="w-full flex flex-col h-full justify-between flex-1">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-4 mb-3 shrink-0">
@@ -474,23 +476,38 @@ function ListeningClock({
           <EmptyState message="No listening history for this period." />
         ) : (
           <div
-            className="relative grid gap-[4px] px-1 rounded-xl flex-1 items-end mb-1 min-h-[140px]"
+            className="relative grid gap-[4px] px-1 rounded-xl flex-1 items-end mb-1 min-h-[140px] lg:min-h-[160px]"
             style={{ 
               gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
               backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
               backgroundSize: "100% 20px"
             }}
+            onPointerLeave={() => {
+              setHoveredHour(null);
+              setTooltip(null);
+            }}
           >
             {data.map((item) => {
               const isPeak = item.hour === peakHour;
               const isHovered = hoveredHour === item.hour;
-              const isAnyHovered = hoveredHour !== null;
 
               return (
                 <button
                   key={item.hour}
                   type="button"
                   className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none touch-none"
+                  onPointerEnter={(event) => {
+                    setHoveredHour(item.hour);
+                    setTooltip({
+                      title: formatHour12(item.hour),
+                      lines: [
+                        `${item.plays} plays`,
+                        isPeak ? "Peak listening hour" : "Hourly activity",
+                      ],
+                      x: event.clientX,
+                      y: event.clientY,
+                    });
+                  }}
                   onPointerMove={(event) => {
                     setHoveredHour(item.hour);
                     setTooltip({
@@ -515,10 +532,6 @@ function ListeningClock({
                       y: event.clientY,
                     });
                   }}
-                  onPointerLeave={() => {
-                    setHoveredHour(null);
-                    setTooltip(null);
-                  }}
                 >
                   <motion.span
                     initial={{ height: 0 }}
@@ -532,7 +545,7 @@ function ListeningClock({
                         ? "linear-gradient(180deg, #a5b4fc, #6366f1)"
                         : "linear-gradient(180deg, rgba(99,102,241,0.35), rgba(99,102,241,0.7))",
                       boxShadow: isPeak ? "0 0 18px rgba(99,102,241,0.45)" : "none",
-                      opacity: isAnyHovered && !isHovered ? 0.65 : 1,
+                      opacity: hoveredHour !== null && !isHovered ? 0.65 : 1,
                     }}
                   />
                 </button>
@@ -554,20 +567,28 @@ function ListeningClock({
 
 function ListeningHistory({
   data,
+  className = "",
 }: {
   data: { label: string; plays: number }[];
+  className?: string;
 }) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const max = Math.max(...data.map((x) => x.plays), 1);
 
   return (
-    <ChartCard title="Listening timeline" className="h-full flex-1">
+    <ChartCard title="Listening timeline" className={className}>
       <Tooltip tooltip={tooltip} />
       {!data.length ? (
         <EmptyState message="No listening history for this period." />
       ) : (
-        <div className="flex items-end gap-2 px-1 flex-1 w-full mt-auto min-h-[140px]">
+        <div 
+          className="flex items-end gap-2 px-1 flex-1 w-full mt-auto min-h-[140px] lg:min-h-[160px]"
+          onPointerLeave={() => {
+            setHoveredIdx(null);
+            setTooltip(null);
+          }}
+        >
           {data.map((d, idx) => {
             const isHovered = hoveredIdx === idx;
             return (
@@ -575,6 +596,15 @@ function ListeningHistory({
                 key={d.label}
                 type="button"
                 className="group flex h-full flex-1 flex-col items-center justify-end outline-none select-none touch-none"
+                onPointerEnter={(event) => {
+                  setHoveredIdx(idx);
+                  setTooltip({
+                    title: d.label,
+                    lines: [`${d.plays} plays`],
+                    x: event.clientX,
+                    y: event.clientY,
+                  });
+                }}
                 onPointerMove={(event) => {
                   setHoveredIdx(idx);
                   setTooltip({
@@ -592,10 +622,6 @@ function ListeningHistory({
                     x: event.clientX,
                     y: event.clientY,
                   });
-                }}
-                onPointerLeave={() => {
-                  setHoveredIdx(null);
-                  setTooltip(null);
                 }}
               >
                 <motion.span
@@ -645,7 +671,10 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
       {!data.some((d) => d.plays) ? (
         <EmptyState message="No weekly activity for this period." />
       ) : (
-        <div className="flex justify-between items-center gap-2 pt-1 overflow-x-auto pb-1 hide-scrollbar">
+        <div 
+          className="flex justify-between items-center gap-2 pt-1 overflow-x-auto pb-1 hide-scrollbar"
+          onPointerLeave={() => setTooltip(null)}
+        >
           {data.map((d) => {
             const level = d.plays === 0 ? 0 : Math.min(4, Math.max(1, Math.floor((d.plays / max) * 4)));
             const isPeak = d.day === active.day && d.plays > 0;
@@ -656,6 +685,17 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                   type="button"
                   aria-label={`Activity level for ${d.day}`}
                   className="w-8 h-8 rounded-lg transition-all duration-300 outline-none select-none cursor-default touch-none"
+                  onPointerEnter={(event) =>
+                    setTooltip({
+                      title: dayLabels[d.day] ?? d.day,
+                      lines: [
+                        `${d.plays} plays`,
+                        isPeak ? "Highest activity day" : "Weekly metric"
+                      ],
+                      x: event.clientX,
+                      y: event.clientY,
+                    })
+                  }
                   onPointerMove={(event) =>
                     setTooltip({
                       title: dayLabels[d.day] ?? d.day,
@@ -678,7 +718,6 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                       y: event.clientY,
                     })
                   }
-                  onPointerLeave={() => setTooltip(null)}
                 />
                 <span className="mt-1 font-mono text-[9px] text-[var(--text-secondary)] font-bold">
                   {d.day}
@@ -930,37 +969,33 @@ export default function MusicPage() {
           </div>
         ) : (
           stats && (
-            <div className="grid items-stretch gap-4 lg:grid-cols-5 animate-fadeIn mb-16">
+            <div className="grid gap-4 lg:grid-cols-5 animate-fadeIn mb-16 items-stretch">
               {/* Left Column Section */}
               <div className="lg:col-span-3 flex flex-col gap-4 h-full self-stretch">
-                <div className="flex-1 flex flex-col min-h-0">
-                  <ListeningClock
-                    data={stats.charts.listeningClock}
-                    peakHour={stats.insights.peakHour}
-                    quietHour={stats.insights.quietHour}
-                  />
-                </div>
-                <div className="flex-1 flex flex-col min-h-0">
-                  <ListeningHistory data={stats.charts.listeningHistory} />
-                </div>
+                <ListeningClock
+                  data={stats.charts.listeningClock}
+                  peakHour={stats.insights.peakHour}
+                  quietHour={stats.insights.quietHour}
+                  className="lg:flex-1"
+                />
+                <ListeningHistory 
+                  data={stats.charts.listeningHistory} 
+                  className="lg:flex-1"
+                />
               </div>
 
-              {/* Right Column Sidebar Section */}
+              {/* Right Column Sidebar Section - Rendered naturally to protect Heatmap footprints */}
               <div className="lg:col-span-2 flex flex-col gap-4 h-full self-stretch overflow-visible">
-                <div className="flex-1 flex flex-col min-h-0 overflow-visible">
-                  <DonutChart
-                    label="Top artists share"
-                    data={stats.charts.topArtists}
-                    emptyText="No artists available for this period."
-                  />
-                </div>
-                <div className="flex-1 flex flex-col min-h-0 overflow-visible">
-                  <DonutChart
-                    label="Top albums share"
-                    data={stats.charts.topAlbums}
-                    emptyText="No albums available for this period."
-                  />
-                </div>
+                <DonutChart
+                  label="Top artists share"
+                  data={stats.charts.topArtists}
+                  emptyText="No artists available for this period."
+                />
+                <DonutChart
+                  label="Top albums share"
+                  data={stats.charts.topAlbums}
+                  emptyText="No albums available for this period."
+                />
                 <WeeklyHeatmap data={stats.charts.weeklyActivity} />
               </div>
             </div>
