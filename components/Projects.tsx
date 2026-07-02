@@ -146,7 +146,6 @@ function GitHubGraph() {
   
   const currentDirRef = useRef<{ x: number; y: number }>({ x: 1, y: 0 });
   const nextDirRef = useRef<{ x: number; y: number }>({ x: 1, y: 0 });
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Load cookies highscore context tokens on mount
   useEffect(() => {
@@ -424,8 +423,8 @@ function GitHubGraph() {
           });
           dir = safeMoves[0];
         } else {
-          const forwardMove = safeMoves.find((m) => m.x === dir.x && m.y === dir.y);
-          dir = forwardMove || safeMoves[Math.floor(Math.random() * safeMoves.length)];
+          const keepGoing = safeMoves.find((m) => m.x === dir.x && m.y === dir.y);
+          dir = keepGoing || safeMoves[Math.floor(Math.random() * safeMoves.length)];
         }
       }
 
@@ -477,7 +476,7 @@ function GitHubGraph() {
         setEatenPositions(new Set());
 
         if (status === "red") {
-          // FIXED: Reset layout immediately to clear map, then wait 3 full seconds before spawning snake loop again
+          // FIXED: Clear maps instantly, then implement an explicit 3-second post-crash standby countdown
           const resetGrid = rawFetchedGridRef.current;
           setWeeks(resetGrid);
           
@@ -485,7 +484,7 @@ function GitHubGraph() {
             startSnakeGame(resetGrid, 1, 0, false);
           }, 3000);
         } else {
-          // Success State: Generate next level, apply clean board view, and wait 3 seconds before launch
+          // Success State: Generate next stage configuration, set layout views, and wait 3 seconds before spawning
           const nextLevel = lvl + 1;
           const proceduralGrid = generateProceduralLevel(nextLevel);
           setWeeks(proceduralGrid);
@@ -499,35 +498,6 @@ function GitHubGraph() {
 
     const currentIntervalSpeed = manualControlActive ? Math.max(70, 200 - (currentLevel - 1) * 25) : 110;
     snakeIntervalRef.current = setInterval(tick, currentIntervalSpeed);
-  };
-
-  // Mobile Touch Gestures Systems
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isManual) return;
-    const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isManual || !touchStartRef.current) return;
-    const touch = e.touches[0];
-    const diffX = touch.clientX - touchStartRef.current.x;
-    const diffY = touch.clientY - touchStartRef.current.y;
-    const current = currentDirRef.current;
-
-    if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (Math.abs(diffX) > 20) {
-        if (diffX > 0 && current.x === 0) nextDirRef.current = { x: 1, y: 0 };
-        else if (diffX < 0 && current.x === 0) nextDirRef.current = { x: -1, y: 0 };
-        touchStartRef.current = null;
-      }
-    } else {
-      if (Math.abs(diffY) > 20) {
-        if (diffY > 0 && current.y === 0) nextDirRef.current = { x: 0, y: 1 };
-        else if (diffY < 0 && current.y === 0) nextDirRef.current = { x: 0, y: -1 };
-        touchStartRef.current = null;
-      }
-    }
   };
 
   const toggleManualActivationMode = () => {
@@ -589,7 +559,7 @@ function GitHubGraph() {
           )}
         </div>
 
-        {/* Play Trigger Text link */}
+        {/* Dynamic Interactive Play Mode Trigger Text Link */}
         <button
           type="button"
           onClick={toggleManualActivationMode}
@@ -600,16 +570,16 @@ function GitHubGraph() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Matrix Grid Timeline Box Workspace */}
+        {/* FIXED: Matrix Grid Sizing matrix compressed down responsively to eliminate mobile horizontal scaling overflows */}
         <div 
-          className={`overflow-x-auto pb-2 lg:col-span-2 rounded-xl p-2 transition-all duration-300 select-none ${
+          className={`rounded-xl p-2 transition-all duration-300 select-none mx-auto lg:mx-0 lg:col-span-2 ${
             flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
             flashStatus === "green" ? "bg-emerald-500/10 dark:bg-emerald-500/20 ring-2 ring-emerald-500/50 animate-pulse" : ""
           }`}
         >
-          <div className="flex gap-[3px] min-w-max">
+          <div className="flex sm:gap-[3px] gap-[2px] min-w-max justify-center">
             {weeks.map((week, col) => (
-              <div key={col} className="flex flex-col gap-[3px]">
+              <div key={col} className="flex flex-col sm:gap-[3px] gap-[2px]">
                 {week.map((day, row) => {
                   const snakeIdx = snake.findIndex((s) => s.x === col && s.y === row);
                   const isSnake = snakeIdx !== -1;
@@ -634,7 +604,7 @@ function GitHubGraph() {
                           prev ? { ...prev, x: e.clientX, y: e.clientY } : null
                         )
                       }
-                      className={`w-[13px] h-[13px] rounded-[2px] transition-all duration-150 ${
+                      className={`w-[9px] h-[9px] sm:w-[13px] sm:h-[13px] rounded-[1.5px] sm:rounded-[2px] transition-all duration-150 ${
                         isSnake
                           ? isHead
                             ? "bg-zinc-950 dark:bg-zinc-50 scale-125 shadow-md z-10 animate-bounce"
@@ -649,15 +619,11 @@ function GitHubGraph() {
           </div>
         </div>
 
-        {/* Right Side Control Interface panel */}
-        <div 
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          className="min-w-0"
-        >
+        {/* RIGHT SIDE PANEL: Handles all tactile mobile input bindings exclusively via on-screen click button maps */}
+        <div className="min-w-0">
           {isManual ? (
             <div className="flex flex-col items-center justify-center p-4 border border-dashed border-[var(--card-border)] rounded-xl bg-zinc-100/40 dark:bg-zinc-900/30 min-h-[140px] relative select-none">
-              <span className="absolute top-2 left-3 font-mono text-[9px] uppercase opacity-35 tracking-wider">D-Pad</span>
+              <span className="absolute top-2 left-3 font-mono text-[9px] uppercase opacity-35 tracking-wider">Tactile Mobile D-Pad Control</span>
               <div className="grid grid-cols-3 gap-2.5 w-32 h-32 items-center justify-center text-center font-mono select-none">
                 <div />
                 <button 
@@ -750,7 +716,7 @@ function GitHubGraph() {
         </div>
       </div>
 
-      {/* Hover Tooltip Windows */}
+      {/* Floating Hover Context Cards */}
       {tooltip && !isManual && (
         <div
           className="fixed z-50 px-2.5 py-1.5 rounded-lg border text-[11px] shadow-xl pointer-events-none font-sans backdrop-blur-sm"
