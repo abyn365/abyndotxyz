@@ -293,7 +293,6 @@ function ChartCard({
       <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2 shrink-0">
         {title}
       </p>
-      {/* Flattened structural node wrapper allows proper full-height vertical layouts */}
       <div className="flex-1 flex flex-col justify-between min-h-0 w-full overflow-visible">
         {children}
       </div>
@@ -460,14 +459,16 @@ function ListeningClock({
     <ChartCard title="Listening clock" className="h-full flex-1">
       <Tooltip tooltip={tooltip} />
       <div className="w-full flex flex-col h-full justify-between flex-1">
-        <div className="flex items-start justify-between gap-4 mb-3 shrink-0">
+        {/* Adjusted to responsive block layouts to fully eliminate mobile clipping crops */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-4 mb-3 shrink-0">
           <h2 className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
             24-hour rhythm
           </h2>
-          <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal text-left sm:text-right">
             <span className="text-indigo-500 dark:text-indigo-400 font-black">Peak {formatHour12(peakHour)}</span>
-            <br />
-            Quiet {formatHour12(quietHour)}
+            <br className="hidden sm:inline" />
+            <span className="inline sm:hidden text-[var(--card-border)] mx-1">·</span>
+            <span>Quiet {formatHour12(quietHour)}</span>
           </p>
         </div>
         {!data.some((item) => item.plays) ? (
@@ -689,8 +690,9 @@ function TrackCarousel({
           <h2 className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
             Top Tracks
           </h2>
+          {/* Transitioned subtitle message to a warmer personal tone */}
           <p className="text-xs text-[var(--text-secondary)]">
-            A rotation of tracks leading your metrics.
+            A live rotation of the tracks soundtracking my life right now.
           </p>
         </div>
         <div className="flex gap-1.5">
@@ -822,7 +824,7 @@ export default function MusicPage() {
           className="mb-8 overflow-hidden rounded-3xl border p-6 sm:p-8 transition-colors duration-300"
           style={{
             borderColor: "var(--card-border)",
-            background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--card-bg)",
+            background: "var(--card-bg)", // Removed white linear-gradients for flat layout theme match
             boxShadow: "var(--card-shadow)",
           }}
         >
@@ -903,7 +905,6 @@ export default function MusicPage() {
           </div>
         ) : (
           stats && (
-            /* Explicit mb-16 provides breathing margin separation above footer rules */
             <div className="grid items-stretch gap-4 lg:grid-cols-5 animate-fadeIn mb-16">
               {/* Left Column Section */}
               <div className="lg:col-span-3 flex flex-col gap-4 h-full self-stretch">
