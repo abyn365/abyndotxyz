@@ -87,7 +87,6 @@ function formatEvent(event: any) {
   }
 }
 
-// Custom formatted shorthand timeline string conversions
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -381,13 +380,13 @@ function GitHubGraph() {
       const activeBody = path.slice(-tailLengthMax);
       const cellNode = activeGrid[pos.x]?.[pos.y];
 
-      // Collision validation checks
+      // Collision checks
       if (activeBody.some((b) => b.x === pos.x && b.y === pos.y) || cellNode?.isObstacle) {
         triggerResetSequence(activeGrid, currentLevel, startingScore, manualControlActive, "red");
         return;
       }
 
-      // Digestion step
+      // Digestion process
       if (cellNode && cellNode.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
         localEaten.add(key(pos.x, pos.y));
         tailLengthMax = 3 + localEaten.size;
@@ -413,7 +412,7 @@ function GitHubGraph() {
       stopSnake();
       setFlashStatus(status);
 
-      // Flash animation holds for exactly 2 seconds
+      // Flash animation holds for 2 seconds
       snakeTimeoutRef.current = setTimeout(() => {
         setFlashStatus(null);
         setSnake([]);
@@ -462,12 +461,11 @@ function GitHubGraph() {
     return "bg-emerald-500 dark:bg-emerald-400/80";
   };
 
-  // FIXED: Flips anchor alignment variables horizontally on narrow viewport edges to contain tooltip boundaries
   const isRightSideEdge = typeof window !== "undefined" && tooltip && tooltip.x > window.innerWidth - 160;
 
   return (
     <div className="mt-1">
-      {/* Header Metric Line updates instantly between user records and arcade loops */}
+      {/* Header Metric Line */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--text-secondary)]">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {isManual ? (
@@ -514,9 +512,8 @@ function GitHubGraph() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Matrix Horizontal Scrolling Container */}
+        {/* Matrix Scrolling Window */}
         <div className="overflow-x-auto pb-2 lg:col-span-2 select-none">
-          {/* FIXED: Flashing classes moved down directly onto actual heatmap layout grid element boundary container */}
           <div 
             className={`inline-flex gap-[2px] sm:gap-[3px] min-w-max justify-center lg:justify-start rounded-xl p-2 transition-all duration-300 ${
               flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
@@ -647,7 +644,6 @@ function GitHubGraph() {
             borderColor: "var(--card-border)",
             background: "rgba(15, 15, 15, 0.92)",
             color: "#fff",
-            // FIXED: Automatically checks bounds to shift positions smoothly away from mobile view margins
             left: isRightSideEdge ? tooltip.x - 145 : tooltip.x + 12,
             top: tooltip.y - 34,
           }}
@@ -724,78 +720,4 @@ export default function Projects() {
                   key={t}
                   type="button"
                   onClick={() => setTab(t)}
-                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
-                  style={{
-                    background: active ? "var(--accent)" : "transparent",
-                    color: active
-                      ? "var(--accent-text)"
-                      : "var(--text-secondary)",
-                  }}
-                >
-                  {t === "selected" ? (
-                    <FolderOpen className="h-3.5 w-3.5" />
-                  ) : (
-                    <FaGithub className="h-3.5 w-3.5" />
-                  )}
-                  {t === "selected" ? "Selected" : "Archive"}
-                </button>
-              );
-            })}
-          </div>
-          {!isLoading && (
-            <span className="font-mono text-xs text-[var(--text-secondary)]">
-              {items.length} {tab === "selected" ? "projects" : "repos"}
-            </span>
-          )}
-        </div>
-
-        {/* Content Showcase Window */}
-        {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-52 animate-pulse rounded-2xl border"
-                style={{
-                  borderColor: "var(--card-border)",
-                  background: "var(--bg-secondary)",
-                }}
-              />
-            ))}
-          </div>
-        ) : items.length === 0 ? (
-          <div
-            className="rounded-2xl border px-6 py-16 text-center"
-            style={{
-              borderColor: "var(--card-border)",
-              background: "var(--bg-secondary)",
-            }}
-          >
-            <p className="font-display text-xl font-bold text-[var(--text-primary)]">
-              Nothing here yet
-            </p>
-            <p className="mt-2 text-sm text-[var(--text-secondary)]">
-              Check back soon.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div
-              className={
-                tab === "selected" ? "grid gap-5" : "grid gap-4 md:grid-cols-2"
-              }
-            >
-              {paged.map((project, i) => (
-                <ProjectCard
-                  key={`${project.name}-${i}`}
-                  project={project}
-                  index={i}
-                  variant={tab === "selected" ? "featured" : "grid"}
-                />
-              ))}
-            </div>
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="inline-
