@@ -459,7 +459,6 @@ function ListeningClock({
     <ChartCard title="Listening clock" className="h-full flex-1">
       <Tooltip tooltip={tooltip} />
       <div className="w-full flex flex-col h-full justify-between flex-1">
-        {/* Adjusted to responsive block layouts to fully eliminate mobile clipping crops */}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-4 mb-3 shrink-0">
           <h2 className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
             24-hour rhythm
@@ -475,7 +474,7 @@ function ListeningClock({
           <EmptyState message="No listening history for this period." />
         ) : (
           <div
-            className="relative grid gap-[4px] px-1 rounded-xl flex-1 items-end mb-2 min-h-[140px]"
+            className="relative grid gap-[4px] px-1 rounded-xl flex-1 items-end mb-1 min-h-[140px]"
             style={{ 
               gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
               backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
@@ -491,8 +490,8 @@ function ListeningClock({
                 <button
                   key={item.hour}
                   type="button"
-                  className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none"
-                  onMouseMove={(event) => {
+                  className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none touch-none"
+                  onPointerMove={(event) => {
                     setHoveredHour(item.hour);
                     setTooltip({
                       title: formatHour12(item.hour),
@@ -504,7 +503,19 @@ function ListeningClock({
                       y: event.clientY,
                     });
                   }}
-                  onMouseLeave={() => {
+                  onPointerDown={(event) => {
+                    setHoveredHour(item.hour);
+                    setTooltip({
+                      title: formatHour12(item.hour),
+                      lines: [
+                        `${item.plays} plays`,
+                        isPeak ? "Peak listening hour" : "Hourly activity",
+                      ],
+                      x: event.clientX,
+                      y: event.clientY,
+                    });
+                  }}
+                  onPointerLeave={() => {
                     setHoveredHour(null);
                     setTooltip(null);
                   }}
@@ -529,7 +540,7 @@ function ListeningClock({
             })}
           </div>
         )}
-        <div className="mt-auto flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold shrink-0" style={{ borderColor: "var(--card-border)" }}>
+        <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold shrink-0 w-full" style={{ borderColor: "var(--card-border)" }}>
           <span>12 AM</span>
           <span>6 AM</span>
           <span>12 PM</span>
@@ -563,8 +574,8 @@ function ListeningHistory({
               <button
                 key={d.label}
                 type="button"
-                className="group flex h-full flex-1 flex-col items-center justify-end outline-none select-none"
-                onMouseMove={(event) => {
+                className="group flex h-full flex-1 flex-col items-center justify-end outline-none select-none touch-none"
+                onPointerMove={(event) => {
                   setHoveredIdx(idx);
                   setTooltip({
                     title: d.label,
@@ -573,7 +584,16 @@ function ListeningHistory({
                     y: event.clientY,
                   });
                 }}
-                onMouseLeave={() => {
+                onPointerDown={(event) => {
+                  setHoveredIdx(idx);
+                  setTooltip({
+                    title: d.label,
+                    lines: [`${d.plays} plays`],
+                    x: event.clientX,
+                    y: event.clientY,
+                  });
+                }}
+                onPointerLeave={() => {
                   setHoveredIdx(null);
                   setTooltip(null);
                 }}
@@ -635,13 +655,8 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                 <button
                   type="button"
                   aria-label={`Activity level for ${d.day}`}
-                  className="w-8 h-8 rounded-lg transition-all duration-300 outline-none select-none cursor-default"
-                  style={{
-                    background: heatmapColors[level],
-                    border: isPeak ? "2px solid rgba(255,255,255,0.15)" : "1px solid transparent",
-                    boxShadow: isPeak ? "0 0 20px rgba(99,102,241,0.4)" : "none",
-                  }}
-                  onMouseMove={(event) =>
+                  className="w-8 h-8 rounded-lg transition-all duration-300 outline-none select-none cursor-default touch-none"
+                  onPointerMove={(event) =>
                     setTooltip({
                       title: dayLabels[d.day] ?? d.day,
                       lines: [
@@ -652,7 +667,18 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                       y: event.clientY,
                     })
                   }
-                  onMouseLeave={() => setTooltip(null)}
+                  onPointerDown={(event) =>
+                    setTooltip({
+                      title: dayLabels[d.day] ?? d.day,
+                      lines: [
+                        `${d.plays} plays`,
+                        isPeak ? "Highest activity day" : "Weekly metric"
+                      ],
+                      x: event.clientX,
+                      y: event.clientY,
+                    })
+                  }
+                  onPointerLeave={() => setTooltip(null)}
                 />
                 <span className="mt-1 font-mono text-[9px] text-[var(--text-secondary)] font-bold">
                   {d.day}
@@ -690,7 +716,6 @@ function TrackCarousel({
           <h2 className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
             Top Tracks
           </h2>
-          {/* Transitioned subtitle message to a warmer personal tone */}
           <p className="text-xs text-[var(--text-secondary)]">
             A live rotation of the tracks soundtracking my life right now.
           </p>
@@ -824,7 +849,7 @@ export default function MusicPage() {
           className="mb-8 overflow-hidden rounded-3xl border p-6 sm:p-8 transition-colors duration-300"
           style={{
             borderColor: "var(--card-border)",
-            background: "var(--card-bg)", // Removed white linear-gradients for flat layout theme match
+            background: "var(--card-bg)",
             boxShadow: "var(--card-shadow)",
           }}
         >
