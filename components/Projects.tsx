@@ -16,19 +16,6 @@ interface ContributionDay {
   isObstacle?: boolean;
 }
 
-interface GitHubEvent {
-  type: string;
-  repo: { name: string };
-  payload?: {
-    commits?: Array<{ message: string }>;
-    ref_type?: string;
-    ref?: string;
-    action?: string;
-    release?: { tag_name: string };
-  };
-  created_at: string;
-}
-
 interface TooltipState {
   count: number;
   date: string;
@@ -52,30 +39,15 @@ function setCookie(name: string, value: string, days = 365) {
   document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/`;
 }
 
-function formatEvent(event: GitHubEvent) {
+function formatEvent(event: any) {
   const repo = event.repo?.name?.split("/")[1] || event.repo?.name;
   switch (event.type) {
-    case "PushEvent": {
-      const commits = event.payload?.commits || [];
-      // Robust commit selection: checks both ends of the payload array for safety
-      const targetCommit = commits[commits.length - 1] || commits[0];
-      const msg = targetCommit?.message?.split("\n")[0]?.slice(0, 50)?.trim();
-      
-      if (msg) {
-        return {
-          icon: "⬆",
-          text: msg,
-          repo: event.repo?.name,
-        };
-      }
-      // If commits array is uniquely empty, display the target branch name as a distinct identifier
-      const branch = event.payload?.ref?.replace("refs/heads/", "");
+    case "PushEvent":
       return {
         icon: "⬆",
-        text: branch ? `pushed to branch ${branch}` : `updated ${repo}`,
+        text: event.displayMessage || `pushed to ${repo}`,
         repo: event.repo?.name,
       };
-    }
     case "CreateEvent":
       return {
         icon: "+",
@@ -135,7 +107,7 @@ function GitHubGraph() {
   const [totalCommits, setTotalCommits] = useState(0);
   const [weekCommits, setWeekCommits] = useState(0);
   const [topRepo, setTopRepo] = useState<any>(null);
-  const [events, setEvents] = useState<GitHubEvent[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   
   // Easter Egg Game State Variables
@@ -209,10 +181,8 @@ function GitHubGraph() {
       })
       .catch(() => setLoading(false));
 
-    const headers: Record<string, string> = {};
-
     // Fetch repository arrays and accurately sort to solve top starred tracker
-    fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100`, { headers })
+    fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100`)
       .then((r) => r.json())
       .then((repos) => {
         if (Array.isArray(repos) && repos.length > 0) {
@@ -224,11 +194,11 @@ function GitHubGraph() {
       })
       .catch(() => {});
 
-    // Fetch Public Activity Feed
-    fetch(`https://api.github.com/users/${USERNAME}/events/public?per_page=5`, { headers })
+    // Consume custom server-side endpoint with integrated KV caching loops
+    fetch(`/api/github-events`)
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setEvents(data.slice(0, 5));
+        if (data?.events) setEvents(data.events);
       })
       .catch(() => {});
 
@@ -410,13 +380,13 @@ function GitHubGraph() {
       const activeBody = path.slice(-tailLengthMax);
       const cellNode = activeGrid[pos.x]?.[pos.y];
 
-      // Validate hit collision vectors
+      // Hit collision vectors validation
       if (activeBody.some((b) => b.x === pos.x && b.y === pos.y) || cellNode?.isObstacle) {
         triggerResetSequence(activeGrid, currentLevel, startingScore, manualControlActive, "red");
         return;
       }
 
-      // Check for digestion
+      // Consumption verification
       if (cellNode && cellNode.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
         localEaten.add(key(pos.x, pos.y));
         tailLengthMax = 3 + localEaten.size;
@@ -427,7 +397,7 @@ function GitHubGraph() {
       path = [...path, { ...pos }].slice(-tailLengthMax);
       setSnake([...path]);
 
-      // Complete clearance verify step
+      // Complete clearance verification
       if (localEaten.size >= totalTargetFoodCells && totalTargetFoodCells > 0) {
         triggerResetSequence(activeGrid, currentLevel, startingScore + localEaten.size, manualControlActive, "green");
       }
@@ -443,14 +413,13 @@ function GitHubGraph() {
       stopSnake();
       setFlashStatus(status);
 
-      // Flash animation screen alert timer holds for 2 seconds
+      // Flash animation holds for exactly 2 seconds
       snakeTimeoutRef.current = setTimeout(() => {
         setFlashStatus(null);
         setSnake([]);
         setEatenPositions(new Set());
 
         if (status === "red") {
-          // Failure State: Drop map back to default matrix and enforce a 3-second delay standby countdown
           const resetGrid = rawFetchedGridRef.current;
           setWeeks(resetGrid);
           
@@ -458,7 +427,6 @@ function GitHubGraph() {
             startSnakeGame(resetGrid, 1, 0, false);
           }, 3000);
         } else {
-          // Success State: Process advanced map configuration levels, clear view, and standby 3 seconds before launch
           const nextLevel = lvl + 1;
           const proceduralGrid = generateProceduralLevel(nextLevel);
           setWeeks(proceduralGrid);
@@ -543,7 +511,7 @@ function GitHubGraph() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Matrix Grid Window Container */}
+        {/* Matrix Grid Box Area Container */}
         <div 
           className={`overflow-x-auto pb-2 lg:col-span-2 rounded-xl p-2 transition-all duration-300 select-none ${
             flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
@@ -592,7 +560,7 @@ function GitHubGraph() {
           </div>
         </div>
 
-        {/* RIGHT SIDE PANEL: Displays distinct chronological logs or tactical dpad inputs */}
+        {/* RIGHT SIDE PANEL: Displays permanent timeline logs or mobile D-pad panel */}
         <div className="min-w-0">
           {isManual ? (
             <div className="flex flex-col items-center justify-center p-4 border border-dashed border-[var(--card-border)] rounded-xl bg-zinc-100/40 dark:bg-zinc-900/30 min-h-[140px] relative select-none">
@@ -646,7 +614,6 @@ function GitHubGraph() {
                     return (
                       <div key={i} className="flex items-center gap-2 font-mono text-[11px]">
                         <span className="w-3 text-center flex-shrink-0 text-zinc-400">{f.icon}</span>
-                        {/* Displays specific commit names from the independent payload object context */}
                         <span className="text-[var(--text-secondary)] truncate">{f.text}</span>
                         <a
                           href={`https://github.com/${f.repo}`}
@@ -785,4 +752,77 @@ export default function Projects() {
                 key={i}
                 className="h-52 animate-pulse rounded-2xl border"
                 style={{
-                  borderColor: "
+                  borderColor: "var(--card-border)",
+                  background: "var(--bg-secondary)",
+                }}
+              />
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <div
+            className="rounded-2xl border px-6 py-16 text-center"
+            style={{
+              borderColor: "var(--card-border)",
+              background: "var(--bg-secondary)",
+            }}
+          >
+            <p className="font-display text-xl font-bold text-[var(--text-primary)]">
+              Nothing here yet
+            </p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              Check back soon.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div
+              className={
+                tab === "selected" ? "grid gap-5" : "grid gap-4 md:grid-cols-2"
+              }
+            >
+              {paged.map((project, i) => (
+                <ProjectCard
+                  key={`${project.name}-${i}`}
+                  project={project}
+                  index={i}
+                  variant={tab === "selected" ? "featured" : "grid"}
+                />
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className="mt-6 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
+                  style={{
+                    borderColor: "var(--card-border)",
+                    background: "var(--bg-secondary)",
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4 text-[var(--text-primary)]" />
+                </button>
+                <span className="font-mono text-xs text-[var(--text-secondary)]">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
+                  style={{
+                    borderColor: "var(--card-border)",
+                    background: "var(--bg-secondary)",
+                  }}
+                >
+                  <ChevronRight className="h-4 w-4 text-[var(--text-primary)]" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
