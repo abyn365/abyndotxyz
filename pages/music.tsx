@@ -349,7 +349,10 @@ function DonutChart({
     },
     cutout: "75%",
     maintainAspectRatio: false,
-    responsive: true
+    responsive: true,
+    layout: {
+      padding: 8 // High-fidelity margin stop: prevents edge clipping during segment expansions
+    }
   }), [slicedData]);
 
   const isArtist = label.toLowerCase().includes("artist");
@@ -359,9 +362,9 @@ function DonutChart({
       {!data.length ? (
         <EmptyState message={emptyText} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-[120px_1fr] sm:items-center min-w-0 w-full">
+        <div className="flex flex-col sm:flex-row items-center gap-6 min-w-0 w-full">
           <div className="flex flex-col items-center justify-center shrink-0">
-            <div className="relative h-28 w-28">
+            <div className="h-32 w-32 relative flex items-center justify-center">
               <Doughnut data={chartData} options={chartOptions} />
             </div>
             <div className="mt-2 text-center select-none pointer-events-none">
@@ -373,7 +376,7 @@ function DonutChart({
               </span>
             </div>
           </div>
-          <div className="space-y-1.5 min-w-0 flex-1">
+          <div className="space-y-1.5 min-w-0 flex-1 w-full">
             {slicedData.map((item, idx) => (
               <div
                 key={item.name}
