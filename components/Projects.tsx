@@ -102,11 +102,12 @@ function timeAgo(dateStr: string) {
   return `${days}d`;
 }
 
-// --- Sub-Component: GitHub Graph & Eating Snake Animation ---
+// --- Sub-Component: GitHub Graph & Eating Snake Game Engine ---
 function GitHubGraph() {
   const [weeks, setWeeks] = useState<ContributionDay[][]>([]);
   const [snake, setSnake] = useState<{ x: number; y: number }[]>([]);
   const [eatenPositions, setEatenPositions] = useState<Set<string>>(new Set());
+  const [flashStatus, setFlashStatus] = useState<"red" | "green" | null>(null);
   const [loading, setLoading] = useState(true);
   const [totalCommits, setTotalCommits] = useState(0);
   const [weekCommits, setWeekCommits] = useState(0);
@@ -154,7 +155,7 @@ function GitHubGraph() {
         setWeeks(last24);
         setLoading(false);
 
-        // Wait exactly 3 seconds on initial page load before starting the snake
+        // Wait precisely 3 seconds on page load before starting the first snake session
         snakeTimeoutRef.current = setTimeout(() => {
           startSnake(last24);
         }, 3000);
@@ -163,7 +164,7 @@ function GitHubGraph() {
 
     const headers: Record<string, string> = {};
 
-    // Fetch repositories and sort descending manually to find top project accurately
+    // Fetch repository arrays and accurately sort to solve top starred tracker
     fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100`, { headers })
       .then((r) => r.json())
       .then((repos) => {
@@ -222,7 +223,7 @@ function GitHubGraph() {
     if (snakeTimeoutRef.current) clearTimeout(snakeTimeoutRef.current);
   };
 
-  // --- Target Eating & Dynamic Length Growth Engine ---
+  // --- Core Game Loop Engine ---
   const startSnake = (grid: ContributionDay[][]) => {
     stopSnake();
     if (!grid.length) return;
@@ -231,13 +232,13 @@ function GitHubGraph() {
     let pos = { x: 0, y: Math.floor(ROWS / 2) };
     let dir = { x: 1, y: 0 };
     let path = [{ ...pos }];
-    let currentMaxLength = 3; // Starts at traditional base length
+    let currentMaxLength = 3; // Starts at traditional classic baseline segment size
     
     const localEaten = new Set<string>();
     const key = (x: number, y: number) => `${x},${y}`;
     const isValid = (x: number, y: number) => x >= 0 && x < cols && y >= 0 && y < ROWS;
 
-    // Pre-calculate the total food pieces scattered on the timeline grid
+    // Pre-calculate target count values across the board matrix layout
     let totalTargetFoodCells = 0;
     for (let x = 0; x < cols; x++) {
       for (let y = 0; y < ROWS; y++) {
@@ -246,7 +247,7 @@ function GitHubGraph() {
     }
 
     const tick = () => {
-      // 1. Pathfinding: Locate the closest active contribution square
+      // 1. Target Tracking: Locate the nearest active uneaten piece
       let target: { x: number; y: number } | null = null;
       let minDist = Infinity;
 
@@ -270,30 +271,31 @@ function GitHubGraph() {
         { x: 0, y: -1 },
       ];
 
-      // Build out standard safe options within bounds
+      // Assemble boundary paths
       const inBoundsMoves = directions.filter((d) => isValid(pos.x + d.x, pos.y + d.y));
 
       if (inBoundsMoves.length === 0) {
-        handleResetCycle(grid);
+        handleResetCycle(grid, "red");
         return;
       }
 
-      // Filter options to prevent body collision
+      // Filter routes that collide directly with active self body frames
       const activeBody = path.slice(-currentMaxLength);
-      let safeMoves = inBoundsMoves.filter((d) => {
+      const safeMoves = inBoundsMoves.filter((d) => {
         const nx = pos.x + d.x;
         const ny = pos.y + d.y;
         return !activeBody.some((b) => b.x === nx && b.y === ny);
       });
 
-      // ESCAPE MECHANISM: If completely enclosed, clip through body to keep going until everything is eaten
+      // GAME OVER TRIGGER: If boxed in or collides into itself, execute a Game Over event sequence
       if (safeMoves.length === 0) {
-        safeMoves = inBoundsMoves;
+        handleResetCycle(grid, "red");
+        return;
       }
 
       let chosenDir = dir;
       if (target) {
-        // Order choices to continuously narrow down distance to the targeted square
+        // Pathfind safely by sorting remaining vectors to step closer towards target
         safeMoves.sort((a, b) => {
           const distA = Math.abs(pos.x + a.x - target!.x) + Math.abs(pos.y + a.y - target!.y);
           const distB = Math.abs(pos.x + b.x - target!.x) + Math.abs(pos.y + b.y - target!.y);
@@ -308,11 +310,17 @@ function GitHubGraph() {
       dir = chosenDir;
       pos = { x: pos.x + dir.x, y: pos.y + dir.y };
 
-      // 3. Digest food target
+      // Double check terminal path safety overlap
+      if (activeBody.some((b) => b.x === pos.x && b.y === pos.y)) {
+        handleResetCycle(grid, "red");
+        return;
+      }
+
+      // 3. Digestion Process
       const currentCell = grid[pos.x]?.[pos.y];
       if (currentCell && currentCell.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
         localEaten.add(key(pos.x, pos.y));
-        // Permanent tail growth calculation based on elements consumed
+        // Dynamic continuous growth increments: 1 extra unit segment added per point digested
         currentMaxLength = 3 + localEaten.size;
         setEatenPositions(new Set(localEaten));
       }
@@ -320,18 +328,21 @@ function GitHubGraph() {
       path = [...path, { ...pos }].slice(-currentMaxLength);
       setSnake([...path]);
 
-      // Complete cycle check: triggers ONLY when all cells are completely eaten
+      // SUCCESS CRITERIA: Triggers flash state ONLY when everything on the field is cleared out
       if (localEaten.size >= totalTargetFoodCells && totalTargetFoodCells > 0) {
-        handleResetCycle(grid);
+        handleResetCycle(grid, "green");
       }
     };
 
-    const handleResetCycle = (currentGrid: ContributionDay[][]) => {
+    const handleResetCycle = (currentGrid: ContributionDay[][], status: "red" | "green") => {
       stopSnake();
-      setSnake([]);
-      setEatenPositions(new Set());
-      // Wait exactly 3 seconds before spawning the next round sequence
+      setFlashStatus(status);
+      
+      // Suspend all operations for exactly 3 seconds during visual flashing alerts
       snakeTimeoutRef.current = setTimeout(() => {
+        setFlashStatus(null);
+        setSnake([]);
+        setEatenPositions(new Set());
         startSnake(currentGrid);
       }, 3000);
     };
@@ -339,7 +350,7 @@ function GitHubGraph() {
     snakeIntervalRef.current = setInterval(tick, 110);
   };
 
-  // High contrast palette tuned for both light and dark backgrounds
+  // High contrast palette tailored for pristine execution in light mode and subtle depth in dark mode
   const getColor = (count: number, isEaten: boolean) => {
     if (count === 0 || isEaten) {
       return "bg-zinc-200 dark:bg-zinc-800/60 transition-all duration-300";
@@ -390,8 +401,13 @@ function GitHubGraph() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Matrix Grid */}
-        <div className="overflow-x-auto pb-2 lg:col-span-2">
+        {/* Matrix Grid Sandbox Wrapper */}
+        <div 
+          className={`overflow-x-auto pb-2 lg:col-span-2 rounded-xl p-2 transition-all duration-300 ${
+            flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
+            flashStatus === "green" ? "bg-emerald-500/10 dark:bg-emerald-500/20 ring-2 ring-emerald-500/50 animate-pulse" : ""
+          }`}
+        >
           <div className="flex gap-[3px] min-w-max">
             {weeks.map((week, col) => (
               <div key={col} className="flex flex-col gap-[3px]">
@@ -422,7 +438,7 @@ function GitHubGraph() {
                       className={`w-[13px] h-[13px] rounded-[2px] transition-all duration-150 ${
                         isSnake
                           ? isHead
-                            ? "bg-zinc-950 dark:bg-zinc-50 scale-125 shadow-md z-10"
+                            ? "bg-zinc-950 dark:bg-zinc-50 scale-125 shadow-md z-10 animate-bounce"
                             : "bg-violet-500/80 dark:bg-violet-400/80"
                           : getColor(day.count, isEaten)
                       }`}
@@ -434,7 +450,7 @@ function GitHubGraph() {
           </div>
         </div>
 
-        {/* Live Activity Feed */}
+        {/* Live Activity Column Feed */}
         {events.length > 0 && (
           <div className="space-y-2 min-w-0 border-t border-dashed border-[var(--card-border)] pt-4 lg:border-t-0 lg:pt-0">
             {events
@@ -516,8 +532,7 @@ export default function Projects() {
 
   useEffect(() => {
     fetch("/api/github-projects")
-      .then((r) => r.json())
-      .then((d) => {
+      .then((r) => r.json())\n      .then((d) => {
         if (d?.repos) setGithubRepos(d.repos);
       })
       .catch(console.error)
@@ -539,7 +554,7 @@ export default function Projects() {
 
   return (
     <div className="space-y-8">
-      {/* Activity Timeline Section — Configured with #FFFFFDFA for Light Modes */}
+      {/* Activity Timeline Dashboard Card Container — Custom Configured for #FFFFFDFA Light Background */}
       <div
         className="rounded-2xl border p-5 sm:p-6 bg-[#FFFFFDFA] dark:bg-[var(--bg-secondary)]"
         style={{
@@ -595,7 +610,7 @@ export default function Projects() {
           )}
         </div>
 
-        {/* Layout Window Grid */}
+        {/* Content Showcase Window */}
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
