@@ -65,7 +65,7 @@ function Tooltip({ tooltip }: { tooltip: TooltipState | null }) {
       {tooltip && (
         <motion.div
           initial={{ opacity: 0, y: 6, scale: 0.98 }}
-          animate={{ opacity: 1, w: "auto", scale: 1 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 6, scale: 0.98 }}
           transition={{ duration: 0.12, ease: "easeOut" }}
           className="pointer-events-none fixed z-50 min-w-40 rounded-xl border px-3 py-2 text-xs shadow-xl backdrop-blur-md font-sans"
@@ -368,8 +368,7 @@ function DonutChart({
       ) : (
         <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0 w-full py-0.5">
           <div className="flex flex-col items-center justify-center shrink-0">
-            {/* Scaled down to a sleek, compact h-22 canvas */}
-            <div className="h-22 w-22 relative flex items-center justify-center">
+            <div className="h-20 w-20 relative flex items-center justify-center">
               <Doughnut data={chartData} options={chartOptions} />
             </div>
             <div className="mt-1 text-center select-none pointer-events-none">
@@ -593,7 +592,6 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
 
             return (
               <div key={d.day} className="flex flex-col items-center flex-1 min-w-[34px]">
-                {/* Scaled down matrix points to w-8/h-8 boundaries */}
                 <button
                   type="button"
                   aria-label={`Activity level for ${d.day}`}
