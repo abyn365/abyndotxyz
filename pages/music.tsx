@@ -283,20 +283,19 @@ function ChartCard({
   return (
     <motion.div
       layout="position"
-      className={`rounded-2xl border p-4 flex flex-col justify-between transition-all duration-300 ${className}`}
+      className={`rounded-2xl border p-4 flex flex-col transition-all duration-300 ${className}`}
       style={{
         borderColor: "var(--card-border)",
         background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--card-bg)",
         boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
       }}
     >
-      <div className="flex flex-col h-full w-full justify-between">
-        <div>
-          <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2">
-            {title}
-          </p>
-          {children}
-        </div>
+      <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2 shrink-0">
+        {title}
+      </p>
+      {/* Flattened structural node wrapper allows proper full-height vertical layouts */}
+      <div className="flex-1 flex flex-col justify-between min-h-0 w-full overflow-visible">
+        {children}
       </div>
     </motion.div>
   );
@@ -377,9 +376,7 @@ function DonutChart({
               const item = slicedData[idx];
               
               innerHtml += `<div style="font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; tracking: 0.1em; color: var(--text-secondary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">${item.name}</div>`;
-              
               const colorMarker = `<span style="background:${dataPoint.dataset.backgroundColor[idx]}; width:8px; height:8px; display:inline-block; border-radius:50%; margin-right:8px; flex-shrink:0;"></span>`;
-              
               innerHtml += `<div style="display:flex; align-items:center; font-size:12px; font-weight:600; color:var(--text-primary); white-space:nowrap;">${colorMarker}${item.plays} plays (${item.share}%)</div>`;
             }
 
@@ -404,7 +401,7 @@ function DonutChart({
   const isArtist = label.toLowerCase().includes("artist");
 
   return (
-    <ChartCard title={label} className="flex-1 flex flex-col justify-between">
+    <ChartCard title={label} className="flex-1">
       {!data.length ? (
         <EmptyState message={emptyText} />
       ) : (
@@ -460,10 +457,10 @@ function ListeningClock({
   const max = Math.max(...data.map((d) => d.plays), 1);
 
   return (
-    <ChartCard title="Listening clock" className="h-full flex-1 flex flex-col justify-between">
+    <ChartCard title="Listening clock" className="h-full flex-1">
       <Tooltip tooltip={tooltip} />
-      <div className="w-full flex flex-col h-full justify-between">
-        <div className="flex items-start justify-between gap-4 mb-3">
+      <div className="w-full flex flex-col h-full justify-between flex-1">
+        <div className="flex items-start justify-between gap-4 mb-3 shrink-0">
           <h2 className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
             24-hour rhythm
           </h2>
@@ -477,7 +474,7 @@ function ListeningClock({
           <EmptyState message="No listening history for this period." />
         ) : (
           <div
-            className="relative grid gap-[4px] px-1 rounded-xl flex-1 min-h-[150px] items-end"
+            className="relative grid gap-[4px] px-1 rounded-xl flex-1 items-end mb-2 min-h-[140px]"
             style={{ 
               gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
               backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
@@ -493,7 +490,7 @@ function ListeningClock({
                 <button
                   key={item.hour}
                   type="button"
-                  className="group relative flex h-full items-end justify-center rounded-sm select-none"
+                  className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none"
                   onMouseMove={(event) => {
                     setHoveredHour(item.hour);
                     setTooltip({
@@ -531,7 +528,7 @@ function ListeningClock({
             })}
           </div>
         )}
-        <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold" style={{ borderColor: "var(--card-border)" }}>
+        <div className="mt-auto flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold shrink-0" style={{ borderColor: "var(--card-border)" }}>
           <span>12 AM</span>
           <span>6 AM</span>
           <span>12 PM</span>
@@ -553,12 +550,12 @@ function ListeningHistory({
   const max = Math.max(...data.map((x) => x.plays), 1);
 
   return (
-    <ChartCard title="Listening timeline" className="h-full flex-1 flex flex-col justify-between">
+    <ChartCard title="Listening timeline" className="h-full flex-1">
       <Tooltip tooltip={tooltip} />
       {!data.length ? (
         <EmptyState message="No listening history for this period." />
       ) : (
-        <div className="flex items-end gap-2 pt-6 px-1 flex-1 h-full min-h-[150px]">
+        <div className="flex items-end gap-2 px-1 flex-1 w-full mt-auto min-h-[140px]">
           {data.map((d, idx) => {
             const isHovered = hoveredIdx === idx;
             return (
@@ -592,7 +589,7 @@ function ListeningHistory({
                     opacity: hoveredIdx !== null && !isHovered ? 0.65 : 1,
                   }}
                 />
-                <span className={`mt-2 font-mono text-[9px] transition-colors duration-200 ${isHovered ? "text-blue-500 font-bold" : "text-[var(--text-secondary)] font-medium"}`}>
+                <span className={`mt-2 font-mono text-[9px] transition-colors duration-200 shrink-0 ${isHovered ? "text-blue-500 font-bold" : "text-[var(--text-secondary)] font-medium"}`}>
                   {d.label}
                 </span>
               </button>
@@ -893,7 +890,7 @@ export default function MusicPage() {
         </div>
 
         {isStatsLoading && !stats ? (
-          <div className="grid gap-4 lg:grid-cols-5 mb-12">
+          <div className="grid gap-4 lg:grid-cols-5 mb-16">
             <div className="space-y-4 lg:col-span-3">
               <SkeletonBlock className="h-64" />
               <SkeletonBlock className="h-56" />
@@ -906,7 +903,8 @@ export default function MusicPage() {
           </div>
         ) : (
           stats && (
-            <div className="grid items-stretch gap-4 lg:grid-cols-5 animate-fadeIn mb-12">
+            /* Explicit mb-16 provides breathing margin separation above footer rules */
+            <div className="grid items-stretch gap-4 lg:grid-cols-5 animate-fadeIn mb-16">
               {/* Left Column Section */}
               <div className="lg:col-span-3 flex flex-col gap-4 h-full self-stretch">
                 <div className="flex-1 flex flex-col min-h-0">
