@@ -41,84 +41,103 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (!window.__consoleMessageShown) {
       window.__consoleMessageShown = true;
 
-      // Safe binary converter to bypass network security blocks on console assets
-      const convertToBase64 = async (url: string): Promise<string | null> => {
+      // FIXED: Converts raw files into lightweight Object Blobs to keep the console buffer tiny and un-glitched
+      const convertToBlobUrl = async (url: string): Promise<string | null> => {
         try {
           const res = await fetch(url);
           if (!res.ok) return null;
           const blob = await res.blob();
-          return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = () => resolve(null);
-            reader.readAsDataURL(blob);
-          });
+          return URL.createObjectURL(blob);
         } catch {
           return null;
         }
       };
 
-      // FIXED: Defined console.load to match your chaining template layout perfectly
-      console.load = (url?: string, size = 88) => {
-        const target = url || "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
-        return convertToBase64(target).then((base64) => {
-          if (base64) {
-            console.log(
-              "%c ",
-              `
-                font-size: 1px;
-                padding: ${size / 2}px;
-                background: url(${base64}) center/cover no-repeat;
-                border-radius: 0px;
-              `
-            );
-          }
-        });
-      };
-
+      const pfpUrl = "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
       const bannerUrl = "https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif";
 
-      // EXECUTION: Chains exactly like your example snippet to keep execution output unified
-      console
-        .load("https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg", 88)
-        .then(() => {
-          console.log(
-            "%c> hello, explorer.",
-            "color:#60a5fa;font-size:18px;font-weight:bold;"
-          );
+      // Preload both assets into memory BEFORE printing so everything renders instantly together
+      Promise.all([convertToBlobUrl(pfpUrl), convertToBlobUrl(bannerUrl)]).then(([pfpBlob, bannerBlob]) => {
+        
+        // FIXED: Chaining implementation matches your exact template structure
+        console.load = (url?: string, size = 88) => {
+          return new Promise<void>((resolve) => {
+            // Use preloaded binary blob pointer instantly if available
+            const activeBlob = url === pfpUrl || !url ? pfpBlob : null;
 
-          console.log(
-            "%cYou weren't supposed to find anything interesting here :p",
-            "color:#9ca3af;font-size:13px;"
-          );
-
-          console.log(
-            "%cIf you discovered a bug, have feedback, or want to collaborate,",
-            "color:#e5e7eb;font-size:13px;"
-          );
-
-          console.log(
-            "%cmy inbox is always open → abyn@abyn.xyz",
-            "color:#22c55e;font-size:13px;font-weight:600;"
-          );
-
-          // Loads the background banner asset seamlessly right underneath the text logs
-          convertToBase64(bannerUrl).then((bannerBase64) => {
-            if (bannerBase64) {
+            if (activeBlob) {
               console.log(
                 "%c ",
                 `
                   font-size: 1px;
-                  /* FIXED: Scaled padding dimensions down to make the footer banner look crisp and subtle */
+                  padding: ${size / 2}px;
+                  background: url(${activeBlob}) center/cover no-repeat;
+                  border-radius: 0px;
+                  display: inline-block;
+                `
+              );
+              resolve();
+            } else {
+              // Safe fallback runtime handler
+              convertToBlobUrl(url || pfpUrl).then((fetchedBlob) => {
+                if (fetchedBlob) {
+                  console.log(
+                    "%c ",
+                    `
+                      font-size: 1px;
+                      padding: ${size / 2}px;
+                      background: url(${fetchedBlob}) center/cover no-repeat;
+                      border-radius: 0px;
+                      display: inline-block;
+                    `
+                  );
+                }
+                resolve();
+              });
+            }
+          });
+        };
+
+        // EXECUTION: Triggers your sequential chaining style perfectly without duplicates
+        console
+          .load("https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg", 88)
+          .then(() => {
+            console.log(
+              "%c> hello, explorer.",
+              "color:#60a5fa;font-size:18px;font-weight:bold;"
+            );
+
+            console.log(
+              "%cYou weren't supposed to find anything interesting here :p",
+              "color:#9ca3af;font-size:13px;"
+            );
+
+            console.log(
+              "%cIf you discovered a bug, have feedback, or want to collaborate,",
+              "color:#e5e7eb;font-size:13px;"
+            );
+
+            console.log(
+              "%cmy inbox is always open → abyn@abyn.xyz",
+              "color:#22c55e;font-size:13px;font-weight:600;"
+            );
+
+            if (bannerBlob) {
+              console.log(
+                "%c ",
+                `
+                  font-size: 1px;
+                  /* FIXED: Adjusted sizes to make the footer banner look crisp and compact */
                   padding: 55px 125px; 
                   margin-top: 14px;
-                  background: url(${bannerBase64}) center/cover no-repeat;
+                  background: url(${bannerBlob}) center/cover no-repeat;
                   border-radius: 8px;
+                  display: inline-block;
                 `
               );
             }
           });
-        });
+      });
     }
 
     return () => {
