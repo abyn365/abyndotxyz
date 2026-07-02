@@ -43,7 +43,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
       console.load ??= (url?: string, size = 88) =>
         new Promise<void>((resolve) => {
-          // SWAPPED: Using the new static JPG image link as the fallback profile asset
+          // CONFIGURED: Uses your static JPG asset URL for the unclipped square profile block
           const targetUrl =
             url || "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
 
@@ -64,7 +64,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           };
 
           img.onerror = () => {
-            resolve();
+            resolve(); // Defensive boundary: moves to text logs even if browser CORS rules intercept preloading
           };
 
           img.src = targetUrl;
@@ -91,14 +91,14 @@ function MyApp({ Component, pageProps }: AppProps) {
           "color:#22c55e;font-size:13px;font-weight:600;"
         );
 
+        // CONFIGURED: Restored the animated GIF banner directly without passing it through Canvas to ensure animation frames persist
         console.log(
           "%c ",
           `
             font-size: 1px;
             padding: 110px 190px;
             margin-top: 12px;
-            /* SWAPPED: Replaced the banner background asset with the new JPG link */
-            background: url(https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg) center/cover no-repeat;
+            background: url(https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif) center/cover no-repeat;
             border-radius: 12px;
           `
         );
