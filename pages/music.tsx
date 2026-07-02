@@ -3,6 +3,8 @@ import { NextSeo } from "next-seo";
 import { ArrowLeft, ArrowRight, Radio, Sparkles } from "lucide-react";
 import { useMemo, useRef, useState, useEffect } from "react";
 import useSWR from "swr";
+import { Chart as ChartJS, ArcElement, Tooltip as ChartTooltip, Legend } from "chart.js";
+import { Doughnut } from "react-chartjs-2";
 import MusicArtwork from "../components/music/MusicArtwork";
 import MusicPeriodTabs from "../components/music/MusicPeriodTabs";
 import MusicTrackSkeleton from "../components/music/MusicTrackSkeleton";
@@ -16,6 +18,9 @@ import {
   type MusicPeriod,
 } from "../lib/music";
 import { PageFooter } from "./index";
+
+// Register Chart.js elements globally
+ChartJS.register(ArcElement, ChartTooltip, Legend);
 
 const DISCORD_ID = "877018055815868426";
 
@@ -61,7 +66,7 @@ function Tooltip({ tooltip }: { tooltip: TooltipState | null }) {
           className="pointer-events-none fixed z-50 min-w-40 rounded-xl border px-3 py-2 text-xs shadow-xl backdrop-blur-md"
           style={{
             borderColor: "var(--card-border)",
-            background: "color-mix(in srgb, var(--card-bg) 92%, var(--bg-primary))",
+            background: "color-mix(in srgb, var(--card-bg) 95%, var(--bg-primary))",
             color: "var(--text-primary)",
           }}
         >
@@ -119,7 +124,7 @@ const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
         <motion.span
           key={index}
           className={`w-[2px] rounded-full transition-colors duration-300 ${
-            isPlaying ? "bg-[var(--text-primary)]" : "bg-[var(--card-border)]"
+            isPlaying ? "bg-indigo-500" : "bg-[var(--card-border)]"
           }`}
           animate={{ height: `${height}%` }}
           transition={{ duration: 0.15, ease: "easeOut" }}
@@ -179,7 +184,7 @@ function LivePresenceCard() {
             <img src={presence.data.spotify?.album_art_url} alt="Album Art" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--text-secondary)] transition-colors">
+            <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
               {presence.data.spotify?.song}
             </p>
             <p className="truncate text-xs text-[var(--text-secondary)]">
@@ -293,123 +298,82 @@ function DonutChart({
   label: string;
   emptyText: string;
 }) {
-  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-
   const slicedData = useMemo(() => data.slice(0, 6), [data]);
-  const total = useMemo(() => slicedData.reduce((sum, item) => sum + item.plays, 0) || 1, [slicedData]);
 
-  // Premium, highly vibrant balanced dark/light mode accent colors for presentation analytics
-  const chartColors = [
-    "var(--text-primary)", 
-    "color-mix(in srgb, #6366f1 85%, var(--text-primary))", // Indigo
-    "color-mix(in srgb, #3b82f6 75%, var(--text-primary))", // Blue
-    "color-mix(in srgb, #14b8a6 70%, var(--text-primary))", // Teal
-    "color-mix(in srgb, #a855f7 65%, var(--text-primary))", // Purple
-    "color-mix(in srgb, var(--text-primary) 35%, var(--bg-secondary))"
-  ];
+  // Dynamic high-contrast aesthetic colors optimized to remain flawless on both black/white backdrops
+  const themeColors = useMemo(() => [
+    "#6366f1", // Vibrant Indigo
+    "#3b82f6", // Premium Blue
+    "#06b6d4", // Electric Cyan
+    "#10b981", // Emerald Green
+    "#a855f7", // Deep Purple
+    "#f43f5e"  // Vivid Rose
+  ], []);
 
-  const handleMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
-    if (!svgRef.current || !slicedData.length) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const dx = event.clientX - centerX;
-    const dy = event.clientY - centerY;
-    
-    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    angle = (angle + 90 + 360) % 360; 
-    const percentage = (angle / 360) * 100;
+  const chartData = useMemo(() => ({
+    labels: slicedData.map(d => d.name),
+    datasets: [{
+      data: slicedData.map(d => d.plays),
+      backgroundColor: themeColors,
+      borderWidth: 0,
+      hoverOffset: 4
+    }]
+  }), [slicedData, themeColors]);
 
-    let currentSum = 0;
-    let foundIndex = 0;
-    for (let i = 0; i < slicedData.length; i++) {
-      const slicePct = (slicedData[i].plays / total) * 100;
-      if (percentage >= currentSum && percentage <= currentSum + slicePct) {
-        foundIndex = i;
-        break;
+  const chartOptions = useMemo(() => ({
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: true,
+        backgroundColor: "rgba(15, 15, 17, 0.95)",
+        titleColor: "#ffffff",
+        bodyColor: "#e4e4e7",
+        titleFont: { family: "ui-monospace, monospace", size: 11, weight: "bold" as const },
+        bodyFont: { family: "sans-serif", size: 12 },
+        padding: 10,
+        cornerRadius: 10,
+        borderColor: "rgba(255, 255, 255, 0.08)",
+        borderWidth: 1,
+        displayColors: true,
+        boxWidth: 8,
+        boxHeight: 8,
+        usePointStyle: true,
+        callbacks: {
+          label: (context: any) => {
+            const index = context.dataIndex;
+            const item = slicedData[index];
+            return ` ${item.plays} plays (${item.share}%)`;
+          }
+        }
       }
-      currentSum += slicePct;
-    }
-
-    setActiveIndex(foundIndex);
-    setTooltip({
-      title: slicedData[foundIndex].name,
-      lines: [
-        `${formatPlaycount(slicedData[foundIndex].plays)} plays`,
-        `${slicedData[foundIndex].share}% Share`,
-        `Rank #${foundIndex + 1}`
-      ],
-      x: event.clientX,
-      y: event.clientY,
-    });
-  };
-
-  let cumulativeOffset = 25;
+    },
+    cutout: "72%",
+    maintainAspectRatio: false,
+    responsive: true
+  }), [slicedData]);
 
   return (
     <ChartCard title={label}>
-      <Tooltip tooltip={tooltip} />
       {!data.length ? (
         <EmptyState message={emptyText} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-[120px_1fr] sm:items-center">
-          <svg
-            ref={svgRef}
-            viewBox="0 0 42 42"
-            className="mx-auto h-28 w-28 -rotate-90 select-none outline-none"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={() => {
-              setTooltip(null);
-              setActiveIndex(null);
-            }}
-          >
-            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--bg-secondary)" strokeWidth="6.5" />
-            {slicedData.map((item, index) => {
-              const dash = (item.plays / total) * 100;
-              const currentOffset = cumulativeOffset;
-              cumulativeOffset += dash;
-              const isHovered = activeIndex === index;
-              const isAnyHovered = activeIndex !== null;
-
-              return (
-                <motion.circle
-                  key={item.name}
-                  initial={{ strokeDasharray: `0 100` }}
-                  animate={{ 
-                    strokeDasharray: `${dash} ${100 - dash}`,
-                    strokeWidth: isHovered ? 7.5 : 6.5,
-                  }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-                  cx="21"
-                  cy="21"
-                  r="15.915"
-                  fill="transparent"
-                  stroke={chartColors[index] ?? "var(--text-primary)"}
-                  strokeDashoffset={100 - currentOffset}
-                  strokeLinecap="round"
-                  style={{
-                    opacity: isAnyHovered && !isHovered ? 0.25 : 1,
-                    transition: "opacity 0.2s ease, stroke 0.2s ease",
-                  }}
-                />
-              );
-            })}
-          </svg>
-          <div className="space-y-1">
+          <div className="relative h-28 w-28 mx-auto">
+            <Doughnut data={chartData} options={chartOptions} />
+          </div>
+          <div className="space-y-1.5">
             {slicedData.map((item, idx) => (
               <div
                 key={item.name}
-                className="flex items-center justify-between gap-3 rounded-lg px-2 py-0.5 text-sm transition-colors duration-200"
-                style={{
-                  background: activeIndex === idx ? "var(--bg-secondary)" : "transparent",
-                }}
+                className="flex items-center justify-between gap-3 rounded-lg px-2 py-0.5 text-sm transition-all"
               >
-                <span className={`truncate transition-colors ${activeIndex === idx ? "text-[var(--text-primary)] font-bold" : "text-[var(--text-secondary)]"}`}>
-                  {item.name}
-                </span>
-                <span className="font-mono text-xs text-[var(--text-secondary)] shrink-0 font-medium">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: themeColors[idx] }} />
+                  <span className="truncate text-[var(--text-primary)] font-medium">
+                    {item.name}
+                  </span>
+                </div>
+                <span className="font-mono text-xs text-[var(--text-secondary)] shrink-0">
                   {item.share}%
                 </span>
               </div>
@@ -442,7 +406,7 @@ function ListeningClock({
           24-hour rhythm
         </h2>
         <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
-          <span className="text-[var(--text-primary)] font-bold">Peak {formatHour(peakHour)}</span>
+          <span className="text-indigo-500 dark:text-indigo-400 font-bold">Peak {formatHour(peakHour)}</span>
           <br />
           Quiet {formatHour(quietHour)}
         </p>
@@ -451,7 +415,7 @@ function ListeningClock({
         <EmptyState message="No listening history for this period." />
       ) : (
         <div
-          className="grid gap-[3px] h-36 items-end"
+          className="grid gap-[4px] h-36 items-end"
           style={{ gridTemplateColumns: "repeat(24, minmax(0, 1fr))" }}
         >
           {data.map((item) => {
@@ -463,7 +427,7 @@ function ListeningClock({
               <button
                 key={item.hour}
                 type="button"
-                className="group relative flex h-full items-end justify-center rounded-sm transition-all duration-200"
+                className="group relative flex h-full items-end justify-center rounded-sm transition-all duration-250"
                 onMouseMove={(event) => {
                   setHoveredHour(item.hour);
                   setTooltip({
@@ -483,15 +447,15 @@ function ListeningClock({
               >
                 <motion.span
                   initial={{ height: 0 }}
-                  animate={{ height: `${Math.max(6, (item.plays / max) * 100)}%` }}
+                  animate={{ height: `${Math.max(8, (item.plays / max) * 100)}%` }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
                   className="w-full rounded-t-[3px] transition-all duration-200"
                   style={{
                     background: isHovered
                       ? "var(--text-primary)"
                       : isPeak
-                      ? "color-mix(in srgb, var(--text-primary) 85%, var(--bg-secondary))"
-                      : "color-mix(in srgb, var(--text-primary) 40%, transparent)",
+                      ? "#6366f1"
+                      : "color-mix(in srgb, var(--text-primary) 30%, transparent)",
                     opacity: isAnyHovered && !isHovered ? 0.35 : 1,
                   }}
                 />
@@ -526,7 +490,7 @@ function ListeningHistory({
       {!data.length ? (
         <EmptyState message="No listening history for this period." />
       ) : (
-        <div className="flex h-36 items-end gap-1.5 pt-2">
+        <div className="flex h-36 items-end gap-2 pt-2">
           {data.map((d, idx) => {
             const isHovered = hoveredIdx === idx;
             return (
@@ -550,15 +514,15 @@ function ListeningHistory({
               >
                 <motion.span
                   initial={{ height: 0 }}
-                  animate={{ height: `${Math.max(6, (d.plays / max) * 100)}%` }}
+                  animate={{ height: `${Math.max(8, (d.plays / max) * 100)}%` }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
                   className="w-full rounded-t-[4px] transition-all duration-200"
                   style={{
-                    background: isHovered ? "var(--text-primary)" : "color-mix(in srgb, var(--text-primary) 60%, transparent)",
+                    background: isHovered ? "#3b82f6" : "color-mix(in srgb, var(--text-primary) 45%, transparent)",
                     opacity: hoveredIdx !== null && !isHovered ? 0.4 : 1,
                   }}
                 />
-                <span className={`mt-2 font-mono text-[9px] transition-colors duration-200 ${isHovered ? "text-[var(--text-primary)] font-bold" : "text-[var(--text-secondary)]"}`}>
+                <span className={`mt-2 font-mono text-[9px] transition-colors duration-200 ${isHovered ? "text-indigo-500 font-bold" : "text-[var(--text-secondary)]"}`}>
                   {d.label}
                 </span>
               </button>
@@ -586,7 +550,7 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
       ) : (
         <div className="grid grid-cols-7 gap-2 pt-1">
           {data.map((d) => {
-            const intensity = Math.round(20 + (d.plays / max) * 75);
+            const intensity = Math.round(15 + (d.plays / max) * 80);
             const isPeak = d.day === active.day;
             return (
               <button
@@ -610,7 +574,7 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                 }
                 onMouseLeave={() => setTooltip(null)}
               >
-                <p className="font-mono text-[10px] text-[var(--card-bg)] mix-blend-difference font-semibold opacity-90">
+                <p className="font-mono text-[10px] text-[var(--card-bg)] mix-blend-difference font-semibold opacity-95">
                   {d.day}
                 </p>
                 <p className="mt-0.5 font-display text-base font-black text-[var(--card-bg)] mix-blend-difference">
@@ -713,7 +677,7 @@ function TrackCarousel({
               <p className="mt-2.5 font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] transition-opacity duration-300 group-hover:opacity-80">
                 #{track.rank} · {formatPlaycount(track.playcount)} plays
               </p>
-              <h3 className="mt-0.5 truncate font-display text-base font-bold text-[var(--text-primary)] transition-colors group-hover:text-[var(--text-secondary)]">
+              <h3 className="mt-0.5 truncate font-display text-base font-bold text-[var(--text-primary)] transition-colors group-hover:text-indigo-500 dark:group-hover:text-indigo-400">
                 {track.title}
               </h3>
               <p className="truncate text-xs text-[var(--text-secondary)]">
