@@ -19,7 +19,6 @@ import {
 } from "../lib/music";
 import { PageFooter } from "./index";
 
-// Register Chart.js elements globally
 ChartJS.register(ArcElement, ChartTooltip, Legend);
 
 const DISCORD_ID = "877018055815868426";
@@ -124,7 +123,7 @@ const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
         <motion.span
           key={index}
           className={`w-[2px] rounded-full transition-colors duration-300 ${
-            isPlaying ? "bg-indigo-500" : "bg-[var(--card-border)]"
+            isPlaying ? "bg-[var(--accent)]" : "bg-[var(--card-border)]"
           }`}
           animate={{ height: `${height}%` }}
           transition={{ duration: 0.15, ease: "easeOut" }}
@@ -236,7 +235,7 @@ function StatCard({
       className="group flex min-h-28 flex-col justify-between rounded-2xl border p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
       style={{
         borderColor: "var(--card-border)",
-        background: "var(--card-bg)",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005)), var(--card-bg)",
         boxShadow: "var(--card-shadow)",
       }}
     >
@@ -274,11 +273,11 @@ function ChartCard({
   return (
     <motion.div
       layout="position"
-      className={`rounded-2xl border p-4 transition-shadow duration-300 ${className}`}
+      className={`rounded-2xl border p-4 transition-all duration-300 ${className}`}
       style={{
         borderColor: "var(--card-border)",
-        background: "var(--card-bg)",
-        boxShadow: "var(--card-shadow)",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--card-bg)",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
       }}
     >
       <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-3">
@@ -300,25 +299,25 @@ function DonutChart({
 }) {
   const slicedData = useMemo(() => data.slice(0, 6), [data]);
 
-  // Dynamic high-contrast aesthetic colors optimized to remain flawless on both black/white backdrops
-  const themeColors = useMemo(() => [
-    "#6366f1", // Vibrant Indigo
-    "#3b82f6", // Premium Blue
-    "#06b6d4", // Electric Cyan
-    "#10b981", // Emerald Green
-    "#a855f7", // Deep Purple
-    "#f43f5e"  // Vivid Rose
+  // Perfectly balanced high-vibrancy identical saturation metrics palette
+  const equalSaturationPalette = useMemo(() => [
+    "#818CF8", // Soft Indigo
+    "#60A5FA", // Premium Blue
+    "#22D3EE", // Vivid Cyan
+    "#34D399", // Emerald Green
+    "#C084FC", // Luminous Purple
+    "#FB7185"  // Radiant Rose
   ], []);
 
   const chartData = useMemo(() => ({
     labels: slicedData.map(d => d.name),
     datasets: [{
       data: slicedData.map(d => d.plays),
-      backgroundColor: themeColors,
+      backgroundColor: equalSaturationPalette,
       borderWidth: 0,
-      hoverOffset: 4
+      hoverOffset: 6
     }]
-  }), [slicedData, themeColors]);
+  }), [slicedData, equalSaturationPalette]);
 
   const chartOptions = useMemo(() => ({
     plugins: {
@@ -334,23 +333,21 @@ function DonutChart({
         cornerRadius: 10,
         borderColor: "rgba(255, 255, 255, 0.08)",
         borderWidth: 1,
-        displayColors: true,
-        boxWidth: 8,
-        boxHeight: 8,
         usePointStyle: true,
         callbacks: {
           label: (context: any) => {
-            const index = context.dataIndex;
-            const item = slicedData[index];
+            const item = slicedData[context.dataIndex];
             return ` ${item.plays} plays (${item.share}%)`;
           }
         }
       }
     },
-    cutout: "72%",
+    cutout: "75%",
     maintainAspectRatio: false,
     responsive: true
   }), [slicedData]);
+
+  const isArtist = label.toLowerCase().includes("artist");
 
   return (
     <ChartCard title={label}>
@@ -360,20 +357,28 @@ function DonutChart({
         <div className="grid gap-4 sm:grid-cols-[120px_1fr] sm:items-center">
           <div className="relative h-28 w-28 mx-auto">
             <Doughnut data={chartData} options={chartOptions} />
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
+              <span className="font-display text-[11px] font-black tracking-wider text-[var(--text-primary)] uppercase leading-none">
+                {isArtist ? "Artists" : "Albums"}
+              </span>
+              <span className="font-mono text-[9px] text-[var(--text-secondary)] mt-0.5 font-bold">
+                100%
+              </span>
+            </div>
           </div>
           <div className="space-y-1.5">
             {slicedData.map((item, idx) => (
               <div
                 key={item.name}
-                className="flex items-center justify-between gap-3 rounded-lg px-2 py-0.5 text-sm transition-all"
+                className="flex items-center justify-between gap-3 rounded-lg px-2 py-0.5 text-sm"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: themeColors[idx] }} />
-                  <span className="truncate text-[var(--text-primary)] font-medium">
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: equalSaturationPalette[idx] }} />
+                  <span className="truncate text-[var(--text-primary)] font-semibold dark:text-zinc-100">
                     {item.name}
                   </span>
                 </div>
-                <span className="font-mono text-xs text-[var(--text-secondary)] shrink-0">
+                <span className="font-mono text-xs text-[var(--text-secondary)] shrink-0 font-bold dark:text-zinc-400">
                   {item.share}%
                 </span>
               </div>
@@ -406,7 +411,7 @@ function ListeningClock({
           24-hour rhythm
         </h2>
         <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
-          <span className="text-indigo-500 dark:text-indigo-400 font-bold">Peak {formatHour(peakHour)}</span>
+          <span className="text-indigo-500 dark:text-indigo-400 font-black">Peak {formatHour(peakHour)}</span>
           <br />
           Quiet {formatHour(quietHour)}
         </p>
@@ -415,8 +420,12 @@ function ListeningClock({
         <EmptyState message="No listening history for this period." />
       ) : (
         <div
-          className="grid gap-[4px] h-36 items-end"
-          style={{ gridTemplateColumns: "repeat(24, minmax(0, 1fr))" }}
+          className="relative grid gap-[4px] h-36 items-end px-1 rounded-xl"
+          style={{ 
+            gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
+            backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
+            backgroundSize: "100% 20px"
+          }}
         >
           {data.map((item) => {
             const isPeak = item.hour === peakHour;
@@ -427,7 +436,7 @@ function ListeningClock({
               <button
                 key={item.hour}
                 type="button"
-                className="group relative flex h-full items-end justify-center rounded-sm transition-all duration-250"
+                className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none"
                 onMouseMove={(event) => {
                   setHoveredHour(item.hour);
                   setTooltip({
@@ -451,12 +460,13 @@ function ListeningClock({
                   transition={{ duration: 0.4, ease: "easeOut" }}
                   className="w-full rounded-t-[3px] transition-all duration-200"
                   style={{
-                    background: isHovered
-                      ? "var(--text-primary)"
-                      : isPeak
-                      ? "#6366f1"
-                      : "color-mix(in srgb, var(--text-primary) 30%, transparent)",
-                    opacity: isAnyHovered && !isHovered ? 0.35 : 1,
+                    background: isPeak
+                      ? "linear-gradient(180deg, #8b5cf6, #6366f1)"
+                      : isHovered
+                      ? "linear-gradient(180deg, #a5b4fc, #6366f1)"
+                      : "linear-gradient(180deg, rgba(99,102,241,0.35), rgba(99,102,241,0.7))",
+                    boxShadow: isPeak ? "0 0 18px rgba(99,102,241,0.45)" : "none",
+                    opacity: isAnyHovered && !isHovered ? 0.65 : 1,
                   }}
                 />
               </button>
@@ -464,7 +474,7 @@ function ListeningClock({
           })}
         </div>
       )}
-      <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2" style={{ borderColor: "var(--card-border)" }}>
+      <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold" style={{ borderColor: "var(--card-border)" }}>
         <span>00:00</span>
         <span>06:00</span>
         <span>12:00</span>
@@ -490,14 +500,14 @@ function ListeningHistory({
       {!data.length ? (
         <EmptyState message="No listening history for this period." />
       ) : (
-        <div className="flex h-36 items-end gap-2 pt-2">
+        <div className="flex h-36 items-end gap-2 pt-2 px-1">
           {data.map((d, idx) => {
             const isHovered = hoveredIdx === idx;
             return (
               <button
                 key={d.label}
                 type="button"
-                className="group flex h-full flex-1 flex-col items-center justify-end"
+                className="group flex h-full flex-1 flex-col items-center justify-end outline-none select-none"
                 onMouseMove={(event) => {
                   setHoveredIdx(idx);
                   setTooltip({
@@ -516,13 +526,15 @@ function ListeningHistory({
                   initial={{ height: 0 }}
                   animate={{ height: `${Math.max(8, (d.plays / max) * 100)}%` }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="w-full rounded-t-[4px] transition-all duration-200"
+                  className="w-full rounded-t-xl transition-all duration-200"
                   style={{
-                    background: isHovered ? "#3b82f6" : "color-mix(in srgb, var(--text-primary) 45%, transparent)",
-                    opacity: hoveredIdx !== null && !isHovered ? 0.4 : 1,
+                    background: isHovered 
+                      ? "linear-gradient(180deg, #a5b4fc, #3b82f6)"
+                      : `linear-gradient(180deg, rgba(59,130,246,0.35), rgba(59,130,246,0.75))`,
+                    opacity: hoveredIdx !== null && !isHovered ? 0.65 : 1,
                   }}
                 />
-                <span className={`mt-2 font-mono text-[9px] transition-colors duration-200 ${isHovered ? "text-indigo-500 font-bold" : "text-[var(--text-secondary)]"}`}>
+                <span className={`mt-2 font-mono text-[9px] transition-colors duration-200 ${isHovered ? "text-blue-500 font-bold" : "text-[var(--text-secondary)] font-medium"}`}>
                   {d.label}
                 </span>
               </button>
@@ -537,10 +549,20 @@ function ListeningHistory({
 function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const max = Math.max(...data.map((x) => x.plays), 1);
+  
   const active = useMemo(() => data.reduce(
     (best, item) => (item.plays > best.plays ? item : best),
     data[0] ?? { day: "", plays: 0 }
   ), [data]);
+
+  // Premium 5-stop fixed GitHub style contribution stops
+  const heatmapColors = useMemo(() => [
+    "var(--bg-secondary)", 
+    "#312e81", 
+    "#4338ca", 
+    "#6366f1", 
+    "#818cf8"
+  ], []);
 
   return (
     <ChartCard title="Weekly activity heatmap">
@@ -548,39 +570,42 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
       {!data.some((d) => d.plays) ? (
         <EmptyState message="No weekly activity for this period." />
       ) : (
-        <div className="grid grid-cols-7 gap-2 pt-1">
+        <div className="flex justify-between items-center gap-2 pt-2 overflow-x-auto pb-1 hide-scrollbar">
           {data.map((d) => {
-            const intensity = Math.round(15 + (d.plays / max) * 80);
-            const isPeak = d.day === active.day;
+            const level = d.plays === 0 ? 0 : Math.min(4, Math.max(1, Math.floor((d.plays / max) * 4)));
+            const isPeak = d.day === active.day && d.plays > 0;
+
             return (
-              <button
-                key={d.day}
-                type="button"
-                className="relative rounded-xl py-3 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm"
-                style={{
-                  background: `color-mix(in srgb, var(--text-primary) ${intensity}%, var(--bg-secondary))`,
-                  border: isPeak ? "1px solid var(--text-primary)" : "1px solid transparent",
-                }}
-                onMouseMove={(event) =>
-                  setTooltip({
-                    title: dayLabels[d.day] ?? d.day,
-                    lines: [
-                      `${formatPlaycount(d.plays)} streams`,
-                      isPeak ? "Highest activity day" : "Weekly metric"
-                    ],
-                    x: event.clientX,
-                    y: event.clientY,
-                  })
-                }
-                onMouseLeave={() => setTooltip(null)}
-              >
-                <p className="font-mono text-[10px] text-[var(--card-bg)] mix-blend-difference font-semibold opacity-95">
+              <div key={d.day} className="flex flex-col items-center flex-1 min-w-[40px]">
+                <button
+                  type="button"
+                  aria-label={`Activity level for ${d.day}`}
+                  className="w-10 h-10 rounded-lg transition-all duration-300 outline-none select-none cursor-default"
+                  style={{
+                    background: heatmapColors[level],
+                    border: isPeak ? "2px solid rgba(255,255,255,0.15)" : "1px solid transparent",
+                    boxShadow: isPeak ? "0 0 20px rgba(99,102,241,0.4)" : "none",
+                  }}
+                  onMouseMove={(event) =>
+                    setTooltip({
+                      title: dayLabels[d.day] ?? d.day,
+                      lines: [
+                        `${formatPlaycount(d.plays)} streams`,
+                        isPeak ? "Highest activity day" : "Weekly metric"
+                      ],
+                      x: event.clientX,
+                      y: event.clientY,
+                    })
+                  }
+                  onMouseLeave={() => setTooltip(null)}
+                />
+                <span className="mt-2 font-mono text-[10px] text-[var(--text-secondary)] font-bold">
                   {d.day}
-                </p>
-                <p className="mt-0.5 font-display text-base font-black text-[var(--card-bg)] mix-blend-difference">
+                </span>
+                <span className="font-display text-xs font-black text-[var(--text-primary)] mt-0.5">
                   {d.plays}
-                </p>
-              </button>
+                </span>
+              </div>
             );
           })}
         </div>
@@ -659,7 +684,7 @@ function TrackCarousel({
               className="group w-[72vw] max-w-[240px] shrink-0 snap-start rounded-2xl border p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-56"
               style={{
                 borderColor: "var(--card-border)",
-                background: "var(--card-bg)",
+                background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--card-bg)",
                 boxShadow: "var(--card-shadow)",
               }}
             >
@@ -680,7 +705,7 @@ function TrackCarousel({
               <h3 className="mt-0.5 truncate font-display text-base font-bold text-[var(--text-primary)] transition-colors group-hover:text-indigo-500 dark:group-hover:text-indigo-400">
                 {track.title}
               </h3>
-              <p className="truncate text-xs text-[var(--text-secondary)]">
+              <p className="truncate text-xs text-[var(--text-secondary)] font-medium">
                 {track.artist}
               </p>
             </a>
@@ -743,7 +768,7 @@ export default function MusicPage() {
           className="mb-8 overflow-hidden rounded-3xl border p-6 sm:p-8 transition-colors duration-300"
           style={{
             borderColor: "var(--card-border)",
-            background: "var(--card-bg)",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--card-bg)",
             boxShadow: "var(--card-shadow)",
           }}
         >
@@ -775,7 +800,7 @@ export default function MusicPage() {
                 <p className="text-sm font-medium text-[var(--text-primary)]">
                   Favorite period
                 </p>
-                <p className="text-xs text-[var(--text-secondary)]">
+                <p className="text-xs text-[var(--text-secondary)] font-bold">
                   {stats?.insights.favoriteListeningPeriod ?? "Analyzing…"}
                 </p>
               </div>
@@ -784,7 +809,7 @@ export default function MusicPage() {
         </motion.section>
 
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-mono text-xs text-[var(--text-secondary)]">
+          <p className="font-mono text-xs text-[var(--text-secondary)] font-bold">
             {activePeriod.description}
           </p>
           <MusicPeriodTabs active={period} onChange={setPeriod} />
