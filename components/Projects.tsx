@@ -102,7 +102,7 @@ function timeAgo(dateStr: string) {
   return `${days}d`;
 }
 
-// --- Sub-Component: GitHub Graph & Target Eating Snake ---
+// --- Sub-Component: GitHub Graph & Eating Snake Animation ---
 function GitHubGraph() {
   const [weeks, setWeeks] = useState<ContributionDay[][]>([]);
   const [snake, setSnake] = useState<{ x: number; y: number }[]>([]);
@@ -150,18 +150,21 @@ function GitHubGraph() {
         setTotalCommits(total);
         setWeekCommits(thisWeek);
 
-        const last24 = grid.slice(-24); // Clean desktop sizing frame
+        const last24 = grid.slice(-24);
         setWeeks(last24);
         setLoading(false);
-        startSnake(last24);
+
+        // Intentionally wait 3 seconds before first snake initialization on page load
+        snakeTimeoutRef.current = setTimeout(() => {
+          startSnake(last24);
+        }, 3000);
       })
       .catch(() => setLoading(false));
 
+    // FIXED: Removed client-side secrets exposure (CWE-200) - requests are executed anonymously
     const headers: Record<string, string> = {};
-    const ghToken = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
-    if (ghToken) headers.Authorization = `token ${ghToken}`;
 
-    // FIX: Fetch full bulk list up to 100 entries and safely sort descending manually
+    // FIXED: API fallback sorting manual algorithm ensures calculation matches true top starred project
     fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100`, { headers })
       .then((r) => r.json())
       .then((repos) => {
@@ -220,7 +223,7 @@ function GitHubGraph() {
     if (snakeTimeoutRef.current) clearTimeout(snakeTimeoutRef.current);
   };
 
-  // --- IMPROVED: Eating & Snake Length Growth Engine ---
+  // --- Target Eating & Dynamic Length Growth Engine ---
   const startSnake = (grid: ContributionDay[][]) => {
     stopSnake();
     if (!grid.length) return;
@@ -229,16 +232,22 @@ function GitHubGraph() {
     let pos = { x: 0, y: Math.floor(ROWS / 2) };
     let dir = { x: 1, y: 0 };
     let path = [{ ...pos }];
-    let currentMaxLength = 3; // Starts short
-    let steps = 0;
+    let currentMaxLength = 3;
     
     const localEaten = new Set<string>();
     const key = (x: number, y: number) => `${x},${y}`;
     const isValid = (x: number, y: number) => x >= 0 && x < cols && y >= 0 && y < ROWS;
-    const totalCells = cols * ROWS;
+
+    // Count how many valid squares on the board contain an active contribution
+    let totalTargetFoodCells = 0;
+    for (let x = 0; x < cols; x++) {
+      for (let y = 0; y < ROWS; y++) {
+        if (grid[x]?.[y] && grid[x][y].count > 0) totalTargetFoodCells++;
+      }
+    }
 
     const tick = () => {
-      // 1. Pathfinding: Locate the nearest uneaten contribution tile
+      // 1. Pathfinding: Locate the closest uneaten contribution target
       let target: { x: number; y: number } | null = null;
       let minDist = Infinity;
 
@@ -255,7 +264,7 @@ function GitHubGraph() {
         }
       }
 
-      // 2. Validate standard movement vectors
+      // 2. Validate move vectors
       const directions = [
         { x: 1, y: 0 },
         { x: -1, y: 0 },
@@ -268,7 +277,7 @@ function GitHubGraph() {
         const ny = pos.y + d.y;
         if (!isValid(nx, ny)) return false;
         
-        // Prevent snake coiling inward crashing directly into its immediate body
+        // Prevent the snake from colliding directly into its active tail frame
         const activeBody = path.slice(-currentMaxLength);
         return !activeBody.some((b) => b.x === nx && b.y === ny);
       });
@@ -276,7 +285,7 @@ function GitHubGraph() {
       let chosenDir = dir;
       if (validMoves.length > 0) {
         if (target) {
-          // Sort moves to approach target closest via Manhattan distance
+          // Sort remaining valid options to approach the food target closest
           validMoves.sort((a, b) => {
             const distA = Math.abs(pos.x + a.x - target!.x) + Math.abs(pos.y + a.y - target!.y);
             const distB = Math.abs(pos.x + b.x - target!.x) + Math.abs(pos.y + b.y - target!.y);
@@ -284,53 +293,58 @@ function GitHubGraph() {
           });
           chosenDir = validMoves[0];
         } else {
-          // Fallback wander if nothing left to consume
+          // No targets left: check forward vector or grab random empty safe lane
           const keepGoing = validMoves.find((m) => m.x === dir.x && m.y === dir.y);
           chosenDir = keepGoing || validMoves[Math.floor(Math.random() * validMoves.length)];
         }
       } else {
-        // Trapped/Enclosed: Reset cycle early
-        stopSnake();
-        setSnake([]);
-        setEatenPositions(new Set());
-        snakeTimeoutRef.current = setTimeout(() => startSnake(grid), 1000);
+        // Enclosed or trapped: reset early
+        handleResetCycle(grid);
         return;
       }
 
-      // Update vectors
       dir = chosenDir;
       pos = { x: pos.x + dir.x, y: pos.y + dir.y };
-      steps++;
 
-      // 3. Digestion phase: Check if stepping onto food target
+      // 3. Check for consumption
       const currentCell = grid[pos.x]?.[pos.y];
       if (currentCell && currentCell.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
         localEaten.add(key(pos.x, pos.y));
-        currentMaxLength = Math.min(currentMaxLength + 1, 18); // Grow segment cap out safely
+        currentMaxLength = Math.min(currentMaxLength + 1, 16); // Grow tail frame
         setEatenPositions(new Set(localEaten));
       }
 
       path = [...path, { ...pos }].slice(-currentMaxLength);
       setSnake([...path]);
 
-      // Cycle reset if map is completely wiped or loop limit hit
-      if (steps >= totalCells * 2 || (target === null && validMoves.length === 0)) {
-        stopSnake();
-        setSnake([]);
-        setEatenPositions(new Set());
-        snakeTimeoutRef.current = setTimeout(() => startSnake(grid), 2000);
+      // CRITICAL ENGINE RULE: Stop immediately and clear once all food on board has been eaten
+      if (localEaten.size >= totalTargetFoodCells && totalTargetFoodCells > 0) {
+        handleResetCycle(grid);
       }
+    };
+
+    const handleResetCycle = (currentGrid: ContributionDay[][]) => {
+      stopSnake();
+      setSnake([]);
+      setEatenPositions(new Set());
+      // Wait exactly 3 seconds before generating the next loop sequence
+      snakeTimeoutRef.current = setTimeout(() => {
+        startSnake(currentGrid);
+      }, 3000);
     };
 
     snakeIntervalRef.current = setInterval(tick, 110);
   };
 
+  // IMPROVED: High contrast balanced values that work beautifully for light and dark layouts
   const getColor = (count: number, isEaten: boolean) => {
-    if (count === 0 || isEaten) return "bg-zinc-800/40 dark:bg-zinc-800/60 transition-all duration-300";
-    if (count <= 2) return "bg-emerald-950/80 dark:bg-emerald-900/60";
-    if (count <= 5) return "bg-emerald-800/80 dark:bg-emerald-700/70";
-    if (count <= 10) return "bg-emerald-600/80 dark:bg-emerald-500/70";
-    return "bg-emerald-400/90 dark:bg-emerald-400/80";
+    if (count === 0 || isEaten) {
+      return "bg-zinc-200 dark:bg-zinc-800/60 transition-all duration-300";
+    }
+    if (count <= 2) return "bg-emerald-200 dark:bg-emerald-950/60";
+    if (count <= 5) return "bg-emerald-300 dark:bg-emerald-800/60";
+    if (count <= 10) return "bg-emerald-400 dark:bg-emerald-600/70";
+    return "bg-emerald-500 dark:bg-emerald-400/80";
   };
 
   const formatDate = (dateStr: string) => {
@@ -346,19 +360,19 @@ function GitHubGraph() {
 
   if (loading) {
     return (
-      <div className="h-28 w-full animate-pulse rounded-xl bg-zinc-800/20 dark:bg-zinc-800/50" />
+      <div className="h-28 w-full skeleton-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800/50" />
     );
   }
 
   return (
     <div className="mt-1">
-      {/* Stats Banner */}
+      {/* Mini Stats Banner */}
       <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--text-secondary)]">
         <span>
           <strong className="text-[var(--text-primary)]">{totalCommits.toLocaleString()}</strong> commits
         </span>
         <span>
-          <strong className="text-emerald-500 dark:text-emerald-400">{weekCommits}</strong> this week
+          <strong className="text-emerald-600 dark:text-emerald-400">{weekCommits}</strong> this week
         </span>
         {topRepo && (
           <a
@@ -367,7 +381,7 @@ function GitHubGraph() {
             rel="noopener noreferrer"
             className="hover:text-[var(--text-primary)] transition-colors"
           >
-            top: <span className="text-violet-500 dark:text-violet-400 font-medium">{topRepo.name}</span> ★{topRepo.stargazers_count}
+            top: <span className="text-violet-600 dark:text-violet-400 font-medium">{topRepo.name}</span> ★{topRepo.stargazers_count}
           </a>
         )}
       </div>
@@ -405,7 +419,7 @@ function GitHubGraph() {
                       className={`w-[13px] h-[13px] rounded-[2px] transition-all duration-150 ${
                         isSnake
                           ? isHead
-                            ? "bg-[var(--text-primary)] scale-125 shadow-sm z-10"
+                            ? "bg-zinc-950 dark:bg-zinc-50 scale-125 shadow-md z-10"
                             : "bg-violet-500/80 dark:bg-violet-400/80"
                           : getColor(day.count, isEaten)
                       }`}
@@ -434,11 +448,11 @@ function GitHubGraph() {
                           href={`https://github.com/${USERNAME}/${commit.repo}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-zinc-500 hover:text-violet-400 transition-colors flex-shrink-0"
+                          className="text-zinc-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors flex-shrink-0"
                         >
                           · {commit.repo}
                         </a>
-                        <span className="text-zinc-600 dark:text-zinc-700 ml-auto flex-shrink-0">
+                        <span className="text-zinc-500 dark:text-zinc-600 ml-auto flex-shrink-0">
                           {timeAgo(e.created_at)}
                         </span>
                       </div>
@@ -455,11 +469,11 @@ function GitHubGraph() {
                       href={`https://github.com/${f.repo}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-zinc-500 hover:text-violet-400 transition-colors flex-shrink-0"
+                      className="text-zinc-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors flex-shrink-0"
                     >
                       · {f.repo?.split("/")[1]}
                     </a>
-                    <span className="text-zinc-600 dark:text-zinc-700 ml-auto flex-shrink-0">
+                    <span className="text-zinc-500 dark:text-zinc-600 ml-auto flex-shrink-0">
                       {timeAgo(e.created_at)}
                     </span>
                   </div>
@@ -475,7 +489,7 @@ function GitHubGraph() {
           className="fixed z-50 px-2.5 py-1.5 rounded-lg border text-[11px] shadow-xl pointer-events-none font-sans backdrop-blur-sm"
           style={{
             borderColor: "var(--card-border)",
-            background: "rgba(20, 20, 20, 0.85)",
+            background: "rgba(15, 15, 15, 0.92)",
             color: "#fff",
             left: tooltip.x + 12,
             top: tooltip.y - 34,
@@ -522,7 +536,7 @@ export default function Projects() {
 
   return (
     <div className="space-y-8">
-      {/* Analytics Panel */}
+      {/* Activity Timeline Dashboard Section */}
       <div
         className="rounded-2xl border p-5 sm:p-6"
         style={{
@@ -538,7 +552,7 @@ export default function Projects() {
       </div>
 
       <div>
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs row */}
         <div className="mb-6 flex items-center justify-between gap-4">
           <div
             className="inline-flex gap-0.5 rounded-full border p-0.5"
@@ -579,7 +593,7 @@ export default function Projects() {
           )}
         </div>
 
-        {/* Layout Grid */}
+        {/* Main Grid Render Window */}
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -599,7 +613,7 @@ export default function Projects() {
             style={{
               borderColor: "var(--card-border)",
               background: "var(--bg-secondary)",
-            }}
+                }}
           >
             <p className="font-display text-xl font-bold text-[var(--text-primary)]">
               Nothing here yet
