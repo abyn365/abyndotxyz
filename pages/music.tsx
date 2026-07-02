@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { NextSeo } from "next-seo";
-import { ArrowLeft, ArrowRight, Radio, Sparkles, Music } from "lucide-react";
-import { useMemo, useRef, useState, useEffect } from "react";
+import { ArrowLeft, ArrowRight, Radio, Sparkles } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import MusicArtwork from "../components/music/MusicArtwork";
 import MusicPeriodTabs from "../components/music/MusicPeriodTabs";
@@ -17,7 +17,6 @@ import {
 } from "../lib/music";
 import { PageFooter } from "./index";
 
-// Change this to your actual Discord ID
 const DISCORD_ID = "877018055815868426";
 
 const formatHour = (hour: number) => `${hour.toString().padStart(2, "0")}:00`;
@@ -61,10 +60,8 @@ function Tooltip({ tooltip }: { tooltip: TooltipState | null }) {
           transition={{ duration: 0.12, ease: "easeOut" }}
           className="pointer-events-none fixed z-50 min-w-40 rounded-xl border px-3 py-2 text-xs shadow-xl backdrop-blur-md"
           style={{
-            left: tooltip.x + 14,
-            top: tooltip.y + 14,
             borderColor: "var(--card-border)",
-            background: "color-mix(in srgb, var(--card-bg) 90%, var(--bg-primary))",
+            background: "color-mix(in srgb, var(--card-bg) 92%, var(--bg-primary))",
             color: "var(--text-primary)",
           }}
         >
@@ -97,13 +94,13 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
   );
 }
 
-function EmptyState({ message }: { message: string }) {
+// Seamless dynamic equalizer built using standard Tailwind configurations
+function EqualizerBars() {
   return (
-    <div
-      className="flex min-h-32 items-center justify-center rounded-2xl border border-dashed px-4 text-center text-sm text-[var(--text-secondary)]"
-      style={{ borderColor: "var(--card-border)" }}
-    >
-      {message}
+    <div className="flex h-3 items-end gap-[2px]">
+      <span className="w-[2px] rounded-t-sm bg-[var(--text-primary)] animate-[bounce_1s_infinite_100ms] h-1" />
+      <span className="w-[2px] rounded-t-sm bg-[var(--text-primary)] animate-[bounce_1s_infinite_300ms] h-3" />
+      <span className="w-[2px] rounded-t-sm bg-[var(--text-primary)] animate-[bounce_1s_infinite_200ms] h-2" />
     </div>
   );
 }
@@ -120,7 +117,7 @@ function LivePresenceCard() {
       case "online": return "bg-emerald-500";
       case "idle": return "bg-amber-400";
       case "dnd": return "bg-rose-500";
-      default: return "bg-zinc-400";
+      default: return "bg-zinc-500";
     }
   }, [presence?.data?.discord_status]);
 
@@ -144,13 +141,7 @@ function LivePresenceCard() {
             {isSpotify ? "Live on Spotify" : "Status"}
           </p>
         </div>
-        {isSpotify && (
-          <div className="flex items-end gap-[2px] h-3 w-3 mb-1">
-            <span className="w-[2px] bg-emerald-500 animate-[bounce_1s_infinite_100ms]" />
-            <span className="w-[2px] bg-emerald-500 animate-[bounce_1s_infinite_300ms] h-full" />
-            <span className="w-[2px] bg-emerald-500 animate-[bounce_1s_infinite_200ms]" />
-          </div>
-        )}
+        {isSpotify && <EqualizerBars />}
       </div>
 
       {isSpotify ? (
@@ -164,7 +155,7 @@ function LivePresenceCard() {
             <img src={presence.data.spotify?.album_art_url} alt="Album Art" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-emerald-500 transition-colors">
+            <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--text-secondary)] transition-colors">
               {presence.data.spotify?.song}
             </p>
             <p className="truncate text-xs text-[var(--text-secondary)]">
@@ -182,6 +173,17 @@ function LivePresenceCard() {
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div
+      className="flex min-h-32 items-center justify-center rounded-2xl border border-dashed px-4 text-center text-sm text-[var(--text-secondary)]"
+      style={{ borderColor: "var(--card-border)" }}
+    >
+      {message}
     </div>
   );
 }
@@ -274,7 +276,6 @@ function DonutChart({
   const slicedData = useMemo(() => data.slice(0, 6), [data]);
   const total = useMemo(() => slicedData.reduce((sum, item) => sum + item.plays, 0) || 1, [slicedData]);
 
-  // Comprehensive mathematical angle calculations to achieve flawless pointer bounding targets
   const handleMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
     if (!svgRef.current || !slicedData.length) return;
     const rect = svgRef.current.getBoundingClientRect();
@@ -351,11 +352,11 @@ function DonutChart({
                   cy="21"
                   r="15.915"
                   fill="transparent"
-                  stroke={isHovered ? "var(--accent)" : `color-mix(in srgb, var(--text-primary) ${90 - index * 12}%, var(--bg-secondary))`}
+                  stroke={isHovered ? "var(--text-primary)" : `color-mix(in srgb, var(--text-primary) ${95 - index * 14}%, var(--bg-secondary))`}
                   strokeDashoffset={100 - currentOffset}
                   strokeLinecap="round"
                   style={{
-                    opacity: isAnyHovered && !isHovered ? 0.45 : 1,
+                    opacity: isAnyHovered && !isHovered ? 0.35 : 1,
                     transition: "opacity 0.2s ease, stroke 0.2s ease",
                   }}
                 />
@@ -371,10 +372,10 @@ function DonutChart({
                   background: activeIndex === idx ? "var(--bg-secondary)" : "transparent",
                 }}
               >
-                <span className={`truncate transition-colors ${activeIndex === idx ? "text-[var(--accent)] font-medium" : "text-[var(--text-primary)]"}`}>
+                <span className={`truncate transition-colors ${activeIndex === idx ? "text-[var(--text-primary)] font-semibold" : "text-[var(--text-secondary)]"}`}>
                   {item.name}
                 </span>
-                <span className="font-mono text-xs text-[var(--text-secondary)] shrink-0">
+                <span className="font-mono text-xs text-[var(--text-secondary)] shrink-0 font-medium">
                   {item.share}%
                 </span>
               </div>
@@ -407,7 +408,7 @@ function ListeningClock({
           24-hour rhythm
         </h2>
         <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
-          <span className="text-[var(--accent)] font-semibold">Peak {formatHour(peakHour)}</span>
+          <span className="text-[var(--text-primary)] font-bold">Peak {formatHour(peakHour)}</span>
           <br />
           Quiet {formatHour(quietHour)}
         </p>
@@ -453,11 +454,11 @@ function ListeningClock({
                   className="w-full rounded-t-[3px] transition-all duration-200"
                   style={{
                     background: isHovered
-                      ? "var(--accent)"
+                      ? "var(--text-primary)"
                       : isPeak
-                      ? "color-mix(in srgb, var(--accent) 70%, var(--text-primary))"
-                      : "color-mix(in srgb, var(--text-primary) 35%, transparent)",
-                    opacity: isAnyHovered && !isHovered ? 0.4 : 1,
+                      ? "color-mix(in srgb, var(--text-primary) 85%, var(--bg-secondary))"
+                      : "color-mix(in srgb, var(--text-primary) 40%, transparent)",
+                    opacity: isAnyHovered && !isHovered ? 0.35 : 1,
                   }}
                 />
               </button>
@@ -519,11 +520,11 @@ function ListeningHistory({
                   transition={{ duration: 0.3, ease: "easeOut" }}
                   className="w-full rounded-t-[4px] transition-all duration-200"
                   style={{
-                    background: isHovered ? "var(--accent)" : "color-mix(in srgb, var(--text-primary) 65%, transparent)",
-                    opacity: hoveredIdx !== null && !isHovered ? 0.5 : 1,
+                    background: isHovered ? "var(--text-primary)" : "color-mix(in srgb, var(--text-primary) 60%, transparent)",
+                    opacity: hoveredIdx !== null && !isHovered ? 0.4 : 1,
                   }}
                 />
-                <span className={`mt-2 font-mono text-[9px] transition-colors duration-200 ${isHovered ? "text-[var(--accent)] font-bold" : "text-[var(--text-secondary)]"}`}>
+                <span className={`mt-2 font-mono text-[9px] transition-colors duration-200 ${isHovered ? "text-[var(--text-primary)] font-bold" : "text-[var(--text-secondary)]"}`}>
                   {d.label}
                 </span>
               </button>
@@ -551,7 +552,7 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
       ) : (
         <div className="grid grid-cols-7 gap-2 pt-1">
           {data.map((d) => {
-            const intensity = Math.round(15 + (d.plays / max) * 70);
+            const intensity = Math.round(20 + (d.plays / max) * 75);
             const isPeak = d.day === active.day;
             return (
               <button
@@ -575,7 +576,7 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                 }
                 onMouseLeave={() => setTooltip(null)}
               >
-                <p className="font-mono text-[10px] text-[var(--card-bg)] mix-blend-difference font-semibold opacity-80">
+                <p className="font-mono text-[10px] text-[var(--card-bg)] mix-blend-difference font-semibold opacity-90">
                   {d.day}
                 </p>
                 <p className="mt-0.5 font-display text-base font-black text-[var(--card-bg)] mix-blend-difference">
@@ -678,7 +679,7 @@ function TrackCarousel({
               <p className="mt-2.5 font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] transition-opacity duration-300 group-hover:opacity-80">
                 #{track.rank} · {formatPlaycount(track.playcount)} plays
               </p>
-              <h3 className="mt-0.5 truncate font-display text-base font-bold text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
+              <h3 className="mt-0.5 truncate font-display text-base font-bold text-[var(--text-primary)] transition-colors group-hover:text-[var(--text-secondary)]">
                 {track.title}
               </h3>
               <p className="truncate text-xs text-[var(--text-secondary)]">
@@ -741,7 +742,12 @@ export default function MusicPage() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="mb-8 overflow-hidden rounded-3xl border p-6 sm:p-8 bg-white border-zinc-200 shadow-sm"
+          className="mb-8 overflow-hidden rounded-3xl border p-6 sm:p-8 transition-colors duration-300"
+          style={{
+            borderColor: "var(--card-border)",
+            background: "var(--card-bg)",
+            boxShadow: "var(--card-shadow)",
+          }}
         >
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
@@ -767,7 +773,7 @@ export default function MusicPage() {
                   background: "var(--social-bg-mix)",
                 }}
               >
-                <Sparkles className="mb-2 h-4 w-4 text-[var(--accent)]" />
+                <Sparkles className="mb-2 h-4 w-4 text-[var(--text-primary)]" />
                 <p className="text-sm font-medium text-[var(--text-primary)]">
                   Favorite period
                 </p>
@@ -821,7 +827,6 @@ export default function MusicPage() {
         ) : (
           stats && (
             <div className="grid items-start gap-4 lg:grid-cols-5">
-              {/* Left Column - Large Components */}
               <div className="space-y-4 lg:col-span-3 flex flex-col h-full justify-between">
                 <ListeningClock
                   data={stats.charts.listeningClock}
@@ -831,7 +836,6 @@ export default function MusicPage() {
                 <ListeningHistory data={stats.charts.listeningHistory} />
               </div>
 
-              {/* Right Column - Secondary Share Data & Matrices */}
               <div className="space-y-4 lg:col-span-2">
                 <DonutChart
                   label="Top artists share"
@@ -848,9 +852,8 @@ export default function MusicPage() {
             </div>
           )
         )}
-        <div className="mt-12 border-t pt-6" style={{ borderColor: "var(--card-border)" }}>
-          <PageFooter />
-        </div>
+        
+        <PageFooter />
       </main>
     </>
   );
