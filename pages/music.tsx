@@ -94,6 +94,36 @@ function Tooltip({ tooltip }: { tooltip: TooltipState | null }) {
   );
 }
 
+// Fixed shared bento chart container layout definition
+function ChartCard({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <motion.div
+      layout="position"
+      className={`rounded-2xl border p-4 flex flex-col transition-all duration-300 ${className}`}
+      style={{
+        borderColor: "var(--card-border)",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--card-bg)",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+      }}
+    >
+      <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2 shrink-0">
+        {title}
+      </p>
+      <div className="flex-1 flex flex-col justify-between min-h-0 w-full overflow-visible">
+        {children}
+      </div>
+    </motion.div>
+  );
+}
+
 function SkeletonBlock({ className = "" }: { className?: string }) {
   return (
     <div
@@ -185,7 +215,7 @@ function LivePresenceCard() {
           className="flex items-center gap-3 group min-w-0"
         >
           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border" style={{ borderColor: "var(--card-border)" }}>
-            <img src={presence.data.spotify?.album_art_url} alt="Album Art" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            <img src={presence.data.spotify?.album_art_url} alt="Album Art" className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
@@ -271,43 +301,16 @@ function StatCard({
   );
 }
 
-function ChartCard({
-  title,
-  children,
-  className = "",
-}: {
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <motion.div
-      layout="position"
-      className={`rounded-2xl border p-4 flex flex-col transition-all duration-300 ${className}`}
-      style={{
-        borderColor: "var(--card-border)",
-        background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--card-bg)",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
-      }}
-    >
-      <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2 shrink-0">
-        {title}
-      </p>
-      <div className="flex-1 flex flex-col justify-between min-h-0 w-full overflow-visible">
-        {children}
-      </div>
-    </motion.div>
-  );
-}
-
 function DonutChart({
   data,
   label,
   emptyText,
+  className = "",
 }: {
   data: { name: string; plays: number; share: number }[];
   label: string;
   emptyText: string;
+  className?: string;
 }) {
   const slicedData = useMemo(() => data.slice(0, 6), [data]);
 
@@ -400,7 +403,7 @@ function DonutChart({
   const isArtist = label.toLowerCase().includes("artist");
 
   return (
-    <ChartCard title={label} className="flex-1">
+    <ChartCard title={label} className={className}>
       {!data.length ? (
         <EmptyState message={emptyText} />
       ) : (
@@ -476,15 +479,11 @@ function ListeningClock({
           <EmptyState message="No listening history for this period." />
         ) : (
           <div
-            className="relative grid gap-[4px] px-1 rounded-xl flex-1 items-end mb-1 min-h-[140px] lg:min-h-[160px]"
+            className="relative grid gap-[4px] px-1 rounded-xl flex-1 items-end mb-1 min-h-[140px]"
             style={{ 
               gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
               backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
               backgroundSize: "100% 20px"
-            }}
-            onPointerLeave={() => {
-              setHoveredHour(null);
-              setTooltip(null);
             }}
           >
             {data.map((item) => {
@@ -582,13 +581,7 @@ function ListeningHistory({
       {!data.length ? (
         <EmptyState message="No listening history for this period." />
       ) : (
-        <div 
-          className="flex items-end gap-2 px-1 flex-1 w-full mt-auto min-h-[140px] lg:min-h-[160px]"
-          onPointerLeave={() => {
-            setHoveredIdx(null);
-            setTooltip(null);
-          }}
-        >
+        <div className="flex items-end gap-2 px-1 flex-1 w-full mt-auto min-h-[140px]">
           {data.map((d, idx) => {
             const isHovered = hoveredIdx === idx;
             return (
@@ -648,8 +641,9 @@ function ListeningHistory({
   );
 }
 
-function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
+function WeeklyHeatmap({ data, className = "" }: { data: { day: string; plays: number }[]; className?: string }) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const max = Math.max(...data.map((x) => x.plays), 1);
   
   const active = useMemo(() => data.reduce(
@@ -666,18 +660,16 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
   ], []);
 
   return (
-    <ChartCard title="Weekly activity heatmap" className="shrink-0">
+    <ChartCard title="Weekly activity heatmap" className={className}>
       <Tooltip tooltip={tooltip} />
       {!data.some((d) => d.plays) ? (
         <EmptyState message="No weekly activity for this period." />
       ) : (
-        <div 
-          className="flex justify-between items-center gap-2 pt-1 overflow-x-auto pb-1 hide-scrollbar"
-          onPointerLeave={() => setTooltip(null)}
-        >
-          {data.map((d) => {
+        <div className="flex justify-between items-center gap-2 pt-1 overflow-x-auto pb-1 hide-scrollbar w-full">
+          {data.map((d, idx) => {
             const level = d.plays === 0 ? 0 : Math.min(4, Math.max(1, Math.floor((d.plays / max) * 4)));
             const isPeak = d.day === active.day && d.plays > 0;
+            const isHovered = activeIdx === idx;
 
             return (
               <div key={d.day} className="flex flex-col items-center flex-1 min-w-[34px]">
@@ -685,7 +677,14 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                   type="button"
                   aria-label={`Activity level for ${d.day}`}
                   className="w-8 h-8 rounded-lg transition-all duration-300 outline-none select-none cursor-default touch-none"
-                  onPointerEnter={(event) =>
+                  style={{
+                    background: heatmapColors[level],
+                    border: isPeak ? "2px solid rgba(255,255,255,0.15)" : "1px solid transparent",
+                    boxShadow: isPeak ? "0 0 20px rgba(99,102,241,0.4)" : "none",
+                    opacity: activeIdx !== null && !isHovered ? 0.65 : 1,
+                  }}
+                  onPointerEnter={(event) => {
+                    setActiveIdx(idx);
                     setTooltip({
                       title: dayLabels[d.day] ?? d.day,
                       lines: [
@@ -694,9 +693,10 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                       ],
                       x: event.clientX,
                       y: event.clientY,
-                    })
-                  }
-                  onPointerMove={(event) =>
+                    });
+                  }}
+                  onPointerMove={(event) => {
+                    setActiveIdx(idx);
                     setTooltip({
                       title: dayLabels[d.day] ?? d.day,
                       lines: [
@@ -705,9 +705,10 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                       ],
                       x: event.clientX,
                       y: event.clientY,
-                    })
-                  }
-                  onPointerDown={(event) =>
+                    });
+                  }}
+                  onPointerDown={(event) => {
+                    setActiveIdx(idx);
                     setTooltip({
                       title: dayLabels[d.day] ?? d.day,
                       lines: [
@@ -716,8 +717,8 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                       ],
                       x: event.clientX,
                       y: event.clientY,
-                    })
-                  }
+                    });
+                  }}
                 />
                 <span className="mt-1 font-mono text-[9px] text-[var(--text-secondary)] font-bold">
                   {d.day}
@@ -971,32 +972,37 @@ export default function MusicPage() {
           stats && (
             <div className="grid gap-4 lg:grid-cols-5 animate-fadeIn mb-16 items-stretch">
               {/* Left Column Section */}
-              <div className="lg:col-span-3 flex flex-col gap-4 h-full self-stretch">
+              <div className="lg:col-span-3 flex flex-col gap-4 h-full">
                 <ListeningClock
                   data={stats.charts.listeningClock}
                   peakHour={stats.insights.peakHour}
                   quietHour={stats.insights.quietHour}
-                  className="lg:flex-1"
+                  className="flex-auto min-h-[250px]"
                 />
                 <ListeningHistory 
                   data={stats.charts.listeningHistory} 
-                  className="lg:flex-1"
+                  className="flex-auto min-h-[210px]"
                 />
               </div>
 
-              {/* Right Column Sidebar Section - Rendered naturally to protect Heatmap footprints */}
-              <div className="lg:col-span-2 flex flex-col gap-4 h-full self-stretch overflow-visible">
+              {/* Right Column Sidebar Section — Perfectly Protected Sizing Metrics */}
+              <div className="lg:col-span-2 flex flex-col gap-4 h-full overflow-visible">
                 <DonutChart
                   label="Top artists share"
                   data={stats.charts.topArtists}
                   emptyText="No artists available for this period."
+                  className="flex-auto min-h-[180px]"
                 />
                 <DonutChart
                   label="Top albums share"
                   data={stats.charts.topAlbums}
                   emptyText="No albums available for this period."
+                  className="flex-auto min-h-[180px]"
                 />
-                <WeeklyHeatmap data={stats.charts.weeklyActivity} />
+                <WeeklyHeatmap 
+                  data={stats.charts.weeklyActivity} 
+                  className="flex-initial min-h-[130px]"
+                />
               </div>
             </div>
           )
