@@ -322,7 +322,7 @@ function GitHubGraph() {
         dir = nextDirRef.current;
         currentDirRef.current = dir;
       } else {
-        // AI Tracking Pathfinder Algorithm Routine
+        // AI Pathfinder Algorithm Routing
         let target: { x: number; y: number } | null = null;
         let minDist = Infinity;
 
@@ -372,7 +372,7 @@ function GitHubGraph() {
         }
       }
 
-      // Toroidal Screen Edge Wrapping
+      // Toroidal Edge Wrap
       let nextX = (pos.x + dir.x + COLS) % COLS;
       let nextY = (pos.y + dir.y + ROWS) % ROWS;
       pos = { x: nextX, y: nextY };
@@ -380,13 +380,13 @@ function GitHubGraph() {
       const activeBody = path.slice(-tailLengthMax);
       const cellNode = activeGrid[pos.x]?.[pos.y];
 
-      // Hit collision vectors validation
+      // Collision checks
       if (activeBody.some((b) => b.x === pos.x && b.y === pos.y) || cellNode?.isObstacle) {
         triggerResetSequence(activeGrid, currentLevel, startingScore, manualControlActive, "red");
         return;
       }
 
-      // Consumption verification
+      // Digestion verification
       if (cellNode && cellNode.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
         localEaten.add(key(pos.x, pos.y));
         tailLengthMax = 3 + localEaten.size;
@@ -397,7 +397,6 @@ function GitHubGraph() {
       path = [...path, { ...pos }].slice(-tailLengthMax);
       setSnake([...path]);
 
-      // Complete clearance verification
       if (localEaten.size >= totalTargetFoodCells && totalTargetFoodCells > 0) {
         triggerResetSequence(activeGrid, currentLevel, startingScore + localEaten.size, manualControlActive, "green");
       }
@@ -413,7 +412,6 @@ function GitHubGraph() {
       stopSnake();
       setFlashStatus(status);
 
-      // Flash animation holds for exactly 2 seconds
       snakeTimeoutRef.current = setTimeout(() => {
         setFlashStatus(null);
         setSnake([]);
@@ -464,7 +462,6 @@ function GitHubGraph() {
 
   return (
     <div className="mt-1">
-      {/* Header Metric Line updates instantly between user records and arcade loops */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--text-secondary)]">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {isManual ? (
@@ -511,7 +508,6 @@ function GitHubGraph() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Matrix Grid Box Area Container */}
         <div 
           className={`overflow-x-auto pb-2 lg:col-span-2 rounded-xl p-2 transition-all duration-300 select-none ${
             flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
@@ -560,7 +556,6 @@ function GitHubGraph() {
           </div>
         </div>
 
-        {/* RIGHT SIDE PANEL: Displays permanent timeline logs or mobile D-pad panel */}
         <div className="min-w-0">
           {isManual ? (
             <div className="flex flex-col items-center justify-center p-4 border border-dashed border-[var(--card-border)] rounded-xl bg-zinc-100/40 dark:bg-zinc-900/30 min-h-[140px] relative select-none">
@@ -635,7 +630,6 @@ function GitHubGraph() {
         </div>
       </div>
 
-      {/* Floating Hover Context Cards */}
       {tooltip && !isManual && (
         <div
           className="fixed z-50 px-2.5 py-1.5 rounded-lg border text-[11px] shadow-xl pointer-events-none font-sans backdrop-blur-sm"
