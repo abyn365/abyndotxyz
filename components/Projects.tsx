@@ -87,6 +87,7 @@ function formatEvent(event: any) {
   }
 }
 
+// Custom formatted shorthand timeline string conversions
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -322,7 +323,7 @@ function GitHubGraph() {
         dir = nextDirRef.current;
         currentDirRef.current = dir;
       } else {
-        // AI Pathfinder Algorithm Routing
+        // AI Pathfinder Algorithm Routine
         let target: { x: number; y: number } | null = null;
         let minDist = Infinity;
 
@@ -380,13 +381,13 @@ function GitHubGraph() {
       const activeBody = path.slice(-tailLengthMax);
       const cellNode = activeGrid[pos.x]?.[pos.y];
 
-      // Collision checks
+      // Collision validation checks
       if (activeBody.some((b) => b.x === pos.x && b.y === pos.y) || cellNode?.isObstacle) {
         triggerResetSequence(activeGrid, currentLevel, startingScore, manualControlActive, "red");
         return;
       }
 
-      // Digestion verification
+      // Digestion step
       if (cellNode && cellNode.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
         localEaten.add(key(pos.x, pos.y));
         tailLengthMax = 3 + localEaten.size;
@@ -412,6 +413,7 @@ function GitHubGraph() {
       stopSnake();
       setFlashStatus(status);
 
+      // Flash animation holds for exactly 2 seconds
       snakeTimeoutRef.current = setTimeout(() => {
         setFlashStatus(null);
         setSnake([]);
@@ -460,8 +462,12 @@ function GitHubGraph() {
     return "bg-emerald-500 dark:bg-emerald-400/80";
   };
 
+  // FIXED: Flips anchor alignment variables horizontally on narrow viewport edges to contain tooltip boundaries
+  const isRightSideEdge = typeof window !== "undefined" && tooltip && tooltip.x > window.innerWidth - 160;
+
   return (
     <div className="mt-1">
+      {/* Header Metric Line updates instantly between user records and arcade loops */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--text-secondary)]">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {isManual ? (
@@ -508,13 +514,15 @@ function GitHubGraph() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div 
-          className={`overflow-x-auto pb-2 lg:col-span-2 rounded-xl p-2 transition-all duration-300 select-none ${
-            flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
-            flashStatus === "green" ? "bg-emerald-500/10 dark:bg-emerald-500/20 ring-2 ring-emerald-500/50 animate-pulse" : ""
-          }`}
-        >
-          <div className="flex gap-[2px] sm:gap-[3px] min-w-max justify-center lg:justify-start">
+        {/* Matrix Horizontal Scrolling Container */}
+        <div className="overflow-x-auto pb-2 lg:col-span-2 select-none">
+          {/* FIXED: Flashing classes moved down directly onto actual heatmap layout grid element boundary container */}
+          <div 
+            className={`inline-flex gap-[2px] sm:gap-[3px] min-w-max justify-center lg:justify-start rounded-xl p-2 transition-all duration-300 ${
+              flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
+              flashStatus === "green" ? "bg-emerald-500/10 dark:bg-emerald-500/20 ring-2 ring-emerald-500/50 animate-pulse" : ""
+            }`}
+          >
             {weeks.map((week, col) => (
               <div key={col} className="flex flex-col gap-[2px] sm:gap-[3px]">
                 {week.map((day, row) => {
@@ -556,6 +564,7 @@ function GitHubGraph() {
           </div>
         </div>
 
+        {/* RIGHT SIDE PANEL */}
         <div className="min-w-0">
           {isManual ? (
             <div className="flex flex-col items-center justify-center p-4 border border-dashed border-[var(--card-border)] rounded-xl bg-zinc-100/40 dark:bg-zinc-900/30 min-h-[140px] relative select-none">
@@ -630,6 +639,7 @@ function GitHubGraph() {
         </div>
       </div>
 
+      {/* Floating Hover Context Cards */}
       {tooltip && !isManual && (
         <div
           className="fixed z-50 px-2.5 py-1.5 rounded-lg border text-[11px] shadow-xl pointer-events-none font-sans backdrop-blur-sm"
@@ -637,7 +647,8 @@ function GitHubGraph() {
             borderColor: "var(--card-border)",
             background: "rgba(15, 15, 15, 0.92)",
             color: "#fff",
-            left: tooltip.x + 12,
+            // FIXED: Automatically checks bounds to shift positions smoothly away from mobile view margins
+            left: isRightSideEdge ? tooltip.x - 145 : tooltip.x + 12,
             top: tooltip.y - 34,
           }}
         >
@@ -788,35 +799,3 @@ export default function Projects() {
                 <button
                   type="button"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
-                  style={{
-                    borderColor: "var(--card-border)",
-                    background: "var(--bg-secondary)",
-                  }}
-                >
-                  <ChevronLeft className="h-4 w-4 text-[var(--text-primary)]" />
-                </button>
-                <span className="font-mono text-xs text-[var(--text-secondary)]">
-                  {page} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
-                  style={{
-                    borderColor: "var(--card-border)",
-                    background: "var(--bg-secondary)",
-                  }}
-                >
-                  <ChevronRight className="h-4 w-4 text-[var(--text-primary)]" />
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
