@@ -65,7 +65,7 @@ function Tooltip({ tooltip }: { tooltip: TooltipState | null }) {
       {tooltip && (
         <motion.div
           initial={{ opacity: 0, y: 6, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
+          animate={{ opacity: 1, w: "auto", scale: 1 }}
           exit={{ opacity: 0, y: 6, scale: 0.98 }}
           transition={{ duration: 0.12, ease: "easeOut" }}
           className="pointer-events-none fixed z-50 min-w-40 rounded-xl border px-3 py-2 text-xs shadow-xl backdrop-blur-md font-sans"
@@ -368,7 +368,8 @@ function DonutChart({
       ) : (
         <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0 w-full py-0.5">
           <div className="flex flex-col items-center justify-center shrink-0">
-            <div className="h-24 w-24 relative flex items-center justify-center">
+            {/* Scaled down to a sleek, compact h-22 canvas */}
+            <div className="h-22 w-22 relative flex items-center justify-center">
               <Doughnut data={chartData} options={chartOptions} />
             </div>
             <div className="mt-1 text-center select-none pointer-events-none">
@@ -380,7 +381,7 @@ function DonutChart({
               </span>
             </div>
           </div>
-          <div className="space-y-1 min-w-0 flex-1 w-full">
+          <div className="space-y-0.5 min-w-0 flex-1 w-full">
             {slicedData.map((item, idx) => (
               <div
                 key={item.name}
@@ -591,11 +592,12 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
             const isPeak = d.day === active.day && d.plays > 0;
 
             return (
-              <div key={d.day} className="flex flex-col items-center flex-1 min-w-[36px]">
+              <div key={d.day} className="flex flex-col items-center flex-1 min-w-[34px]">
+                {/* Scaled down matrix points to w-8/h-8 boundaries */}
                 <button
                   type="button"
                   aria-label={`Activity level for ${d.day}`}
-                  className="w-9 h-9 rounded-lg transition-all duration-300 outline-none select-none cursor-default"
+                  className="w-8 h-8 rounded-lg transition-all duration-300 outline-none select-none cursor-default"
                   style={{
                     background: heatmapColors[level],
                     border: isPeak ? "2px solid rgba(255,255,255,0.15)" : "1px solid transparent",
@@ -614,7 +616,7 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
                   }
                   onMouseLeave={() => setTooltip(null)}
                 />
-                <span className="mt-1.5 font-mono text-[9px] text-[var(--text-secondary)] font-bold">
+                <span className="mt-1 font-mono text-[9px] text-[var(--text-secondary)] font-bold">
                   {d.day}
                 </span>
                 <span className="font-display text-xs font-black text-[var(--text-primary)] mt-0.5">
@@ -879,7 +881,7 @@ export default function MusicPage() {
                 </div>
               </div>
 
-              {/* Scaled-Down Right Column Sidebar Section */}
+              {/* Fine-Tuned Scaled-Down Right Column Sidebar Section */}
               <div className="space-y-4 lg:col-span-2 flex flex-col h-full justify-between self-stretch">
                 <DonutChart
                   label="Top artists share"
