@@ -69,7 +69,6 @@ function MyApp({ Component, pageProps }: AppProps) {
                 `
                   font-size: 1px;
                   padding: ${size / 2}px;
-                  line-height: ${size}px;
                   background: url(${base64}) center/cover no-repeat;
                   border-radius: 0px;
                 `
@@ -85,14 +84,13 @@ function MyApp({ Component, pageProps }: AppProps) {
       // Synchronize asset loads concurrently before logging text arrays
       Promise.all([convertToBase64(pfpUrl), convertToBase64(bannerUrl)]).then(([pfpBase64, bannerBase64]) => {
         
-        // 1. Render Square JPG Profile Box
+        // 1. Render Square JPG Profile Box (FIXED: line-height removed to prevent box collapse)
         if (pfpBase64) {
           console.log(
             "%c ",
             `
               font-size: 1px;
               padding: 44px;
-              line-height: 88px;
               background: url(${pfpBase64}) center/cover no-repeat;
               border-radius: 0px;
             `
@@ -120,14 +118,13 @@ function MyApp({ Component, pageProps }: AppProps) {
           "color:#22c55e;font-size:13px;font-weight:600;"
         );
 
-        // 3. Render Animated GIF Banner block underneath logs
+        // 3. Render Animated GIF Banner block underneath logs (FIXED: line-height removed)
         if (bannerBase64) {
           console.log(
             "%c ",
             `
               font-size: 1px;
               padding: 110px 190px;
-              line-height: 220px;
               margin-top: 12px;
               background: url(${bannerBase64}) center/cover no-repeat;
               border-radius: 12px;
