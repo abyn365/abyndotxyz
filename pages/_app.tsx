@@ -41,66 +41,55 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (!window.__consoleMessageShown) {
       window.__consoleMessageShown = true;
 
-      // Asynchronous binary conversion helper to safely generate standard Base64 Data URLs
-      const convertToBase64 = async (url: string): Promise<string | null> => {
-        try {
-          const res = await fetch(url);
-          if (!res.ok) return null;
-          const blob = await res.blob();
-          return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = () => resolve(null);
-            reader.readAsDataURL(blob);
-          });
-        } catch {
-          return null;
-        }
-      };
-
-      const pfpUrl = "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
-      const bannerUrl = "https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif";
-
-      // Preload both assets concurrently into memory to prepare for the unified render execution
-      Promise.all([convertToBase64(pfpUrl), convertToBase64(bannerUrl)]).then(([pfpBase64, bannerBase64]) => {
-        
-        // FIXED: console.load captures the base64 reference and resolves cleanly to fit your chaining model
-        console.load = (url?: string, size = 88) => {
-          return new Promise<void>((resolve) => {
-            resolve();
-          });
+      const printConsoleMessage = async () => {
+        const convertToBase64 = async (url: string): Promise<string | null> => {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) return null;
+            const blob = await res.blob();
+            return new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = () => resolve(null);
+              reader.readAsDataURL(blob);
+            });
+          } catch {
+            return null;
+          }
         };
 
-        // FIXED: Wrapped inside a slight timeout window to make sure the DevTools viewport buffer catches everything simultaneously
+        const pfpUrl = "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
+        const bannerUrl = "https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif";
+
+        const [pfpBase64, bannerBase64] = await Promise.all([
+          convertToBase64(pfpUrl),
+          convertToBase64(bannerUrl)
+        ]);
+
+        // Wrapped in setTimeout to ensure DevTools has time to paint
         setTimeout(() => {
           console.log(
-            // Added an extra %c before the \n\n to reset the style
             "%c %c\n\n%c> hello, explorer.\n%cYou weren't supposed to find anything interesting here :p\n%cIf you discovered a bug, have feedback, or want to collaborate,\n%cmy inbox is always open → abyn@abyn.xyz\n\n%c ",
-            
-            // 1. Profile Picture Style Block (Now only applies to the first space)
+            // 1. Profile Picture Style Block
             pfpBase64 
-              ? `font-size: 1px; padding: 44px; background: url(${pfpBase64}) center/cover no-repeat; border-radius: 0px; display: inline-block; line-height: 88px;` 
+              ? `font-size: 1px; padding: 44px; background: url(${pfpBase64}) center/cover no-repeat; border-radius: 0px; color: transparent;` 
               : "display: none;",
-            
-            // 2. Clear styling for the \n\n so the background doesn't repeat
-            "",
-            
+            // 2. Style Reset for the newlines
+            "background: transparent; color: inherit;",
             // 3. Textual Logs Style Blocks
             "color: #60a5fa; font-size: 18px; font-weight: bold; font-family: monospace;",
             "color: #9ca3af; font-size: 13px; font-family: monospace;",
             "color: #e5e7eb; font-size: 13px; font-family: monospace;",
             "color: #22c55e; font-size: 13px; font-weight: 600; font-family: monospace;",
-            
             // 4. Compact Footer GIF Banner Style Block
             bannerBase64 
-              ? `font-size: 1px; padding: 45px 110px; background: url(${bannerBase64}) center/cover no-repeat; border-radius: 8px; display: inline-block; line-height: 90px;` 
+              ? `font-size: 1px; padding: 45px 110px; background: url(${bannerBase64}) center/cover no-repeat; border-radius: 8px; color: transparent;` 
               : "display: none;"
           );
         }, 200);
+      };
 
-        // Chaining execution trigger remains intact to preserve backward compatibility with your setup
-        console.load("https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg", 88);
-      });
+      printConsoleMessage();
     }
 
     return () => {
