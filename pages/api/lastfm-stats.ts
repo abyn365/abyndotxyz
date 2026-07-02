@@ -72,6 +72,30 @@ function listeningPeriod(hour: number) {
   return "Evening";
 }
 
+const PERIOD_WINDOWS: Record<string, number> = {
+  week: 7,
+  short: 30,
+  medium: 180,
+  long: 365,
+};
+
+const TOP_PERIOD_MAP: Record<string, string> = {
+  week: "7day",
+  short: "1month",
+  medium: "6month",
+  long: "12month",
+};
+
+function rangeParams(period: string): Record<string, string> {
+  const days = PERIOD_WINDOWS[period];
+  if (!days) return {};
+
+  const to = Math.floor(Date.now() / 1000);
+  const from = to - days * 86_400;
+
+  return { from: String(from), to: String(to) };
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Stats | ApiError>
@@ -80,7 +104,10 @@ export default async function handler(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const cacheKey = `lastfm-dashboard-v4-${LASTFM_USERNAME}`;
+  const period = (req.query.period as string) || "short";
+  const apiPeriod = TOP_PERIOD_MAP[period] ?? TOP_PERIOD_MAP.short;
+  const weeklyRange = rangeParams(period);
+  const cacheKey = `lastfm-dashboard-v5-${LASTFM_USERNAME}-${period}`;
 
   try {
     const cached = await kv.get<Stats>(cacheKey);
@@ -104,6 +131,7 @@ export default async function handler(
       weeklyTracks,
       weeklyArtists,
       weeklyAlbums,
+      chartList,
     ] = await Promise.all([
       lastfm<{
         user: {
@@ -119,19 +147,19 @@ export default async function handler(
       lastfm<{ toptracks: { track: TopItem[] } }>({
         method: "user.getTopTracks",
         user: LASTFM_USERNAME,
-        period: "overall",
+        period: apiPeriod,
         limit: "25",
       }),
       lastfm<{ topartists: { artist: TopItem[] } }>({
         method: "user.getTopArtists",
         user: LASTFM_USERNAME,
-        period: "overall",
+        period: apiPeriod,
         limit: "20",
       }),
       lastfm<{ topalbums: { album: TopItem[] } }>({
         method: "user.getTopAlbums",
         user: LASTFM_USERNAME,
-        period: "overall",
+        period: apiPeriod,
         limit: "20",
       }),
       lastfm<{ recenttracks: { track: RecentTrack[] } }>({
@@ -140,14 +168,24 @@ export default async function handler(
         limit: "200",
       }),
       lastfm<{ weeklytrackchart: { track: TopItem[]; "@attr"?: WeeklyChart } }>(
-        { method: "user.getWeeklyTrackChart", user: LASTFM_USERNAME }
+        {
+          method: "user.getWeeklyTrackChart",
+          user: LASTFM_USERNAME,
+          ...weeklyRange,
+        }
       ),
       lastfm<{ weeklyartistchart: { artist: TopItem[] } }>({
         method: "user.getWeeklyArtistChart",
         user: LASTFM_USERNAME,
+        ...weeklyRange,
       }),
       lastfm<{ weeklyalbumchart: { album: TopItem[] } }>({
         method: "user.getWeeklyAlbumChart",
+        user: LASTFM_USERNAME,
+        ...weeklyRange,
+      }),
+      lastfm<{ weeklychartlist: { chart: WeeklyChart[] } }>({
+        method: "user.getWeeklyChartList",
         user: LASTFM_USERNAME,
       }),
     ]);
@@ -159,11 +197,12 @@ export default async function handler(
     const weeklyTrackItems = weeklyTracks.weeklytrackchart?.track ?? [];
     const weeklyArtistItems = weeklyArtists.weeklyartistchart?.artist ?? [];
     const weeklyAlbumItems = weeklyAlbums.weeklyalbumchart?.album ?? [];
+    const availableCharts = chartList.weeklychartlist?.chart ?? [];
 
-    const totalScrobbles = numberOf(info.user?.playcount);
-    const artistCount = numberOf(info.user?.artist_count) || topArtists.length;
-    const albumCount = numberOf(info.user?.album_count) || topAlbums.length;
-    const trackCount = numberOf(info.user?.track_count) || topTracks.length;
+    const overallScrobbles = numberOf(info.user?.playcount);
+    const artistCount = topArtists.length || numberOf(info.user?.artist_count);
+    const albumCount = topAlbums.length || numberOf(info.user?.album_count);
+    const trackCount = topTracks.length || numberOf(info.user?.track_count);
     const registeredAt = info.user?.registered?.unixtime
       ? numberOf(info.user.registered.unixtime) * 1000
       : null;
@@ -180,9 +219,14 @@ export default async function handler(
             durationSamples.length
         )
       : 180;
-    const minutes = Math.round((totalScrobbles * averageTrackLength) / 60);
+    const rangeFrom = numberOf(weeklyRange.from) * 1000;
+    const rangeTo = numberOf(weeklyRange.to) * 1000;
 
-    const datedRecent = recentTracks.filter((track) => track.date?.uts);
+    const datedRecent = recentTracks.filter((track) => {
+      if (!track.date?.uts) return false;
+      const time = numberOf(track.date.uts) * 1000;
+      return (!rangeFrom || time >= rangeFrom) && (!rangeTo || time <= rangeTo);
+    });
     const hourCounts = Array.from({ length: 24 }, (_, hour) => ({
       hour,
       plays: 0,
@@ -218,12 +262,23 @@ export default async function handler(
       (track) =>
         Date.now() - numberOf(track.date?.uts) * 1000 <= 30 * 86_400_000
     ).length;
+    const chartArtists = weeklyArtistItems.length
+      ? weeklyArtistItems
+      : topArtists;
+    const chartAlbums = weeklyAlbumItems.length ? weeklyAlbumItems : topAlbums;
+    const chartTracks = weeklyTrackItems.length ? weeklyTrackItems : topTracks;
+    const periodScrobbles =
+      chartTracks.reduce((sum, item) => sum + numberOf(item.playcount), 0) ||
+      datedRecent.length ||
+      overallScrobbles;
+    const minutes = Math.round((periodScrobbles * averageTrackLength) / 60);
     const topArtistTotal =
-      topArtists.reduce((sum, item) => sum + numberOf(item.playcount), 0) || 1;
+      chartArtists.reduce((sum, item) => sum + numberOf(item.playcount), 0) ||
+      1;
     const topAlbumTotal =
-      topAlbums.reduce((sum, item) => sum + numberOf(item.playcount), 0) || 1;
+      chartAlbums.reduce((sum, item) => sum + numberOf(item.playcount), 0) || 1;
     const topTrackTotal =
-      topTracks.reduce((sum, item) => sum + numberOf(item.playcount), 0) || 1;
+      chartTracks.reduce((sum, item) => sum + numberOf(item.playcount), 0) || 1;
     const current = recentTracks.find(
       (track) => track["@attr"]?.nowplaying === "true"
     );
@@ -232,24 +287,27 @@ export default async function handler(
       profile: {
         username: info.user?.name ?? LASTFM_USERNAME,
         url: info.user?.url ?? `https://www.last.fm/user/${LASTFM_USERNAME}`,
-        playcount: totalScrobbles,
+        playcount: overallScrobbles,
         artistCount,
         albumCount,
         trackCount,
         registeredAt,
       },
       totals: {
-        streams: totalScrobbles,
+        streams: periodScrobbles,
         minutes,
         hours: Math.round(minutes / 60),
         averagePlaysPerDay: Math.round(
-          totalScrobbles / Math.max(accountAgeDays, 1)
+          periodScrobbles /
+            Math.max(PERIOD_WINDOWS[period] ?? accountAgeDays, 1)
         ),
         accountAgeDays,
         averageTrackLength,
-        averageAlbumPlays: Math.round(totalScrobbles / Math.max(albumCount, 1)),
+        averageAlbumPlays: Math.round(
+          periodScrobbles / Math.max(albumCount, 1)
+        ),
         averageArtistPlays: Math.round(
-          totalScrobbles / Math.max(artistCount, 1)
+          periodScrobbles / Math.max(artistCount, 1)
         ),
         weeklyGrowth,
         monthlyGrowth,
@@ -274,7 +332,7 @@ export default async function handler(
         peakHour: peak.hour,
         quietHour: quiet.hour,
         artistDiversity: weeklyArtistItems.length,
-        albumDiversity: weeklyAlbumItems.length,
+        albumDiversity: weeklyAlbumItems.length || availableCharts.length,
       },
       charts: {
         listeningClock: hourCounts,
@@ -285,37 +343,29 @@ export default async function handler(
           .sort()
           .slice(-14)
           .map(([label, plays]) => ({ label: label.slice(5), plays })),
-        topArtists: topArtists
-          .slice(0, 8)
-          .map((item) => ({
-            name: item.name,
-            plays: numberOf(item.playcount),
-            share: Math.round(
-              (numberOf(item.playcount) / topArtistTotal) * 100
-            ),
-          })),
-        topAlbums: topAlbums
-          .slice(0, 8)
-          .map((item) => ({
-            name: item.name,
-            artist:
-              typeof item.artist === "string"
-                ? item.artist
-                : item.artist?.name ?? "",
-            plays: numberOf(item.playcount),
-            share: Math.round((numberOf(item.playcount) / topAlbumTotal) * 100),
-          })),
-        topTracks: topTracks
-          .slice(0, 8)
-          .map((item) => ({
-            name: item.name,
-            artist:
-              typeof item.artist === "string"
-                ? item.artist
-                : item.artist?.name ?? "",
-            plays: numberOf(item.playcount),
-            share: Math.round((numberOf(item.playcount) / topTrackTotal) * 100),
-          })),
+        topArtists: chartArtists.slice(0, 8).map((item) => ({
+          name: item.name,
+          plays: numberOf(item.playcount),
+          share: Math.round((numberOf(item.playcount) / topArtistTotal) * 100),
+        })),
+        topAlbums: chartAlbums.slice(0, 8).map((item) => ({
+          name: item.name,
+          artist:
+            typeof item.artist === "string"
+              ? item.artist
+              : item.artist?.name ?? "",
+          plays: numberOf(item.playcount),
+          share: Math.round((numberOf(item.playcount) / topAlbumTotal) * 100),
+        })),
+        topTracks: chartTracks.slice(0, 8).map((item) => ({
+          name: item.name,
+          artist:
+            typeof item.artist === "string"
+              ? item.artist
+              : item.artist?.name ?? "",
+          plays: numberOf(item.playcount),
+          share: Math.round((numberOf(item.playcount) / topTrackTotal) * 100),
+        })),
       },
     };
 
