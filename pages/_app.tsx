@@ -41,36 +41,65 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (!window.__consoleMessageShown) {
       window.__consoleMessageShown = true;
 
+      // Asynchronous binary conversion helper to safely bypass Chromium network console filters
+      const convertToBase64 = async (url: string): Promise<string | null> => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return null;
+          const blob = await res.blob();
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+          });
+        } catch {
+          return null;
+        }
+      };
+
+      // Bind the custom load signature onto global scope console to prevent undefined invocation crashes
       console.load ??= (url?: string, size = 88) =>
         new Promise<void>((resolve) => {
-          // CONFIGURED: Uses your static JPG asset URL for the unclipped square profile block
-          const targetUrl =
-            url || "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
-
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-
-          img.onload = () => {
-            console.log(
-              "%c ",
-              `
-                font-size: 1px;
-                padding: ${size / 2}px;
-                background: url(${targetUrl}) center/cover no-repeat;
-                border-radius: 0px;
-              `
-            );
+          const target = url || "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
+          convertToBase64(target).then((base64) => {
+            if (base64) {
+              console.log(
+                "%c ",
+                `
+                  font-size: 1px;
+                  padding: ${size / 2}px;
+                  line-height: ${size}px;
+                  background: url(${base64}) center/cover no-repeat;
+                  border-radius: 0px;
+                `
+              );
+            }
             resolve();
-          };
-
-          img.onerror = () => {
-            resolve(); // Defensive boundary: moves to text logs even if browser CORS rules intercept preloading
-          };
-
-          img.src = targetUrl;
+          });
         });
 
-      console.load().then(() => {
+      const pfpUrl = "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
+      const bannerUrl = "https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif";
+
+      // Synchronize asset loads concurrently before logging text arrays
+      Promise.all([convertToBase64(pfpUrl), convertToBase64(bannerUrl)]).then(([pfpBase64, bannerBase64]) => {
+        
+        // 1. Render Square JPG Profile Box
+        if (pfpBase64) {
+          console.log(
+            "%c ",
+            `
+              font-size: 1px;
+              padding: 44px;
+              line-height: 88px;
+              background: url(${pfpBase64}) center/cover no-repeat;
+              border-radius: 0px;
+            `
+          );
+        }
+
+        // 2. Render Textual Logs
         console.log(
           "%c> hello, explorer.",
           "color:#60a5fa;font-size:18px;font-weight:bold;"
@@ -91,17 +120,20 @@ function MyApp({ Component, pageProps }: AppProps) {
           "color:#22c55e;font-size:13px;font-weight:600;"
         );
 
-        // CONFIGURED: Restored the animated GIF banner directly without passing it through Canvas to ensure animation frames persist
-        console.log(
-          "%c ",
-          `
-            font-size: 1px;
-            padding: 110px 190px;
-            margin-top: 12px;
-            background: url(https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif) center/cover no-repeat;
-            border-radius: 12px;
-          `
-        );
+        // 3. Render Animated GIF Banner block underneath logs
+        if (bannerBase64) {
+          console.log(
+            "%c ",
+            `
+              font-size: 1px;
+              padding: 110px 190px;
+              line-height: 220px;
+              margin-top: 12px;
+              background: url(${bannerBase64}) center/cover no-repeat;
+              border-radius: 12px;
+            `
+          );
+        }
       });
     }
 
