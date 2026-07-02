@@ -283,17 +283,19 @@ function ChartCard({
   return (
     <motion.div
       layout="position"
-      className={`rounded-2xl border p-4 transition-all duration-300 ${className}`}
+      className={`rounded-2xl border p-4 flex flex-col justify-between transition-all duration-300 ${className}`}
       style={{
         borderColor: "var(--card-border)",
         background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--card-bg)",
         boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
       }}
     >
-      <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2">
-        {title}
-      </p>
-      {children}
+      <div>
+        <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2">
+          {title}
+        </p>
+        {children}
+      </div>
     </motion.div>
   );
 }
@@ -324,51 +326,50 @@ function DonutChart({
       data: slicedData.map(d => d.plays),
       backgroundColor: equalSaturationPalette,
       borderWidth: 0,
-      hoverOffset: 4
+      hoverOffset: 6
     }]
   }), [slicedData, equalSaturationPalette]);
 
-  const chartOptions = useMemo(() => ({
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        enabled: true,
-        backgroundColor: "rgba(15, 15, 17, 0.95)",
-        titleColor: "#ffffff",
-        bodyColor: "#e4e4e7",
-        titleFont: { family: "ui-monospace, monospace", size: 11, weight: "bold" as const },
-        bodyFont: { family: "sans-serif", size: 12 },
-        padding: 8,
-        cornerRadius: 10,
-        borderColor: "rgba(255, 255, 255, 0.08)",
-        borderWidth: 1,
-        usePointStyle: true,
-        callbacks: {
-          label: (context: any) => {
-            const item = slicedData[context.dataIndex];
-            return ` ${item.plays} plays (${item.share}%)`;
-          }
+  const chartOptions = useMemo(() => {
+    // Dynamic theme evaluation to prevent canvas configuration mismatch
+    const isDarkMode = typeof window !== "undefined" && document.documentElement.classList.contains("dark");
+    
+    return {
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: true,
+          backgroundColor: isDarkMode ? "rgba(24, 24, 27, 0.95)" : "rgba(255, 255, 255, 0.95)",
+          titleColor: isDarkMode ? "#ffffff" : "#111111",
+          bodyColor: isDarkMode ? "#e4e4e7" : "#525252",
+          titleFont: { family: "ui-monospace, monospace", size: 11, weight: "bold" as const },
+          bodyFont: { family: "sans-serif", size: 12 },
+          padding: 10,
+          cornerRadius: 10,
+          borderColor: isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(17, 17, 17, 0.08)",
+          borderWidth: 1,
+          usePointStyle: true,
         }
+      },
+      cutout: "75%",
+      maintainAspectRatio: false,
+      responsive: true,
+      layout: {
+        padding: 12 // Safe boundary padding: completely prevents hover segment canvas edge crops
       }
-    },
-    cutout: "75%",
-    maintainAspectRatio: false,
-    responsive: true,
-    layout: {
-      padding: 4
-    }
-  }), [slicedData]);
+    };
+  }, [slicedData]);
 
   const isArtist = label.toLowerCase().includes("artist");
 
   return (
-    <ChartCard title={label}>
+    <ChartCard title={label} className="flex-1">
       {!data.length ? (
         <EmptyState message={emptyText} />
       ) : (
         <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0 w-full py-0.5">
           <div className="flex flex-col items-center justify-center shrink-0">
-            <div className="h-20 w-20 relative flex items-center justify-center">
+            <div className="h-24 w-24 relative flex items-center justify-center overflow-visible">
               <Doughnut data={chartData} options={chartOptions} />
             </div>
             <div className="mt-1 text-center select-none pointer-events-none">
@@ -418,78 +419,76 @@ function ListeningClock({
   const max = Math.max(...data.map((d) => d.plays), 1);
 
   return (
-    <ChartCard title="Listening clock" className="flex flex-col h-full justify-between flex-1">
+    <ChartCard title="Listening clock" className="h-full flex-1">
       <Tooltip tooltip={tooltip} />
-      <div>
-        <div className="flex items-start justify-between gap-4 mb-3">
-          <h2 className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
-            24-hour rhythm
-          </h2>
-          <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
-            <span className="text-indigo-500 dark:text-indigo-400 font-black">Peak {formatHour12(peakHour)}</span>
-            <br />
-            Quiet {formatHour12(quietHour)}
-          </p>
-        </div>
-        {!data.some((item) => item.plays) ? (
-          <EmptyState message="No listening history for this period." />
-        ) : (
-          <div
-            className="relative grid gap-[4px] h-36 items-end px-1 rounded-xl"
-            style={{ 
-              gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
-              backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
-              backgroundSize: "100% 20px"
-            }}
-          >
-            {data.map((item) => {
-              const isPeak = item.hour === peakHour;
-              const isHovered = hoveredHour === item.hour;
-              const isAnyHovered = hoveredHour !== null;
-
-              return (
-                <button
-                  key={item.hour}
-                  type="button"
-                  className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none"
-                  onMouseMove={(event) => {
-                    setHoveredHour(item.hour);
-                    setTooltip({
-                      title: formatHour12(item.hour),
-                      lines: [
-                        `${item.plays} plays`,
-                        isPeak ? "Peak listening hour" : "Hourly activity",
-                      ],
-                      x: event.clientX,
-                      y: event.clientY,
-                    });
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredHour(null);
-                    setTooltip(null);
-                  }}
-                >
-                  <motion.span
-                    initial={{ height: 0 }}
-                    animate={{ height: `${Math.max(8, (item.plays / max) * 100)}%` }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="w-full rounded-t-[3px] transition-all duration-200"
-                    style={{
-                      background: isPeak
-                        ? "linear-gradient(180deg, #8b5cf6, #6366f1)"
-                        : isHovered
-                        ? "linear-gradient(180deg, #a5b4fc, #6366f1)"
-                        : "linear-gradient(180deg, rgba(99,102,241,0.35), rgba(99,102,241,0.7))",
-                      boxShadow: isPeak ? "0 0 18px rgba(99,102,241,0.45)" : "none",
-                      opacity: isAnyHovered && !isHovered ? 0.65 : 1,
-                    }}
-                  />
-                </button>
-              );
-            })}
-          </div>
-        )}
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <h2 className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
+          24-hour rhythm
+        </h2>
+        <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
+          <span className="text-indigo-500 dark:text-indigo-400 font-black">Peak {formatHour12(peakHour)}</span>
+          <br />
+          Quiet {formatHour12(quietHour)}
+        </p>
       </div>
+      {!data.some((item) => item.plays) ? (
+        <EmptyState message="No listening history for this period." />
+      ) : (
+        <div
+          className="relative grid gap-[4px] h-36 items-end px-1 rounded-xl"
+          style={{ 
+            gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
+            backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
+            backgroundSize: "100% 20px"
+          }}
+        >
+          {data.map((item) => {
+            const isPeak = item.hour === peakHour;
+            const isHovered = hoveredHour === item.hour;
+            const isAnyHovered = hoveredHour !== null;
+
+            return (
+              <button
+                key={item.hour}
+                type="button"
+                className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none"
+                onMouseMove={(event) => {
+                  setHoveredHour(item.hour);
+                  setTooltip({
+                    title: formatHour12(item.hour),
+                    lines: [
+                      `${item.plays} plays`,
+                      isPeak ? "Peak listening hour" : "Hourly activity",
+                    ],
+                    x: event.clientX,
+                    y: event.clientY,
+                  });
+                }}
+                onMouseLeave={() => {
+                  setHoveredHour(null);
+                  setTooltip(null);
+                }}
+              >
+                <motion.span
+                  initial={{ height: 0 }}
+                  animate={{ height: `${Math.max(8, (item.plays / max) * 100)}%` }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="w-full rounded-t-[3px] transition-all duration-200"
+                  style={{
+                    background: isPeak
+                      ? "linear-gradient(180deg, #8b5cf6, #6366f1)"
+                      : isHovered
+                      ? "linear-gradient(180deg, #a5b4fc, #6366f1)"
+                      : "linear-gradient(180deg, rgba(99,102,241,0.35), rgba(99,102,241,0.7))",
+                    boxShadow: isPeak ? "0 0 18px rgba(99,102,241,0.45)" : "none",
+                    opacity: isAnyHovered && !isHovered ? 0.65 : 1,
+                  }}
+                />
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold" style={{ borderColor: "var(--card-border)" }}>
         <span>12 AM</span>
         <span>6 AM</span>
@@ -511,7 +510,7 @@ function ListeningHistory({
   const max = Math.max(...data.map((x) => x.plays), 1);
 
   return (
-    <ChartCard title="Listening timeline" className="flex flex-col justify-between flex-1">
+    <ChartCard title="Listening timeline" className="h-full flex-1">
       <Tooltip tooltip={tooltip} />
       {!data.length ? (
         <EmptyState message="No listening history for this period." />
@@ -580,7 +579,7 @@ function WeeklyHeatmap({ data }: { data: { day: string; plays: number }[] }) {
   ], []);
 
   return (
-    <ChartCard title="Weekly activity heatmap">
+    <ChartCard title="Weekly activity heatmap" className="shrink-0">
       <Tooltip tooltip={tooltip} />
       {!data.some((d) => d.plays) ? (
         <EmptyState message="No weekly activity for this period." />
@@ -864,33 +863,37 @@ export default function MusicPage() {
           </div>
         ) : (
           stats && (
-            <div className="grid items-start gap-4 lg:grid-cols-5 animate-fadeIn">
+            <div className="grid items-stretch gap-4 lg:grid-cols-5 animate-fadeIn">
               {/* Left Column Section */}
               <div className="lg:col-span-3 flex flex-col gap-4 h-full self-stretch">
-                <div className="flex-1 min-h-0">
+                <div className="flex-1 flex flex-col min-h-0">
                   <ListeningClock
                     data={stats.charts.listeningClock}
                     peakHour={stats.insights.peakHour}
                     quietHour={stats.insights.quietHour}
                   />
                 </div>
-                <div className="flex-1 min-h-0">
+                <div className="flex-1 flex flex-col min-h-0">
                   <ListeningHistory data={stats.charts.listeningHistory} />
                 </div>
               </div>
 
-              {/* Fine-Tuned Scaled-Down Right Column Sidebar Section */}
-              <div className="space-y-4 lg:col-span-2 flex flex-col h-full justify-between self-stretch">
-                <DonutChart
-                  label="Top artists share"
-                  data={stats.charts.topArtists}
-                  emptyText="No artists available for this period."
-                />
-                <DonutChart
-                  label="Top albums share"
-                  data={stats.charts.topAlbums}
-                  emptyText="No albums available for this period."
-                />
+              {/* Proportional Unified Right Column Sidebar Section */}
+              <div className="lg:col-span-2 flex flex-col gap-4 h-full self-stretch">
+                <div className="flex-1 flex flex-col min-h-0">
+                  <DonutChart
+                    label="Top artists share"
+                    data={stats.charts.topArtists}
+                    emptyText="No artists available for this period."
+                  />
+                </div>
+                <div className="flex-1 flex flex-col min-h-0">
+                  <DonutChart
+                    label="Top albums share"
+                    data={stats.charts.topAlbums}
+                    emptyText="No albums available for this period."
+                  />
+                </div>
                 <WeeklyHeatmap data={stats.charts.weeklyActivity} />
               </div>
             </div>
