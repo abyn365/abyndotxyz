@@ -207,98 +207,98 @@ export default function Home() {
               / uh-bee-an /
             </p>
 
-              {/* Live age pill */}
-              <div className="mt-4 inline-flex items-center gap-2 rounded-full px-0 py-1.5">
+            {/* Live age pill */}
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full px-0 py-1.5">
+              <span
+                className="relative inline-flex h-1.5 w-1.5 rounded-full"
+                style={{ background: "var(--accent)" }}
+              >
                 <span
-                  className="relative inline-flex h-1.5 w-1.5 rounded-full"
+                  className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
                   style={{ background: "var(--accent)" }}
-                >
+                />
+              </span>
+              <span className="font-mono text-[11px] uppercase tabular-nums tracking-[0.24em] text-[var(--text-secondary)]">
+                <LiveAge /> <span>yrs</span>
+              </span>
+            </div>
+
+            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[var(--text-secondary)] sm:text-base">
+              Student developer from Indonesia. I build small, considered things
+              for the web — usually involving live data, music, or whatever has
+              my attention that week.
+            </p>
+
+            {/* Meta row */}
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-[var(--text-secondary)]">
+              <VisitorStats />
+              {dotColor && (
+                <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)]">
                   <span
-                    className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-                    style={{ background: "var(--accent)" }}
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: dotColor }}
                   />
+                  {status === "dnd" ? "busy" : status}
                 </span>
-                <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--text-secondary)] tabular-nums">
-                  <LiveAge /> <span>yrs</span>
-                </span>
-              </div>
-
-              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[var(--text-secondary)] sm:text-base">
-                Student developer from Indonesia. I build small, considered
-                things for the web — usually involving live data, music, or
-                whatever has my attention that week.
-              </p>
-
-              {/* Meta row */}
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-[var(--text-secondary)]">
-                <VisitorStats />
-                {dotColor && (
-                  <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)]">
-                    <span
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: dotColor }}
-                    />
-                    {status === "dnd" ? "busy" : status}
-                  </span>
-                )}
-                {scrobbles !== null && (
-                  <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)]">
-                    ♫ {formatPlaycount(scrobbles)}
-                  </span>
-                )}
-              </div>
-
-              {/* Now playing — fully clickable */}
-              {spotify && (
-                <a
-                  href={spotify.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group mt-3 flex items-center gap-2 px-0 py-1.5 text-xs transition-colors hover:text-[var(--accent)]"
-                >
-                  <Music
-                    className="h-3.5 w-3.5 shrink-0"
-                    style={{ color: "var(--accent)" }}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-[var(--text-secondary)]">
-                    <span className="font-medium text-[var(--text-primary)]">
-                      {spotify.song}
-                    </span>
-                    {" — "}
-                    {spotify.artist}
-                  </span>
-                  <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[var(--text-secondary)] opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-60" />
-                </a>
               )}
+              {scrobbles !== null && (
+                <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)]">
+                  ♫ {formatPlaycount(scrobbles)}
+                </span>
+              )}
+            </div>
 
-              {/* CTAs */}
-              <div className="mt-5 flex flex-wrap items-center gap-2.5">
-                <Link
-                  href="/projects"
-                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-85"
-                  style={{
-                    background: "var(--accent)",
-                    color: "var(--accent-text)",
-                  }}
-                >
-                  <FolderOpen className="h-4 w-4" />
-                  Projects
-                </Link>
-                <Link
-                  href="/music"
-                  className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-secondary)]"
-                >
-                  <Headphones className="h-4 w-4" />
-                  Music
-                </Link>
-                <a
-                  href="mailto:abyn@abyn.xyz"
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-2.5 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-                >
-                  <Mail className="h-4 w-4" />
-                  Say hi
-                </a>
-              </div>
+            {/* Now playing — fully clickable */}
+            {spotify && (
+              <a
+                href={spotify.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group mt-3 flex items-center gap-2 px-0 py-1.5 text-xs transition-colors hover:text-[var(--accent)]"
+              >
+                <Music
+                  className="h-3.5 w-3.5 shrink-0"
+                  style={{ color: "var(--accent)" }}
+                />
+                <span className="min-w-0 flex-1 truncate text-[var(--text-secondary)]">
+                  <span className="font-medium text-[var(--text-primary)]">
+                    {spotify.song}
+                  </span>
+                  {" — "}
+                  {spotify.artist}
+                </span>
+                <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[var(--text-secondary)] opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-60" />
+              </a>
+            )}
+
+            {/* CTAs */}
+            <div className="mt-5 flex flex-wrap items-center gap-2.5">
+              <Link
+                href="/projects"
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-85"
+                style={{
+                  background: "var(--accent)",
+                  color: "var(--accent-text)",
+                }}
+              >
+                <FolderOpen className="h-4 w-4" />
+                Projects
+              </Link>
+              <Link
+                href="/music"
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-secondary)]"
+              >
+                <Headphones className="h-4 w-4" />
+                Music
+              </Link>
+              <a
+                href="mailto:abyn@abyn.xyz"
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-2.5 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+              >
+                <Mail className="h-4 w-4" />
+                Say hi
+              </a>
+            </div>
           </div>
 
           {/* Avatar column */}
@@ -394,7 +394,7 @@ export default function Home() {
           label="Around the web/socials"
           defaultOpen={false}
         >
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-2 items-center gap-2 sm:grid-cols-3">
             {SOCIALS.map((s) => {
               const Icon = s.icon;
               return (
@@ -403,7 +403,8 @@ export default function Home() {
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[var(--bg-secondary)]"
+                  className="group flex min-h-12 items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-colors hover:bg-[var(--bg-secondary)]"
+                  style={{ borderColor: "var(--card-border)" }}
                 >
                   <Icon className="h-4 w-4 shrink-0 text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent)]" />
                   <span className="text-sm font-medium text-[var(--text-primary)]">
@@ -452,7 +453,9 @@ export function PageFooter() {
       >
         ·
       </span>
-      <span className="hidden opacity-50 sm:inline">press /? for shortcuts</span>
+      <span className="hidden opacity-50 sm:inline">
+        press /? for shortcuts
+      </span>
     </footer>
   );
 }
