@@ -94,7 +94,6 @@ function Tooltip({ tooltip }: { tooltip: TooltipState | null }) {
   );
 }
 
-// Fixed shared bento chart container layout definition
 function ChartCard({
   title,
   children,
@@ -124,6 +123,7 @@ function ChartCard({
   );
 }
 
+// ... Rest of your secondary static blocks stay untouched ...
 function SkeletonBlock({ className = "" }: { className?: string }) {
   return (
     <div
@@ -215,7 +215,7 @@ function LivePresenceCard() {
           className="flex items-center gap-3 group min-w-0"
         >
           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border" style={{ borderColor: "var(--card-border)" }}>
-            <img src={presence.data.spotify?.album_art_url} alt="Album Art" className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+            <img src={presence.data.spotify?.album_art_url} alt="Album Art" className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
@@ -460,6 +460,17 @@ function ListeningClock({
   const [hoveredHour, setHoveredHour] = useState<number | null>(null);
   const max = Math.max(...data.map((d) => d.plays), 1);
 
+  // Document click-away capture hook to wipe sticky tooltips on background clicks
+  useEffect(() => {
+    if (!tooltip) return;
+    const dismiss = () => {
+      setTooltip(null);
+      setHoveredHour(null);
+    };
+    document.addEventListener("pointerdown", dismiss, { capture: true });
+    return () => document.removeEventListener("pointerdown", dismiss, { capture: true });
+  }, [tooltip]);
+
   return (
     <ChartCard title="Listening clock" className={className}>
       <Tooltip tooltip={tooltip} />
@@ -575,6 +586,17 @@ function ListeningHistory({
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const max = Math.max(...data.map((x) => x.plays), 1);
 
+  // Document click-away capture hook to wipe sticky tooltips on background clicks
+  useEffect(() => {
+    if (!tooltip) return;
+    const dismiss = () => {
+      setTooltip(null);
+      setHoveredIdx(null);
+    };
+    document.addEventListener("pointerdown", dismiss, { capture: true });
+    return () => document.removeEventListener("pointerdown", dismiss, { capture: true });
+  }, [tooltip]);
+
   return (
     <ChartCard title="Listening timeline" className={className}>
       <Tooltip tooltip={tooltip} />
@@ -650,6 +672,17 @@ function WeeklyHeatmap({ data, className = "" }: { data: { day: string; plays: n
     (best, item) => (item.plays > best.plays ? item : best),
     data[0] ?? { day: "", plays: 0 }
   ), [data]);
+
+  // Document click-away capture hook to wipe sticky tooltips on background clicks
+  useEffect(() => {
+    if (!tooltip) return;
+    const dismiss = () => {
+      setTooltip(null);
+      setActiveIdx(null);
+    };
+    document.addEventListener("pointerdown", dismiss, { capture: true });
+    return () => document.removeEventListener("pointerdown", dismiss, { capture: true });
+  }, [tooltip]);
 
   const heatmapColors = useMemo(() => [
     "var(--bg-secondary)", 
@@ -985,7 +1018,7 @@ export default function MusicPage() {
                 />
               </div>
 
-              {/* Right Column Sidebar Section — Perfectly Protected Sizing Metrics */}
+              {/* Right Column Sidebar Section */}
               <div className="lg:col-span-2 flex flex-col gap-4 h-full overflow-visible">
                 <DonutChart
                   label="Top artists share"
