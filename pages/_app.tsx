@@ -21,12 +21,97 @@ import "@fontsource/sen/700.css";
 import "../styles/globals.css";
 import "../components/ClickSpark/ClickSpark";
 
+declare global {
+  interface Console {
+    load?: (url: string, size?: number) => Promise<void>;
+  }
+
+  interface Window {
+    __consoleMessageShown?: boolean;
+  }
+}
+
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   useEffect(() => {
     const el = document.createElement("click-spark");
     document.body.appendChild(el);
+
+    if (!window.__consoleMessageShown) {
+      window.__consoleMessageShown = true;
+
+      console.load ??= (url: string, size = 88) =>
+        new Promise<void>((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = size;
+            canvas.height = size;
+
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return resolve();
+
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+
+            ctx.drawImage(img, 0, 0, size, size);
+
+            console.log(
+              "%c ",
+              `
+                font-size:1px;
+                padding:${size / 2}px;
+                background:url(${canvas.toDataURL()}) center/cover no-repeat;
+              `
+            );
+
+            resolve();
+          };
+
+          img.src =
+            "https://avatars.githubusercontent.com/u/190515700?v=4";
+        });
+
+      console.load().then(() => {
+        console.log(
+          "%c> hello, explorer.",
+          "color:#60a5fa;font-size:18px;font-weight:bold;"
+        );
+
+        console.log(
+          "%cYou weren't supposed to find anything interesting here :p",
+          "color:#9ca3af;font-size:13px;"
+        );
+
+        console.log(
+          "%cIf you discovered a bug, have feedback, or want to collaborate,",
+          "color:#e5e7eb;font-size:13px;"
+        );
+
+        console.log(
+          "%cmy inbox is always open → abyn@abyn.xyz",
+          "color:#22c55e;font-size:13px;font-weight:600;"
+        );
+
+        console.log(
+          "%c ",
+          `
+            font-size:1px;
+            padding:110px 190px;
+            margin-top:12px;
+            background:url(https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif)
+            center/cover no-repeat;
+            border-radius:12px;
+          `
+        );
+      });
+    }
+
     return () => {
       document.body.removeChild(el);
     };
@@ -66,7 +151,10 @@ function MyApp({ Component, pageProps }: AppProps) {
             },
           ],
         }}
-        twitter={{ cardType: "summary_large_image", handle: "@abyn_1" }}
+        twitter={{
+          cardType: "summary_large_image",
+          handle: "@abyn_1",
+        }}
         additionalMetaTags={[
           { name: "author", content: "Abyan" },
           { name: "theme-color", content: "#0a0a0f" },
@@ -81,16 +169,21 @@ function MyApp({ Component, pageProps }: AppProps) {
             strategy="afterInteractive"
           />
         )}
+
       <Script
         strategy="lazyOnload"
         src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}`}
       />
+
       <Script id="ga" strategy="lazyOnload">{`
-        window.dataLayer=window.dataLayer||[];
+        window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js',new Date());
-        gtag('config','${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}',{page_path:window.location.pathname});
+        gtag('js', new Date());
+        gtag('config', '${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}', {
+          page_path: window.location.pathname
+        });
       `}</Script>
+
       <Analytics />
 
       <div className="min-h-screen font-sans">
@@ -101,7 +194,6 @@ function MyApp({ Component, pageProps }: AppProps) {
         <div className="relative z-10">
           <Navbar />
 
-          {/* Page transitions */}
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={router.pathname}
@@ -114,7 +206,6 @@ function MyApp({ Component, pageProps }: AppProps) {
             </motion.div>
           </AnimatePresence>
 
-          {/* Global keyboard shortcut handler */}
           <KeyboardShortcuts />
         </div>
       </div>
