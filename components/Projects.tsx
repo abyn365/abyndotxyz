@@ -720,4 +720,110 @@ export default function Projects() {
                   key={t}
                   type="button"
                   onClick={() => setTab(t)}
-                  className="inline-
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                  style={{
+                    background: active ? "var(--accent)" : "transparent",
+                    color: active
+                      ? "var(--accent-text)"
+                      : "var(--text-secondary)",
+                  }}
+                >
+                  {t === "selected" ? (
+                    <FolderOpen className="h-3.5 w-3.5" />
+                  ) : (
+                    <FaGithub className="h-3.5 w-3.5" />
+                  )}
+                  {t === "selected" ? "Selected" : "Archive"}
+                </button>
+              );
+            })}
+          </div>
+          {!isLoading && (
+            <span className="font-mono text-xs text-[var(--text-secondary)]">
+              {items.length} {tab === "selected" ? "projects" : "repos"}
+            </span>
+          )}
+        </div>
+
+        {/* Content Showcase Window */}
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-52 animate-pulse rounded-2xl border"
+                style={{
+                  borderColor: "var(--card-border)",
+                  background: "var(--bg-secondary)",
+                }}
+              />
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <div
+            className="rounded-2xl border px-6 py-16 text-center"
+            style={{
+              borderColor: "var(--card-border)",
+              background: "var(--bg-secondary)",
+            }}
+          >
+            <p className="font-display text-xl font-bold text-[var(--text-primary)]">
+              Nothing here yet
+            </p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              Check back soon.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div
+              className={
+                tab === "selected" ? "grid gap-5" : "grid gap-4 md:grid-cols-2"
+              }
+            >
+              {paged.map((project, i) => (
+                <ProjectCard
+                  key={`${project.name}-${i}`}
+                  project={project}
+                  index={i}
+                  variant={tab === "selected" ? "featured" : "grid"}
+                />
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className="mt-6 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
+                  style={{
+                    borderColor: "var(--card-border)",
+                    background: "var(--bg-secondary)",
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4 text-[var(--text-primary)]" />
+                </button>
+                <span className="font-mono text-xs text-[var(--text-secondary)]">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
+                  style={{
+                    borderColor: "var(--card-border)",
+                    background: "var(--bg-secondary)",
+                  }}
+                >
+                  <ChevronRight className="h-4 w-4 text-[var(--text-primary)]" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
