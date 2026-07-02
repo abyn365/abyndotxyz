@@ -51,7 +51,6 @@ function getCookie(name: string): string {
   return "";
 }
 
-// Cookie setting function for persisting data locally
 function setCookie(name: string, value: string, days = 365) {
   if (typeof document === "undefined") return;
   const d = new Date();
@@ -121,7 +120,7 @@ function timeAgo(dateStr: string) {
   return `${days}d`;
 }
 
-// --- Sub-Component: GitHub Graph & Eating Snake Game Engine ---
+// --- Sub-Component: GitHub Graph & Interactive Arcade Engine ---
 function GitHubGraph() {
   const [weeks, setWeeks] = useState<ContributionDay[][]>([]);
   const [snake, setSnake] = useState<{ x: number; y: number }[]>([]);
@@ -135,7 +134,7 @@ function GitHubGraph() {
   const [commits, setCommitData] = useState<CommitData[]>([]);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   
-  // Easter Egg State Configurations
+  // Easter Egg Game State Variables
   const [isManual, setIsManual] = useState(false);
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
@@ -149,13 +148,13 @@ function GitHubGraph() {
   const nextDirRef = useRef<{ x: number; y: number }>({ x: 1, y: 0 });
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Load highscore locally from cookie on startup
+  // Load cookies highscore context tokens on mount
   useEffect(() => {
     const savedHighScore = getCookie("abyndotxyz_snake_highscore");
     if (savedHighScore) setHighscore(parseInt(savedHighScore, 10));
   }, []);
 
-  // Sync highscores dynamically
+  // Synchronize highscores dynamically
   useEffect(() => {
     if (score > highscore) {
       setHighscore(score);
@@ -200,7 +199,7 @@ function GitHubGraph() {
         rawFetchedGridRef.current = last24;
         setLoading(false);
 
-        // Wait precisely 3 seconds on page load before starting the first snake session
+        // Wait 3 seconds on initial page load before activating auto-pilot snake loop
         snakeTimeoutRef.current = setTimeout(() => {
           startSnakeGame(last24, 1, 0, false);
         }, 3000);
@@ -263,7 +262,7 @@ function GitHubGraph() {
     return () => stopSnake();
   }, []);
 
-  // Keyboard Controller Bindings
+  // Keyboard Controller Event Bindings
   useEffect(() => {
     if (!isManual) return;
 
@@ -308,13 +307,13 @@ function GitHubGraph() {
     if (snakeTimeoutRef.current) clearTimeout(snakeTimeoutRef.current);
   };
 
-  // --- Procedural Layout Architecture for Higher Game Levels ---
+  // --- Procedural Generation Logic for Custom Levels ---
   const generateProceduralLevel = (nextLevel: number): ContributionDay[][] => {
     const proceduralGrid: ContributionDay[][] = Array.from({ length: COLS }, () =>
       Array.from({ length: ROWS }, () => ({ count: 0, date: "Arcade Arena" }))
     );
 
-    // Populate food nodes (Green blocks)
+    // Spawn green target cells (Food items)
     const foodCount = 6 + Math.floor(Math.random() * 5);
     let scatteredFood = 0;
     while (scatteredFood < foodCount) {
@@ -326,7 +325,7 @@ function GitHubGraph() {
       }
     }
 
-    // Populate static obstacle collision nodes (Red mine blocks)
+    // Spawn red mine hazards (Obstacles multiply based on current level)
     const obstacleCount = (nextLevel - 1) * 3;
     let scatteredObstacles = 0;
     while (scatteredObstacles < obstacleCount) {
@@ -345,7 +344,7 @@ function GitHubGraph() {
     return proceduralGrid;
   };
 
-  // --- Main Snake Arcade Engine Lifecycle ---
+  // --- Main Snake Game Loop Engine ---
   const startSnakeGame = (
     activeGrid: ContributionDay[][],
     currentLevel: number,
@@ -367,7 +366,6 @@ function GitHubGraph() {
     
     const localEaten = new Set<string>();
     const key = (x: number, y: number) => `${x},${y}`;
-    const isValid = (x: number, y: number) => x >= 0 && x < COLS && y >= 0 && y < ROWS;
 
     let totalTargetFoodCells = 0;
     for (let x = 0; x < COLS; x++) {
@@ -380,9 +378,8 @@ function GitHubGraph() {
       if (manualControlActive) {
         dir = nextDirRef.current;
         currentDirRef.current = dir;
-        pos = { x: pos.x + dir.x, y: pos.y + dir.y };
       } else {
-        // AI Tracking Pathfinder Logic
+        // AI Tracking Pathfinder Algorithm Routine
         let target: { x: number; y: number } | null = null;
         let minDist = Infinity;
 
@@ -405,55 +402,52 @@ function GitHubGraph() {
           { x: 0, y: -1 },
         ];
 
-        const inBoundsMoves = directions.filter((d) => isValid(pos.x + d.x, pos.y + d.y));
-
-        if (inBoundsMoves.length === 0) {
-          triggerResetSequence(activeGrid, currentLevel, startingScore, manualControlActive, "red");
-          return;
-        }
-
+        // Wrap-around coordinate projections are calculated safely inside calculations
         const activeBody = path.slice(-tailLengthMax);
-        let safeMoves = inBoundsMoves.filter((d) => {
-          const nx = pos.x + d.x;
-          const ny = pos.y + d.y;
+        let safeMoves = directions.filter((d) => {
+          let nx = (pos.x + d.x + COLS) % COLS;
+          let ny = (pos.y + d.y + ROWS) % ROWS;
           return !activeBody.some((b) => b.x === nx && b.y === ny);
         });
 
-        if (safeMoves.length === 0) safeMoves = inBoundsMoves;
+        if (safeMoves.length === 0) safeMoves = directions;
 
         if (target) {
           safeMoves.sort((a, b) => {
-            const distA = Math.abs(pos.x + a.x - target!.x) + Math.abs(pos.y + a.y - target!.y);
-            const distB = Math.abs(pos.x + b.x - target!.x) + Math.abs(pos.y + b.y - target!.y);
+            let nextAx = (pos.x + a.x + COLS) % COLS;
+            let nextAy = (pos.y + a.y + ROWS) % ROWS;
+            let nextBx = (pos.x + b.x + COLS) % COLS;
+            let nextBy = (pos.y + b.y + ROWS) % ROWS;
+
+            const distA = Math.abs(nextAx - target!.x) + Math.abs(nextAy - target!.y);
+            const distB = Math.abs(nextBx - target!.x) + Math.abs(nextBy - target!.y);
             return distA - distB;
           });
           dir = safeMoves[0];
         } else {
-          const keepGoing = safeMoves.find((m) => m.x === dir.x && m.y === dir.y);
-          chosenDir = keepGoing || safeMoves[Math.floor(Math.random() * safeMoves.length)];
+          const forwardMove = safeMoves.find((m) => m.x === dir.x && m.y === dir.y);
+          dir = forwardMove || safeMoves[Math.floor(Math.random() * safeMoves.length)];
         }
-
-        pos = { x: pos.x + dir.x, y: pos.y + dir.y };
       }
 
-      // Check collision rules
-      if (!isValid(pos.x, pos.y)) {
-        triggerResetSequence(activeGrid, currentLevel, startingScore, manualControlActive, "red");
-        return;
-      }
+      // IMPROVED: Continuous Toroidal Screen Edge Wrapping Engine Feature
+      let nextX = (pos.x + dir.x + COLS) % COLS;
+      let nextY = (pos.y + dir.y + ROWS) % ROWS;
+      pos = { x: nextX, y: nextY };
 
       const activeBody = path.slice(-tailLengthMax);
       const cellNode = activeGrid[pos.x]?.[pos.y];
 
+      // Validate core critical layout hit collision vectors (Body parts and obstacles)
       if (activeBody.some((b) => b.x === pos.x && b.y === pos.y) || cellNode?.isObstacle) {
         triggerResetSequence(activeGrid, currentLevel, startingScore, manualControlActive, "red");
         return;
       }
 
-      // Process eating event
+      // Check for consumption
       if (cellNode && cellNode.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
         localEaten.add(key(pos.x, pos.y));
-        tailLengthMax = 3 + localEaten.size; // Grow tail longer when a cell is eaten
+        tailLengthMax = 3 + localEaten.size; // Grow tail segment size longer per item eaten
         setEatenPositions(new Set(localEaten));
         setScore((prev) => prev + 1);
       }
@@ -461,7 +455,7 @@ function GitHubGraph() {
       path = [...path, { ...pos }].slice(-tailLengthMax);
       setSnake([...path]);
 
-      // Complete clearance check
+      // Verify level completion status loops
       if (localEaten.size >= totalTargetFoodCells && totalTargetFoodCells > 0) {
         triggerResetSequence(activeGrid, currentLevel, startingScore + localEaten.size, manualControlActive, "green");
       }
@@ -483,12 +477,12 @@ function GitHubGraph() {
         setEatenPositions(new Set());
 
         if (status === "red") {
-          // Reset: Drop back down into base Level 1 configuration running auto-pilot view paths
+          // Failure State: Reset score records and fallback into automated profile loop tracking modes
           const resetGrid = rawFetchedGridRef.current;
           setWeeks(resetGrid);
           startSnakeGame(resetGrid, 1, 0, false);
         } else {
-          // Level Clear: Move onto next procedurally managed layout arena
+          // Success State: Generate advanced randomized map with red mining entities and launch next level
           const nextLevel = lvl + 1;
           const proceduralGrid = generateProceduralLevel(nextLevel);
           setWeeks(proceduralGrid);
@@ -497,11 +491,12 @@ function GitHubGraph() {
       }, 3000);
     };
 
-    let chosenDir;
-    snakeIntervalRef.current = setInterval(tick, manualControlActive ? 140 : 110);
+    // SPEED TUNING SCALING ENGINE: AI moves smoothly at 110ms; manual play scales up by level depth
+    const currentIntervalSpeed = manualControlActive ? Math.max(70, 200 - (currentLevel - 1) * 25) : 110;
+    snakeIntervalRef.current = setInterval(tick, currentIntervalSpeed);
   };
 
-  // Mobile Touch Gestures Systems
+  // Mobile Swipe Vector Touch Evaluators
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isManual) return;
     const touch = e.touches[0];
@@ -516,13 +511,13 @@ function GitHubGraph() {
     const current = currentDirRef.current;
 
     if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (Math.abs(diffX) > 30) {
+      if (Math.abs(diffX) > 20) {
         if (diffX > 0 && current.x === 0) nextDirRef.current = { x: 1, y: 0 };
         else if (diffX < 0 && current.x === 0) nextDirRef.current = { x: -1, y: 0 };
         touchStartRef.current = null;
       }
     } else {
-      if (Math.abs(diffY) > 30) {
+      if (Math.abs(diffY) > 20) {
         if (diffY > 0 && current.y === 0) nextDirRef.current = { x: 0, y: 1 };
         else if (diffY < 0 && current.y === 0) nextDirRef.current = { x: 0, y: -1 };
         touchStartRef.current = null;
@@ -536,15 +531,9 @@ function GitHubGraph() {
     setEatenPositions(new Set());
     setFlashStatus(null);
 
-    if (!isManual) {
-      const resetGrid = rawFetchedGridRef.current;
-      setWeeks(resetGrid);
-      startSnakeGame(resetGrid, 1, 0, true);
-    } else {
-      const resetGrid = rawFetchedGridRef.current;
-      setWeeks(resetGrid);
-      startSnakeGame(resetGrid, 1, 0, false);
-    }
+    const baseMapGrid = rawFetchedGridRef.current;
+    setWeeks(baseMapGrid);
+    startSnakeGame(baseMapGrid, 1, 0, !isManual);
   };
 
   const getColor = (day: ContributionDay, isEaten: boolean) => {
@@ -556,26 +545,9 @@ function GitHubGraph() {
     return "bg-emerald-500 dark:bg-emerald-400/80";
   };
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "";
-    const d = new Date(dateStr + "T00:00:00");
-    return d.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="h-28 w-full skeleton-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800/50" />
-    );
-  }
-
   return (
     <div className="mt-1">
-      {/* Dynamic Conditional Header Bar Context Wrapper */}
+      {/* Header Metric Line: Automatically switches between profile data and game statistics */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--text-secondary)]">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {isManual ? (
@@ -612,21 +584,19 @@ function GitHubGraph() {
           )}
         </div>
 
-        {/* Easter Egg Play Button Trigger Text link */}
+        {/* Dynamic Interactive Play Mode Trigger Text Link */}
         <button
           type="button"
           onClick={toggleManualActivationMode}
-          className="text-[10px] uppercase tracking-wider font-sans font-bold opacity-50 hover:opacity-100 transition-opacity flex items-center gap-1 cursor-pointer"
+          className="text-[10px] uppercase tracking-wider font-sans font-bold opacity-45 hover:opacity-100 transition-opacity flex items-center gap-1 cursor-pointer select-none text-[var(--text-primary)]"
         >
           <span>{isManual ? "[ Exit ]" : "[ Play ]"}</span>
         </button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Matrix Grid Wrapper sandbox */}
+        {/* Matrix Grid Timeline Box Workspace */}
         <div 
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
           className={`overflow-x-auto pb-2 lg:col-span-2 rounded-xl p-2 transition-all duration-300 select-none ${
             flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
             flashStatus === "green" ? "bg-emerald-500/10 dark:bg-emerald-500/20 ring-2 ring-emerald-500/50 animate-pulse" : ""
@@ -674,59 +644,108 @@ function GitHubGraph() {
           </div>
         </div>
 
-        {/* Live Activity Feed Column */}
-        {events.length > 0 && (
-          <div className="space-y-2 min-w-0 border-t border-dashed border-[var(--card-border)] pt-4 lg:border-t-0 lg:pt-0">
-            {events
-              .filter((e) => Date.now() - new Date(e.created_at).getTime() < 7 * 24 * 60 * 60 * 1000)
-              .map((e, i) => {
-                if (e.type === "PushEvent") {
-                  const commit = commits.find((c) => c.repo === e.repo?.name?.split("/")[1]);
-                  if (commit) {
+        {/* RIGHT SIDE PANEL: Transforms dynamically into a tactile directional pad for mobile or swipe control tracks */}
+        <div 
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          className="min-w-0"
+        >
+          {isManual ? (
+            <div className="flex flex-col items-center justify-center p-4 border border-dashed border-[var(--card-border)] rounded-xl bg-zinc-100/40 dark:bg-zinc-900/30 min-h-[140px] relative select-none">
+              <span className="absolute top-2 left-3 font-mono text-[9px] uppercase opacity-35 tracking-wider">Mobile Swipe Zone & D-Pad</span>
+              <div className="grid grid-cols-3 gap-2.5 w-32 h-32 items-center justify-center text-center font-mono select-none">
+                <div />
+                <button 
+                  type="button"
+                  onClick={() => { if (currentDirRef.current.y === 0) nextDirRef.current = { x: 0, y: -1 }; }}
+                  className="w-9 h-9 flex items-center justify-center rounded border border-[var(--card-border)] bg-[#FFFFFDFA] dark:bg-zinc-800 active:bg-violet-500 active:text-white transition-colors cursor-pointer text-sm font-bold shadow-sm"
+                >
+                  ⬆
+                </button>
+                <div />
+                
+                <button 
+                  type="button"
+                  onClick={() => { if (currentDirRef.current.x === 0) nextDirRef.current = { x: -1, y: 0 }; }}
+                  className="w-9 h-9 flex items-center justify-center rounded border border-[var(--card-border)] bg-[#FFFFFDFA] dark:bg-zinc-800 active:bg-violet-500 active:text-white transition-colors cursor-pointer text-sm font-bold shadow-sm"
+                >
+                  ⬅
+                </button>
+                <div className="text-zinc-400 dark:text-zinc-600 text-[10px] font-sans font-bold uppercase tracking-widest">Pad</div>
+                <button 
+                  type="button"
+                  onClick={() => { if (currentDirRef.current.x === 0) nextDirRef.current = { x: 1, y: 0 }; }}
+                  className="w-9 h-9 flex items-center justify-center rounded border border-[var(--card-border)] bg-[#FFFFFDFA] dark:bg-zinc-800 active:bg-violet-500 active:text-white transition-colors cursor-pointer text-sm font-bold shadow-sm"
+                >
+                  ➡
+                </button>
+                
+                <div />
+                <button 
+                  type="button"
+                  onClick={() => { if (currentDirRef.current.y === 0) nextDirRef.current = { x: 0, y: 1 }; }}
+                  className="w-9 h-9 flex items-center justify-center rounded border border-[var(--card-border)] bg-[#FFFFFDFA] dark:bg-zinc-800 active:bg-violet-500 active:text-white transition-colors cursor-pointer text-sm font-bold shadow-sm"
+                >
+                  ⬇
+                </button>
+                <div />
+              </div>
+            </div>
+          ) : (
+            events.length > 0 && (
+              <div className="space-y-2 border-t border-dashed border-[var(--card-border)] pt-4 lg:border-t-0 lg:pt-0">
+                {events
+                  .filter((e) => Date.now() - new Date(e.created_at).getTime() < 7 * 24 * 60 * 60 * 1000)
+                  .map((e, i) => {
+                    if (e.type === "PushEvent") {
+                      const commit = commits.find((c) => c.repo === e.repo?.name?.split("/")[1]);
+                      if (commit) {
+                        return (
+                          <div key={i} className="flex items-center gap-2 font-mono text-[11px]">
+                            <span className="text-zinc-400 w-3 text-center flex-shrink-0">⬆</span>
+                            <span className="text-[var(--text-secondary)] truncate">{commit.message}</span>
+                            <a
+                              href={`https://github.com/${USERNAME}/${commit.repo}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-zinc-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors flex-shrink-0"
+                            >
+                              · {commit.repo}
+                            </a>
+                            <span className="text-zinc-500 dark:text-zinc-600 ml-auto flex-shrink-0">
+                              {timeAgo(e.created_at)}
+                            </span>
+                          </div>
+                        );
+                      }
+                    }
+                    const f = formatEvent(e);
+                    if (!f) return null;
                     return (
                       <div key={i} className="flex items-center gap-2 font-mono text-[11px]">
-                        <span className="text-zinc-400 w-3 text-center flex-shrink-0">⬆</span>
-                        <span className="text-[var(--text-secondary)] truncate">{commit.message}</span>
+                        <span className="w-3 text-center flex-shrink-0 text-zinc-400">{f.icon}</span>
+                        <span className="text-[var(--text-secondary)] truncate">{f.text}</span>
                         <a
-                          href={`https://github.com/${USERNAME}/${commit.repo}`}
+                          href={`https://github.com/${f.repo}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-zinc-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors flex-shrink-0"
                         >
-                          · {commit.repo}
+                          · {f.repo?.split("/")[1]}
                         </a>
                         <span className="text-zinc-500 dark:text-zinc-600 ml-auto flex-shrink-0">
                           {timeAgo(e.created_at)}
                         </span>
                       </div>
                     );
-                  }
-                }
-                const f = formatEvent(e);
-                if (!f) return null;
-                return (
-                  <div key={i} className="flex items-center gap-2 font-mono text-[11px]">
-                    <span className="w-3 text-center flex-shrink-0 text-zinc-400">{f.icon}</span>
-                    <span className="text-[var(--text-secondary)] truncate">{f.text}</span>
-                    <a
-                      href={`https://github.com/${f.repo}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-zinc-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors flex-shrink-0"
-                    >
-                      · {f.repo?.split("/")[1]}
-                    </a>
-                    <span className="text-zinc-500 dark:text-zinc-600 ml-auto flex-shrink-0">
-                      {timeAgo(e.created_at)}
-                    </span>
-                  </div>
-                );
-              })}
-          </div>
-        )}
+                  })}
+              </div>
+            )
+          )}
+        </div>
       </div>
 
-      {/* Hover Tooltip Windows */}
+      {/* Floating Hover Context Cards */}
       {tooltip && !isManual && (
         <div
           className="fixed z-50 px-2.5 py-1.5 rounded-lg border text-[11px] shadow-xl pointer-events-none font-sans backdrop-blur-sm"
@@ -779,7 +798,7 @@ export default function Projects() {
 
   return (
     <div className="space-y-8">
-      {/* Activity Timeline Section — Configured with #FFFFFDFA for Light Modes */}
+      {/* Activity Timeline Dashboard Section Container — Custom Styled with #FFFFFDFA for Light Modes */}
       <div
         className="rounded-2xl border p-5 sm:p-6 bg-[#FFFFFDFA] dark:bg-[var(--bg-secondary)]"
         style={{
@@ -794,7 +813,7 @@ export default function Projects() {
       </div>
 
       <div>
-        {/* Navigation Tabs row */}
+        {/* Navigation Tabs row Layout */}
         <div className="mb-6 flex items-center justify-between gap-4">
           <div
             className="inline-flex gap-0.5 rounded-full border p-0.5"
@@ -835,7 +854,7 @@ export default function Projects() {
           )}
         </div>
 
-        {/* Content Showcase Window */}
+        {/* Main Content Render Grid Window */}
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
