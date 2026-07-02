@@ -402,7 +402,6 @@ function GitHubGraph() {
           { x: 0, y: -1 },
         ];
 
-        // Wrap-around coordinate projections are calculated safely inside calculations
         const activeBody = path.slice(-tailLengthMax);
         let safeMoves = directions.filter((d) => {
           let nx = (pos.x + d.x + COLS) % COLS;
@@ -430,7 +429,7 @@ function GitHubGraph() {
         }
       }
 
-      // IMPROVED: Continuous Toroidal Screen Edge Wrapping Engine Feature
+      // Continuous Toroidal Screen Edge Wrapping Engine Feature
       let nextX = (pos.x + dir.x + COLS) % COLS;
       let nextY = (pos.y + dir.y + ROWS) % ROWS;
       pos = { x: nextX, y: nextY };
@@ -471,32 +470,38 @@ function GitHubGraph() {
       stopSnake();
       setFlashStatus(status);
 
+      // Flash animation lasts for 2 seconds
       snakeTimeoutRef.current = setTimeout(() => {
         setFlashStatus(null);
         setSnake([]);
         setEatenPositions(new Set());
 
         if (status === "red") {
-          // Failure State: Reset score records and fallback into automated profile loop tracking modes
+          // FIXED: Reset layout immediately to clear map, then wait 3 full seconds before spawning snake loop again
           const resetGrid = rawFetchedGridRef.current;
           setWeeks(resetGrid);
-          startSnakeGame(resetGrid, 1, 0, false);
+          
+          snakeTimeoutRef.current = setTimeout(() => {
+            startSnakeGame(resetGrid, 1, 0, false);
+          }, 3000);
         } else {
-          // Success State: Generate advanced randomized map with red mining entities and launch next level
+          // Success State: Generate next level, apply clean board view, and wait 3 seconds before launch
           const nextLevel = lvl + 1;
           const proceduralGrid = generateProceduralLevel(nextLevel);
           setWeeks(proceduralGrid);
-          startSnakeGame(proceduralGrid, nextLevel, scr, isUserControlled);
+          
+          snakeTimeoutRef.current = setTimeout(() => {
+            startSnakeGame(proceduralGrid, nextLevel, scr, isUserControlled);
+          }, 3000);
         }
-      }, 3000);
+      }, 2000);
     };
 
-    // SPEED TUNING SCALING ENGINE: AI moves smoothly at 110ms; manual play scales up by level depth
     const currentIntervalSpeed = manualControlActive ? Math.max(70, 200 - (currentLevel - 1) * 25) : 110;
     snakeIntervalRef.current = setInterval(tick, currentIntervalSpeed);
   };
 
-  // Mobile Swipe Vector Touch Evaluators
+  // Mobile Touch Gestures Systems
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isManual) return;
     const touch = e.touches[0];
@@ -584,7 +589,7 @@ function GitHubGraph() {
           )}
         </div>
 
-        {/* Dynamic Interactive Play Mode Trigger Text Link */}
+        {/* Play Trigger Text link */}
         <button
           type="button"
           onClick={toggleManualActivationMode}
@@ -644,7 +649,7 @@ function GitHubGraph() {
           </div>
         </div>
 
-        {/* RIGHT SIDE PANEL: Transforms dynamically into a tactile directional pad for mobile or swipe control tracks */}
+        {/* Right Side Control Interface panel */}
         <div 
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -652,7 +657,7 @@ function GitHubGraph() {
         >
           {isManual ? (
             <div className="flex flex-col items-center justify-center p-4 border border-dashed border-[var(--card-border)] rounded-xl bg-zinc-100/40 dark:bg-zinc-900/30 min-h-[140px] relative select-none">
-              <span className="absolute top-2 left-3 font-mono text-[9px] uppercase opacity-35 tracking-wider">Mobile Swipe Zone & D-Pad</span>
+              <span className="absolute top-2 left-3 font-mono text-[9px] uppercase opacity-35 tracking-wider">D-Pad</span>
               <div className="grid grid-cols-3 gap-2.5 w-32 h-32 items-center justify-center text-center font-mono select-none">
                 <div />
                 <button 
@@ -745,7 +750,7 @@ function GitHubGraph() {
         </div>
       </div>
 
-      {/* Floating Hover Context Cards */}
+      {/* Hover Tooltip Windows */}
       {tooltip && !isManual && (
         <div
           className="fixed z-50 px-2.5 py-1.5 rounded-lg border text-[11px] shadow-xl pointer-events-none font-sans backdrop-blur-sm"
@@ -798,7 +803,7 @@ export default function Projects() {
 
   return (
     <div className="space-y-8">
-      {/* Activity Timeline Dashboard Section Container — Custom Styled with #FFFFFDFA for Light Modes */}
+      {/* Activity Timeline Section — Configured with #FFFFFDFA for Light Modes */}
       <div
         className="rounded-2xl border p-5 sm:p-6 bg-[#FFFFFDFA] dark:bg-[var(--bg-secondary)]"
         style={{
@@ -813,7 +818,7 @@ export default function Projects() {
       </div>
 
       <div>
-        {/* Navigation Tabs row Layout */}
+        {/* Navigation Tabs row */}
         <div className="mb-6 flex items-center justify-between gap-4">
           <div
             className="inline-flex gap-0.5 rounded-full border p-0.5"
@@ -854,7 +859,7 @@ export default function Projects() {
           )}
         </div>
 
-        {/* Main Content Render Grid Window */}
+        {/* Content Showcase Window */}
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
