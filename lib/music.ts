@@ -5,6 +5,54 @@ export type MusicTrack = {
   cover: string;
   playcount: number;
   rank: number;
+  duration?: number;
+};
+
+export type MusicDashboardStats = {
+  profile: {
+    username: string;
+    url: string;
+    playcount: number;
+    artistCount: number;
+    albumCount: number;
+    trackCount: number;
+    registeredAt: number | null;
+  };
+  totals: {
+    streams: number;
+    minutes: number;
+    hours: number;
+    averagePlaysPerDay: number;
+    accountAgeDays: number;
+    averageTrackLength: number;
+    averageAlbumPlays: number;
+    averageArtistPlays: number;
+    weeklyGrowth: number;
+    monthlyGrowth: number;
+  };
+  current: {
+    isPlaying: boolean;
+    track?: string;
+    artist?: string;
+    url?: string;
+  };
+  insights: {
+    longestListeningStreak: number;
+    mostActiveListeningDay: string;
+    favoriteListeningPeriod: string;
+    peakHour: number;
+    quietHour: number;
+    artistDiversity: number;
+    albumDiversity: number;
+  };
+  charts: {
+    listeningClock: { hour: number; plays: number }[];
+    weeklyActivity: { day: string; plays: number }[];
+    listeningHistory: { label: string; plays: number }[];
+    topArtists: { name: string; plays: number; share: number }[];
+    topAlbums: { name: string; artist: string; plays: number; share: number }[];
+    topTracks: { name: string; artist: string; plays: number; share: number }[];
+  };
 };
 
 export type MusicPeriod = "week" | "short" | "medium" | "long";
