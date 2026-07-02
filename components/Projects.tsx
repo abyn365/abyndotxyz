@@ -412,7 +412,6 @@ function GitHubGraph() {
       stopSnake();
       setFlashStatus(status);
 
-      // Flash animation holds for 2 seconds
       snakeTimeoutRef.current = setTimeout(() => {
         setFlashStatus(null);
         setSnake([]);
@@ -512,52 +511,55 @@ function GitHubGraph() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Matrix Scrolling Window */}
-        <div className="overflow-x-auto pb-2 lg:col-span-2 select-none">
-          <div 
-            className={`inline-flex gap-[2px] sm:gap-[3px] min-w-max justify-center lg:justify-start rounded-xl p-2 transition-all duration-300 ${
-              flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
-              flashStatus === "green" ? "bg-emerald-500/10 dark:bg-emerald-500/20 ring-2 ring-emerald-500/50 animate-pulse" : ""
-            }`}
-          >
-            {weeks.map((week, col) => (
-              <div key={col} className="flex flex-col gap-[2px] sm:gap-[3px]">
-                {week.map((day, row) => {
-                  const snakeIdx = snake.findIndex((s) => s.x === col && s.y === row);
-                  const isSnake = snakeIdx !== -1;
-                  const isHead = snakeIdx === snake.length - 1;
-                  const isEaten = eatenPositions.has(`${col},${row}`);
+        {/* Matrix Horizontal Scrolling Wrapper Box */}
+        <div className="overflow-x-auto pb-2 lg:col-span-2 select-none w-full">
+          {/* FIXED: Added a nested flex wrapper with internal padding to perfectly center on mobile and avoid overlay clipping anomalies */}
+          <div className="flex justify-center lg:justify-start p-3 w-full">
+            <div 
+              className={`inline-flex gap-[2px] sm:gap-[3px] min-w-max rounded-xl p-2 transition-all duration-300 ${
+                flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-4 ring-red-500/50 animate-pulse" :
+                flashStatus === "green" ? "bg-emerald-500/10 dark:bg-emerald-500/20 ring-4 ring-emerald-500/50 animate-pulse" : ""
+              }`}
+            >
+              {weeks.map((week, col) => (
+                <div key={col} className="flex flex-col gap-[2px] sm:gap-[3px]">
+                  {week.map((day, row) => {
+                    const snakeIdx = snake.findIndex((s) => s.x === col && s.y === row);
+                    const isSnake = snakeIdx !== -1;
+                    const isHead = snakeIdx === snake.length - 1;
+                    const isEaten = eatenPositions.has(`${col},${row}`);
 
-                  return (
-                    <div
-                      key={row}
-                      onMouseEnter={(e) => {
-                        if (day.count === 0 || isEaten || day.isObstacle) return;
-                        setTooltip({
-                          count: day.count,
-                          date: day.date,
-                          x: e.clientX,
-                          y: e.clientY,
-                        });
-                      }}
-                      onMouseLeave={() => setTooltip(null)}
-                      onMouseMove={(e) =>
-                        setTooltip((prev) =>
-                          prev ? { ...prev, x: e.clientX, y: e.clientY } : null
-                        )
-                      }
-                      className={`w-[9px] h-[9px] sm:w-[13px] sm:h-[13px] rounded-[1.5px] sm:rounded-[2px] transition-all duration-150 ${
-                        isSnake
-                          ? isHead
-                            ? "bg-zinc-950 dark:bg-zinc-50 scale-125 shadow-md z-10 animate-bounce"
-                            : "bg-violet-500/80 dark:bg-violet-400/80"
-                          : getColor(day, isEaten)
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-            ))}
+                    return (
+                      <div
+                        key={row}
+                        onMouseEnter={(e) => {
+                          if (day.count === 0 || isEaten || day.isObstacle) return;
+                          setTooltip({
+                            count: day.count,
+                            date: day.date,
+                            x: e.clientX,
+                            y: e.clientY,
+                          });
+                        }}
+                        onMouseLeave={() => setTooltip(null)}
+                        onMouseMove={(e) =>
+                          setTooltip((prev) =>
+                            prev ? { ...prev, x: e.clientX, y: e.clientY } : null
+                          )
+                        }
+                        className={`w-[9px] h-[9px] sm:w-[13px] sm:h-[13px] rounded-[1.5px] sm:rounded-[2px] transition-all duration-150 ${
+                          isSnake
+                            ? isHead
+                              ? "bg-zinc-950 dark:bg-zinc-50 scale-125 shadow-md z-10 animate-bounce"
+                              : "bg-violet-500/80 dark:bg-violet-400/80"
+                            : getColor(day, isEaten)
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
