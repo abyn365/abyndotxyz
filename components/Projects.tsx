@@ -29,12 +29,6 @@ interface GitHubEvent {
   created_at: string;
 }
 
-interface CommitData {
-  message: string;
-  repo: string;
-  date: string;
-}
-
 interface TooltipState {
   count: number;
   date: string;
@@ -131,7 +125,6 @@ function GitHubGraph() {
   const [weekCommits, setWeekCommits] = useState(0);
   const [topRepo, setTopRepo] = useState<any>(null);
   const [events, setEvents] = useState<GitHubEvent[]>([]);
-  const [commits, setCommitData] = useState<CommitData[]>([]);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   
   // Easter Egg Game State Variables
@@ -225,36 +218,6 @@ function GitHubGraph() {
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setEvents(data.slice(0, 5));
-        const pushRepos = [
-          ...new Set(
-            (Array.isArray(data) ? data : [])
-              .filter((e) => e.type === "PushEvent")
-              .map((e) => e.repo?.name)
-              .filter(Boolean),
-          ),
-        ].slice(0, 3);
-
-        Promise.all(
-          pushRepos.map((repo) =>
-            fetch(`https://api.github.com/repos/${repo}/commits?per_page=3`, { headers })
-              .then((r) => r.json())
-              .then((d) =>
-                (Array.isArray(d) ? d : []).map((c) => ({
-                  message: c.commit?.message?.split("\n")[0],
-                  repo: repo.split("/")[1],
-                  date: c.commit?.author?.date,
-                })),
-              )
-              .catch(() => []),
-          ),
-        ).then((all) =>
-          setCommitData(
-            all
-              .flat()
-              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-              .slice(0, 5),
-          ),
-        );
       })
       .catch(() => {});
 
@@ -445,7 +408,7 @@ function GitHubGraph() {
       // Check for consumption
       if (cellNode && cellNode.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
         localEaten.add(key(pos.x, pos.y));
-        tailLengthMax = 3 + localEaten.size; // Grow tail segment size longer per item eaten
+        tailLengthMax = 3 + localEaten.size;
         setEatenPositions(new Set(localEaten));
         setScore((prev) => prev + 1);
       }
@@ -476,7 +439,6 @@ function GitHubGraph() {
         setEatenPositions(new Set());
 
         if (status === "red") {
-          // Clear maps instantly, then implement an explicit 3-second post-crash standby countdown
           const resetGrid = rawFetchedGridRef.current;
           setWeeks(resetGrid);
           
@@ -484,7 +446,6 @@ function GitHubGraph() {
             startSnakeGame(resetGrid, 1, 0, false);
           }, 3000);
         } else {
-          // Success State: Generate next stage configuration, set layout views, and wait 3 seconds before spawning
           const nextLevel = lvl + 1;
           const proceduralGrid = generateProceduralLevel(nextLevel);
           setWeeks(proceduralGrid);
@@ -522,7 +483,7 @@ function GitHubGraph() {
 
   return (
     <div className="mt-1">
-      {/* Header Metric Line: Automatically switches between profile data and game statistics */}
+      {/* Header Metric Line */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--text-secondary)]">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {isManual ? (
@@ -559,7 +520,6 @@ function GitHubGraph() {
           )}
         </div>
 
-        {/* Dynamic Interactive Play Mode Trigger Text Link */}
         <button
           type="button"
           onClick={toggleManualActivationMode}
@@ -570,7 +530,7 @@ function GitHubGraph() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* FIXED: Balanced breakpoint layout alignment matches the classic desktop view centered aesthetics, keeping responsive scaling metrics for mobile */}
+        {/* Matrix Grid Sandbox Wrapper */}
         <div 
           className={`overflow-x-auto pb-2 lg:col-span-2 rounded-xl p-2 transition-all duration-300 select-none ${
             flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
@@ -619,7 +579,7 @@ function GitHubGraph() {
           </div>
         </div>
 
-        {/* RIGHT SIDE PANEL: Handles all tactile mobile input bindings exclusively via on-screen click button maps */}
+        {/* RIGHT SIDE PANEL: Displays unique chronological logs or d-pad */}
         <div className="min-w-0">
           {isManual ? (
             <div className="flex flex-col items-center justify-center p-4 border border-dashed border-[var(--card-border)] rounded-xl bg-zinc-100/40 dark:bg-zinc-900/30 min-h-[140px] relative select-none">
@@ -668,33 +628,12 @@ function GitHubGraph() {
                 {events
                   .filter((e) => Date.now() - new Date(e.created_at).getTime() < 7 * 24 * 60 * 60 * 1000)
                   .map((e, i) => {
-                    if (e.type === "PushEvent") {
-                      const commit = commits.find((c) => c.repo === e.repo?.name?.split("/")[1]);
-                      if (commit) {
-                        return (
-                          <div key={i} className="flex items-center gap-2 font-mono text-[11px]">
-                            <span className="text-zinc-400 w-3 text-center flex-shrink-0">⬆</span>
-                            <span className="text-[var(--text-secondary)] truncate">{commit.message}</span>
-                            <a
-                              href={`https://github.com/${USERNAME}/${commit.repo}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-zinc-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors flex-shrink-0"
-                            >
-                              · {commit.repo}
-                            </a>
-                            <span className="text-zinc-500 dark:text-zinc-600 ml-auto flex-shrink-0">
-                              {timeAgo(e.created_at)}
-                            </span>
-                          </div>
-                        );
-                      }
-                    }
                     const f = formatEvent(e);
                     if (!f) return null;
                     return (
                       <div key={i} className="flex items-center gap-2 font-mono text-[11px]">
                         <span className="w-3 text-center flex-shrink-0 text-zinc-400">{f.icon}</span>
+                        {/* FIXED: Uses unique event payload parameters directly to render distinct names */}
                         <span className="text-[var(--text-secondary)] truncate">{f.text}</span>
                         <a
                           href={`https://github.com/${f.repo}`}
