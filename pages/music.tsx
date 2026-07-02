@@ -330,35 +330,74 @@ function DonutChart({
     }]
   }), [slicedData, equalSaturationPalette]);
 
-  const chartOptions = useMemo(() => {
-    // Dynamic theme evaluation to prevent canvas configuration mismatch
-    const isDarkMode = typeof window !== "undefined" && document.documentElement.classList.contains("dark");
-    
-    return {
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          enabled: true,
-          backgroundColor: isDarkMode ? "rgba(24, 24, 27, 0.95)" : "rgba(255, 255, 255, 0.95)",
-          titleColor: isDarkMode ? "#ffffff" : "#111111",
-          bodyColor: isDarkMode ? "#e4e4e7" : "#525252",
-          titleFont: { family: "ui-monospace, monospace", size: 11, weight: "bold" as const },
-          bodyFont: { family: "sans-serif", size: 12 },
-          padding: 10,
-          cornerRadius: 10,
-          borderColor: isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(17, 17, 17, 0.08)",
-          borderWidth: 1,
-          usePointStyle: true,
+  const chartOptions = useMemo(() => ({
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: false, // Disabling native fallback layout block
+        external: (context: any) => {
+          const { chart, tooltip } = context;
+          let tooltipEl = chart.canvas.parentNode.querySelector('.chartjs-custom-tooltip');
+
+          if (!tooltipEl) {
+            tooltipEl = document.createElement('div');
+            tooltipEl.className = 'chartjs-custom-tooltip';
+            tooltipEl.style.background = 'color-mix(in srgb, var(--card-bg) 98%, var(--bg-primary))';
+            tooltipEl.style.backdropFilter = 'blur(12px)';
+            tooltipEl.style.border = '1px solid var(--card-border)';
+            tooltipEl.style.borderRadius = '12px';
+            tooltipEl.style.color = 'var(--text-primary)';
+            tooltipEl.style.opacity = '1';
+            tooltipEl.style.pointerEvents = 'none';
+            tooltipEl.style.position = 'absolute';
+            tooltipEl.style.transform = 'translate(-50%, -120%)';
+            tooltipEl.style.transition = 'all .12s ease-out';
+            tooltipEl.style.zIndex = '100';
+            tooltipEl.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3)';
+            tooltipEl.style.padding = '8px 12px';
+            tooltipEl.style.minWidth = '140px';
+            tooltipEl.style.fontFamily = 'var(--font-sans), sans-serif';
+
+            chart.canvas.parentNode.appendChild(tooltipEl);
+          }
+
+          if (tooltip.opacity === 0) {
+            tooltipEl.style.opacity = '0';
+            return;
+          }
+
+          if (tooltip.body) {
+            const bodyLines = tooltip.body.map((b: any) => b.lines);
+            let innerHtml = '';
+
+            if (context.tooltip.dataPoints && context.tooltip.dataPoints.length) {
+              const currentLabel = context.tooltip.dataPoints[0].label;
+              innerHtml += `<div style="font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; tracking: 0.1em; color: var(--text-secondary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">${currentLabel}</div>`;
+            }
+
+            bodyLines.forEach((body: string, i: number) => {
+              const colors = tooltip.labelColors[i];
+              const colorMarker = `<span style="background:${colors.backgroundColor}; width:8px; height:8px; display:inline-block; border-radius:50%; margin-right:8px; flex-shrink:0;"></span>`;
+              innerHtml += `<div style="display:flex; align-items:center; font-size:12px; font-weight:600; color:var(--text-primary); white-space:nowrap;">${colorMarker}${body}</div>`;
+            });
+
+            tooltipEl.innerHTML = innerHtml;
+          }
+
+          const { offsetLeft: positionX, offsetTop: positionY } = chart.canvas;
+          tooltipEl.style.opacity = '1';
+          tooltipEl.style.left = positionX + tooltip.caretX + 'px';
+          tooltipEl.style.top = positionY + tooltip.caretY + 'px';
         }
-      },
-      cutout: "75%",
-      maintainAspectRatio: false,
-      responsive: true,
-      layout: {
-        padding: 12 // Safe boundary padding: completely prevents hover segment canvas edge crops
       }
-    };
-  }, [slicedData]);
+    },
+    cutout: "75%",
+    maintainAspectRatio: false,
+    responsive: true,
+    layout: {
+      padding: 4
+    }
+  }), [slicedData]);
 
   const isArtist = label.toLowerCase().includes("artist");
 
@@ -367,9 +406,9 @@ function DonutChart({
       {!data.length ? (
         <EmptyState message={emptyText} />
       ) : (
-        <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0 w-full py-0.5">
-          <div className="flex flex-col items-center justify-center shrink-0">
-            <div className="h-24 w-24 relative flex items-center justify-center overflow-visible">
+        <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0 w-full py-0.5 overflow-visible">
+          <div className="flex flex-col items-center justify-center shrink-0 overflow-visible">
+            <div className="h-20 w-20 relative flex items-center justify-center overflow-visible">
               <Doughnut data={chartData} options={chartOptions} />
             </div>
             <div className="mt-1 text-center select-none pointer-events-none">
@@ -381,7 +420,7 @@ function DonutChart({
               </span>
             </div>
           </div>
-          <div className="space-y-0.5 min-w-0 flex-1 w-full">
+          <div className="space-y-0.5 min-w-0 flex-1 w-full overflow-visible">
             {slicedData.map((item, idx) => (
               <div
                 key={item.name}
@@ -879,15 +918,15 @@ export default function MusicPage() {
               </div>
 
               {/* Proportional Unified Right Column Sidebar Section */}
-              <div className="lg:col-span-2 flex flex-col gap-4 h-full self-stretch">
-                <div className="flex-1 flex flex-col min-h-0">
+              <div className="lg:col-span-2 flex flex-col gap-4 h-full self-stretch overflow-visible">
+                <div className="flex-1 flex flex-col min-h-0 overflow-visible">
                   <DonutChart
                     label="Top artists share"
                     data={stats.charts.topArtists}
                     emptyText="No artists available for this period."
                   />
                 </div>
-                <div className="flex-1 flex flex-col min-h-0">
+                <div className="flex-1 flex flex-col min-h-0 overflow-visible">
                   <DonutChart
                     label="Top albums share"
                     data={stats.charts.topAlbums}
