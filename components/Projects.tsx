@@ -1,12 +1,457 @@
-import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { ChevronLeft, ChevronRight, FolderOpen, Activity } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
-import { FolderOpen } from "lucide-react";
 import { projects as featuredProjects, type Project } from "../data/projects";
 import ProjectCard from "./ProjectCard";
 
 const PER_PAGE = 6;
+const ROWS = 7;
+const USERNAME = "abyn365";
 
+// --- Types for GitHub Graph ---
+interface ContributionDay {
+  count: number;
+  date: string;
+}
+
+interface GitHubEvent {
+  type: string;
+  repo: { name: string };
+  payload?: {
+    commits?: Array<{ message: string }>;
+    ref_type?: string;
+    ref?: string;
+    action?: string;
+    release?: { tag_name: string };
+  };
+  created_at: string;
+}
+
+interface CommitData {
+  message: string;
+  repo: string;
+  date: string;
+}
+
+interface TooltipState {
+  count: number;
+  date: string;
+  x: number;
+  y: number;
+}
+
+// --- Helper Functions ---
+function formatEvent(event: GitHubEvent) {
+  const repo = event.repo?.name?.split("/")[1] || event.repo?.name;
+  switch (event.type) {
+    case "PushEvent": {
+      const commits = event.payload?.commits || [];
+      const lastCommit = commits[commits.length - 1];
+      const msg = lastCommit?.message?.split("\n")[0]?.slice(0, 50);
+      return {
+        icon: "⬆",
+        text: msg || `pushed to ${repo}`,
+        repo: event.repo?.name,
+      };
+    }
+    case "CreateEvent":
+      return {
+        icon: "+",
+        text: `created ${event.payload?.ref_type} ${event.payload?.ref || ""}`,
+        repo: event.repo?.name,
+      };
+    case "DeleteEvent":
+      return {
+        icon: "✕",
+        text: `deleted ${event.payload?.ref_type} ${event.payload?.ref}`,
+        repo: event.repo?.name,
+      };
+    case "WatchEvent":
+      return { icon: "★", text: "starred", repo: event.repo?.name };
+    case "ForkEvent":
+      return { icon: "⑂", text: "forked", repo: event.repo?.name };
+    case "IssuesEvent":
+      return {
+        icon: "●",
+        text: `${event.payload?.action} issue`,
+        repo: event.repo?.name,
+      };
+    case "PullRequestEvent":
+      return {
+        icon: "⇄",
+        text: `${event.payload?.action} PR`,
+        repo: event.repo?.name,
+      };
+    case "ReleaseEvent":
+      return {
+        icon: "◆",
+        text: `released ${event.payload?.release?.tag_name}`,
+        repo: event.repo?.name,
+      };
+    default:
+      return null;
+  }
+}
+
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d`;
+}
+
+// --- Sub-Component: GitHub Graph & Snake Animation ---
+function GitHubGraph() {
+  const [weeks, setWeeks] = useState<ContributionDay[][]>([]);
+  const [snake, setSnake] = useState<{ x: number; y: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [totalCommits, setTotalCommits] = useState(0);
+  const [weekCommits, setWeekCommits] = useState(0);
+  const [topRepo, setTopRepo] = useState<any>(null);
+  const [events, setEvents] = useState<GitHubEvent[]>([]);
+  const [commits, setCommits] = useState<CommitData[]>([]);
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  
+  const snakeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const snakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Fetch contribution grid data
+    fetch(`https://github-contributions-api.jogruber.de/v4/${USERNAME}?y=last`)
+      .then((r) => r.json())
+      .then((data) => {
+        const contributions: ContributionDay[] = data.contributions || [];
+        const grid: ContributionDay[][] = [];
+        let weekArr: ContributionDay[] = [];
+        let total = 0;
+        let thisWeek = 0;
+        const now = new Date();
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+        contributions.forEach((day) => {
+          total += day.count;
+          if (new Date(day.date) >= weekAgo) thisWeek += day.count;
+          weekArr.push({ count: day.count, date: day.date });
+          if (weekArr.length === ROWS) {
+            grid.push(weekArr);
+            weekArr = [];
+          }
+        });
+        if (weekArr.length > 0) {
+          while (weekArr.length < ROWS) {
+            weekArr.push({ count: 0, date: "" });
+          }
+          grid.push(weekArr);
+        }
+
+        setTotalCommits(total);
+        setWeekCommits(thisWeek);
+
+        const last20 = grid.slice(-24); // Show past 24 weeks (~6 months) for clean responsiveness
+        setWeeks(last20);
+        setLoading(false);
+        startSnake(last20);
+      })
+      .catch(() => setLoading(false));
+
+    // Optional Next.js public client-side token setup
+    const headers: Record<string, string> = {};
+    const ghToken = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
+    if (ghToken) headers.Authorization = `token ${ghToken}`;
+
+    // Fetch Top Repository
+    fetch(`https://api.github.com/users/${USERNAME}/repos?sort=stars&per_page=1`, { headers })
+      .then((r) => r.json())
+      .then((repos) => {
+        if (Array.isArray(repos) && repos.length > 0) setTopRepo(repos[0]);
+      })
+      .catch(() => {});
+
+    // Fetch Public Activity Feed
+    fetch(`https://api.github.com/users/${USERNAME}/events/public?per_page=5`, { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setEvents(data.slice(0, 5));
+        const pushRepos = [
+          ...new Set(
+            (Array.isArray(data) ? data : [])
+              .filter((e) => e.type === "PushEvent")
+              .map((e) => e.repo?.name)
+              .filter(Boolean),
+          ),
+        ].slice(0, 3);
+
+        Promise.all(
+          pushRepos.map((repo) =>
+            fetch(`https://api.github.com/repos/${repo}/commits?per_page=3`, { headers })
+              .then((r) => r.json())
+              .then((d) =>
+                (Array.isArray(d) ? d : []).map((c) => ({
+                  message: c.commit?.message?.split("\n")[0],
+                  repo: repo.split("/")[1],
+                  date: c.commit?.author?.date,
+                })),
+              )
+              .catch(() => []),
+          ),
+        ).then((all) =>
+          setCommits(
+            all
+              .flat()
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .slice(0, 5),
+          ),
+        );
+      })
+      .catch(() => {});
+
+    return () => stopSnake();
+  }, []);
+
+  const stopSnake = () => {
+    if (snakeIntervalRef.current) clearInterval(snakeIntervalRef.current);
+    if (snakeTimeoutRef.current) clearTimeout(snakeTimeoutRef.current);
+  };
+
+  const startSnake = (grid: ContributionDay[][]) => {
+    stopSnake();
+    if (!grid.length) return;
+
+    const cols = grid.length;
+    let pos = { x: 0, y: Math.floor(ROWS / 2) };
+    let dir = { x: 1, y: 0 };
+    let path = [{ ...pos }];
+    let steps = 0;
+
+    const visited = new Set<string>();
+    const key = (x: number, y: number) => `${x},${y}`;
+    const isValid = (x: number, y: number) => x >= 0 && x < cols && y >= 0 && y < ROWS;
+    const totalCells = cols * ROWS;
+
+    const tick = () => {
+      const dirs = [
+        { x: dir.x, y: dir.y },
+        { x: -dir.y, y: dir.x },
+        { x: dir.y, y: -dir.x },
+      ];
+
+      let moved = false;
+      for (const d of dirs) {
+        const nx = pos.x + d.x;
+        const ny = pos.y + d.y;
+        if (isValid(nx, ny) && !visited.has(key(nx, ny))) {
+          dir = d;
+          pos = { x: nx, y: ny };
+          moved = true;
+          break;
+        }
+      }
+
+      if (!moved) {
+        for (const d of dirs) {
+          const nx = pos.x + d.x;
+          const ny = pos.y + d.y;
+          if (isValid(nx, ny)) {
+            dir = d;
+            pos = { x: nx, y: ny };
+            moved = true;
+            break;
+          }
+        }
+      }
+
+      if (!moved) {
+        stopSnake();
+        setSnake([]);
+        snakeTimeoutRef.current = setTimeout(() => startSnake(grid), 2000);
+        return;
+      }
+
+      visited.add(key(pos.x, pos.y));
+      steps++;
+
+      path = [...path, { ...pos }].slice(-6);
+      setSnake([...path]);
+
+      if (steps >= totalCells) {
+        stopSnake();
+        setSnake([]);
+        snakeTimeoutRef.current = setTimeout(() => startSnake(grid), 2000);
+      }
+    };
+
+    snakeIntervalRef.current = setInterval(tick, 120);
+  };
+
+  const getColor = (count: number) => {
+    if (count === 0) return "bg-zinc-800/40 dark:bg-zinc-800/60";
+    if (count <= 2) return "bg-emerald-950/80 dark:bg-emerald-900/60";
+    if (count <= 5) return "bg-emerald-800/80 dark:bg-emerald-700/70";
+    if (count <= 10) return "bg-emerald-600/80 dark:bg-emerald-500/70";
+    return "bg-emerald-400/90 dark:bg-emerald-400/80";
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="h-28 w-full animate-pulse rounded-xl bg-zinc-800/20 dark:bg-zinc-800/50" />
+    );
+  }
+
+  return (
+    <div className="mt-1">
+      {/* Mini Stats Banner */}
+      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--text-secondary)]">
+        <span>
+          <strong className="text-[var(--text-primary)]">{totalCommits.toLocaleString()}</strong> commits
+        </span>
+        <span>
+          <strong className="text-emerald-500 dark:text-emerald-400">{weekCommits}</strong> this week
+        </span>
+        {topRepo && (
+          <a
+            href={topRepo.html_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-[var(--text-primary)] transition-colors"
+          >
+            top: <span className="text-violet-500 dark:text-violet-400 font-medium">{topRepo.name}</span> ★{topRepo.stargazers_count}
+          </a>
+        )}
+      </div>
+
+      {/* Grid Layout Container */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* The Matrix Graph */}
+        <div className="overflow-x-auto pb-2 lg:col-span-2">
+          <div className="flex gap-[3px] min-w-max">
+            {weeks.map((week, col) => (
+              <div key={col} className="flex flex-col gap-[3px]">
+                {week.map((day, row) => {
+                  const snakeIdx = snake.findIndex((s) => s.x === col && s.y === row);
+                  const isSnake = snakeIdx !== -1;
+                  const isHead = snakeIdx === snake.length - 1;
+
+                  return (
+                    <div
+                      key={row}
+                      onMouseEnter={(e) => {
+                        if (!day.date) return;
+                        setTooltip({
+                          count: day.count,
+                          date: day.date,
+                          x: e.clientX,
+                          y: e.clientY,
+                        });
+                      }}
+                      onMouseLeave={() => setTooltip(null)}
+                      onMouseMove={(e) =>
+                        setTooltip((prev) =>
+                          prev ? { ...prev, x: e.clientX, y: e.clientY } : null
+                        )
+                      }
+                      className={`w-[13px] h-[13px] rounded-[2px] transition-all duration-150 ${
+                        isSnake
+                          ? isHead
+                            ? "bg-[var(--text-primary)] scale-125 shadow-sm z-10"
+                            : "bg-violet-500/80 dark:bg-violet-400/80"
+                          : getColor(day.count)
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Live Activity Column */}
+        {events.length > 0 && (
+          <div className="space-y-2 min-w-0 border-t border-dashed border-[var(--card-border)] pt-4 lg:border-t-0 lg:pt-0">
+            {events
+              .filter((e) => Date.now() - new Date(e.created_at).getTime() < 7 * 24 * 60 * 60 * 1000)
+              .map((e, i) => {
+                if (e.type === "PushEvent") {
+                  const commit = commits.find((c) => c.repo === e.repo?.name?.split("/")[1]);
+                  if (commit) {
+                    return (
+                      <div key={i} className="flex items-center gap-2 font-mono text-[11px]">
+                        <span className="text-zinc-400 w-3 text-center flex-shrink-0">⬆</span>
+                        <span className="text-[var(--text-secondary)] truncate">{commit.message}</span>
+                        <a
+                          href={`https://github.com/${USERNAME}/${commit.repo}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-zinc-500 hover:text-violet-400 transition-colors flex-shrink-0"
+                        >
+                          · {commit.repo}
+                        </a>
+                        <span className="text-zinc-600 dark:text-zinc-700 ml-auto flex-shrink-0">
+                          {timeAgo(e.created_at)}
+                        </span>
+                      </div>
+                    );
+                  }
+                }
+                const f = formatEvent(e);
+                if (!f) return null;
+                return (
+                  <div key={i} className="flex items-center gap-2 font-mono text-[11px]">
+                    <span className="w-3 text-center flex-shrink-0 text-zinc-400">{f.icon}</span>
+                    <span className="text-[var(--text-secondary)] truncate">{f.text}</span>
+                    <a
+                      href={`https://github.com/${f.repo}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-zinc-500 hover:text-violet-400 transition-colors flex-shrink-0"
+                    >
+                      · {f.repo?.split("/")[1]}
+                    </a>
+                    <span className="text-zinc-600 dark:text-zinc-700 ml-auto flex-shrink-0">
+                      {timeAgo(e.created_at)}
+                    </span>
+                  </div>
+                );
+              })}
+          </div>
+        )}
+      </div>
+
+      {/* Floating Hover Tooltip */}
+      {tooltip && (
+        <div
+          className="fixed z-50 px-2.5 py-1.5 rounded-lg border text-[11px] shadow-xl pointer-events-none font-sans backdrop-blur-sm"
+          style={{
+            borderColor: "var(--card-border)",
+            background: "rgba(20, 20, 20, 0.85)",
+            color: "#fff",
+            left: tooltip.x + 12,
+            top: tooltip.y - 34,
+          }}
+        >
+          <span className="font-semibold">{tooltip.count}</span>
+          <span className="opacity-80"> {tooltip.count === 1 ? "contribution" : "contributions"} on </span>
+          <span className="opacity-90 font-medium text-zinc-300">{formatDate(tooltip.date)}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- Main Portfolio Component ---
 export default function Projects() {
   const [tab, setTab] = useState<"selected" | "archive">("selected");
   const [githubRepos, setGithubRepos] = useState<Project[]>([]);
@@ -37,126 +482,143 @@ export default function Projects() {
   const isLoading = tab === "archive" && loadingRepos;
 
   return (
-    <div>
-      {/* Tab row */}
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div
-          className="inline-flex gap-0.5 rounded-full border p-0.5"
-          style={{
-            borderColor: "var(--card-border)",
-            background: "var(--bg-secondary)",
-          }}
-        >
-          {(["selected", "archive"] as const).map((t) => {
-            const active = tab === t;
-            return (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTab(t)}
-                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
-                style={{
-                  background: active ? "var(--accent)" : "transparent",
-                  color: active
-                    ? "var(--accent-text)"
-                    : "var(--text-secondary)",
-                }}
-              >
-                {t === "selected" ? (
-                  <FolderOpen className="h-3.5 w-3.5" />
-                ) : (
-                  <FaGithub className="h-3.5 w-3.5" />
-                )}
-                {t === "selected" ? "Selected" : "Archive"}
-              </button>
-            );
-          })}
-        </div>
-        {!isLoading && (
-          <span className="font-mono text-xs text-[var(--text-secondary)]">
-            {items.length} {tab === "selected" ? "projects" : "repos"}
-          </span>
-        )}
+    <div className="space-y-8">
+      {/* GitHub Analytics Graph Dashboard Box */}
+      <div
+        className="rounded-2xl border p-5 sm:p-6"
+        style={{
+          borderColor: "var(--card-border)",
+          background: "var(--bg-secondary)",
+        }}
+      >
+        <h3 className="mb-4 flex items-center gap-2 font-medium text-sm text-[var(--text-primary)]">
+          <Activity className="h-4 w-4 text-violet-500" />
+          <span>Activity Timeline</span>
+        </h3>
+        <GitHubGraph />
       </div>
 
-      {/* Grid */}
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-52 animate-pulse rounded-2xl border"
-              style={{
-                borderColor: "var(--card-border)",
-                background: "var(--bg-secondary)",
-              }}
-            />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <div
-          className="rounded-2xl border px-6 py-16 text-center"
-          style={{
-            borderColor: "var(--card-border)",
-            background: "var(--bg-secondary)",
-          }}
-        >
-          <p className="font-display text-xl font-bold text-[var(--text-primary)]">
-            Nothing here yet
-          </p>
-          <p className="mt-2 text-sm text-[var(--text-secondary)]">
-            Check back soon.
-          </p>
-        </div>
-      ) : (
-        <>
+      <div>
+        {/* Tab row */}
+        <div className="mb-6 flex items-center justify-between gap-4">
           <div
-            className={
-              tab === "selected" ? "grid gap-5" : "grid gap-4 md:grid-cols-2"
-            }
+            className="inline-flex gap-0.5 rounded-full border p-0.5"
+            style={{
+              borderColor: "var(--card-border)",
+              background: "var(--bg-secondary)",
+            }}
           >
-            {paged.map((project, i) => (
-              <ProjectCard
-                key={`${project.name}-${i}`}
-                project={project}
-                index={i}
-                variant={tab === "selected" ? "featured" : "grid"}
+            {(["selected", "archive"] as const).map((t) => {
+              const active = tab === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTab(t)}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                  style={{
+                    background: active ? "var(--accent)" : "transparent",
+                    color: active
+                      ? "var(--accent-text)"
+                      : "var(--text-secondary)",
+                  }}
+                >
+                  {t === "selected" ? (
+                    <FolderOpen className="h-3.5 w-3.5" />
+                  ) : (
+                    <FaGithub className="h-3.5 w-3.5" />
+                  )}
+                  {t === "selected" ? "Selected" : "Archive"}
+                </button>
+              );
+            })}
+          </div>
+          {!isLoading && (
+            <span className="font-mono text-xs text-[var(--text-secondary)]">
+              {items.length} {tab === "selected" ? "projects" : "repos"}
+            </span>
+          )}
+        </div>
+
+        {/* Grid */}
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-52 animate-pulse rounded-2xl border"
+                style={{
+                  borderColor: "var(--card-border)",
+                  background: "var(--bg-secondary)",
+                }}
               />
             ))}
           </div>
-          {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
-                style={{
-                  borderColor: "var(--card-border)",
-                  background: "var(--bg-secondary)",
-                }}
-              >
-                <ChevronLeft className="h-4 w-4 text-[var(--text-primary)]" />
-              </button>
-              <span className="font-mono text-xs text-[var(--text-secondary)]">
-                {page} / {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
-                style={{
-                  borderColor: "var(--card-border)",
-                  background: "var(--bg-secondary)",
-                }}
-              >
-                <ChevronRight className="h-4 w-4 text-[var(--text-primary)]" />
-              </button>
+        ) : items.length === 0 ? (
+          <div
+            className="rounded-2xl border px-6 py-16 text-center"
+            style={{
+              borderColor: "var(--card-border)",
+              background: "var(--bg-secondary)",
+            }}
+          >
+            <p className="font-display text-xl font-bold text-[var(--text-primary)]">
+              Nothing here yet
+            </p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              Check back soon.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div
+              className={
+                tab === "selected" ? "grid gap-5" : "grid gap-4 md:grid-cols-2"
+              }
+            >
+              {paged.map((project, i) => (
+                <ProjectCard
+                  key={`${project.name}-${i}`}
+                  project={project}
+                  index={i}
+                  variant={tab === "selected" ? "featured" : "grid"}
+                />
+              ))}
             </div>
-          )}
-        </>
-      )}
+            {totalPages > 1 && (
+              <div className="mt-6 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
+                  style={{
+                    borderColor: "var(--card-border)",
+                    background: "var(--bg-secondary)",
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4 text-[var(--text-primary)]" />
+                </button>
+                <span className="font-mono text-xs text-[var(--text-secondary)]">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border disabled:opacity-30"
+                  style={{
+                    borderColor: "var(--card-border)",
+                    background: "var(--bg-secondary)",
+                  }}
+                >
+                  <ChevronRight className="h-4 w-4 text-[var(--text-primary)]" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
