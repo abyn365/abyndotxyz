@@ -40,7 +40,6 @@ interface TooltipState {
   y: number;
 }
 
-// --- Helper Functions ---
 function formatEvent(event: GitHubEvent) {
   const repo = event.repo?.name?.split("/")[1] || event.repo?.name;
   switch (event.type) {
@@ -103,10 +102,11 @@ function timeAgo(dateStr: string) {
   return `${days}d`;
 }
 
-// --- Sub-Component: GitHub Graph & Snake Animation ---
+// --- Sub-Component: GitHub Graph & Target Eating Snake ---
 function GitHubGraph() {
   const [weeks, setWeeks] = useState<ContributionDay[][]>([]);
   const [snake, setSnake] = useState<{ x: number; y: number }[]>([]);
+  const [eatenPositions, setEatenPositions] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [totalCommits, setTotalCommits] = useState(0);
   const [weekCommits, setWeekCommits] = useState(0);
@@ -150,23 +150,27 @@ function GitHubGraph() {
         setTotalCommits(total);
         setWeekCommits(thisWeek);
 
-        const last20 = grid.slice(-24); // Show past 24 weeks (~6 months) for clean responsiveness
-        setWeeks(last20);
+        const last24 = grid.slice(-24); // Clean desktop sizing frame
+        setWeeks(last24);
         setLoading(false);
-        startSnake(last20);
+        startSnake(last24);
       })
       .catch(() => setLoading(false));
 
-    // Optional Next.js public client-side token setup
     const headers: Record<string, string> = {};
     const ghToken = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
     if (ghToken) headers.Authorization = `token ${ghToken}`;
 
-    // Fetch Top Repository
-    fetch(`https://api.github.com/users/${USERNAME}/repos?sort=stars&per_page=1`, { headers })
+    // FIX: Fetch full bulk list up to 100 entries and safely sort descending manually
+    fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100`, { headers })
       .then((r) => r.json())
       .then((repos) => {
-        if (Array.isArray(repos) && repos.length > 0) setTopRepo(repos[0]);
+        if (Array.isArray(repos) && repos.length > 0) {
+          const sorted = repos
+            .filter((r: any) => !r.fork)
+            .sort((a: any, b: any) => b.stargazers_count - a.stargazers_count);
+          if (sorted.length > 0) setTopRepo(sorted[0]);
+        }
       })
       .catch(() => {});
 
@@ -216,6 +220,7 @@ function GitHubGraph() {
     if (snakeTimeoutRef.current) clearTimeout(snakeTimeoutRef.current);
   };
 
+  // --- IMPROVED: Eating & Snake Length Growth Engine ---
   const startSnake = (grid: ContributionDay[][]) => {
     stopSnake();
     if (!grid.length) return;
@@ -224,70 +229,104 @@ function GitHubGraph() {
     let pos = { x: 0, y: Math.floor(ROWS / 2) };
     let dir = { x: 1, y: 0 };
     let path = [{ ...pos }];
+    let currentMaxLength = 3; // Starts short
     let steps = 0;
-
-    const visited = new Set<string>();
+    
+    const localEaten = new Set<string>();
     const key = (x: number, y: number) => `${x},${y}`;
     const isValid = (x: number, y: number) => x >= 0 && x < cols && y >= 0 && y < ROWS;
     const totalCells = cols * ROWS;
 
     const tick = () => {
-      const dirs = [
-        { x: dir.x, y: dir.y },
-        { x: -dir.y, y: dir.x },
-        { x: dir.y, y: -dir.x },
-      ];
+      // 1. Pathfinding: Locate the nearest uneaten contribution tile
+      let target: { x: number; y: number } | null = null;
+      let minDist = Infinity;
 
-      let moved = false;
-      for (const d of dirs) {
-        const nx = pos.x + d.x;
-        const ny = pos.y + d.y;
-        if (isValid(nx, ny) && !visited.has(key(nx, ny))) {
-          dir = d;
-          pos = { x: nx, y: ny };
-          moved = true;
-          break;
-        }
-      }
-
-      if (!moved) {
-        for (const d of dirs) {
-          const nx = pos.x + d.x;
-          const ny = pos.y + d.y;
-          if (isValid(nx, ny)) {
-            dir = d;
-            pos = { x: nx, y: ny };
-            moved = true;
-            break;
+      for (let x = 0; x < cols; x++) {
+        for (let y = 0; y < ROWS; y++) {
+          const cell = grid[x]?.[y];
+          if (cell && cell.count > 0 && !localEaten.has(key(x, y))) {
+            const dist = Math.abs(x - pos.x) + Math.abs(y - pos.y);
+            if (dist < minDist) {
+              minDist = dist;
+              target = { x, y };
+            }
           }
         }
       }
 
-      if (!moved) {
+      // 2. Validate standard movement vectors
+      const directions = [
+        { x: 1, y: 0 },
+        { x: -1, y: 0 },
+        { x: 0, y: 1 },
+        { x: 0, y: -1 },
+      ];
+
+      const validMoves = directions.filter((d) => {
+        const nx = pos.x + d.x;
+        const ny = pos.y + d.y;
+        if (!isValid(nx, ny)) return false;
+        
+        // Prevent snake coiling inward crashing directly into its immediate body
+        const activeBody = path.slice(-currentMaxLength);
+        return !activeBody.some((b) => b.x === nx && b.y === ny);
+      });
+
+      let chosenDir = dir;
+      if (validMoves.length > 0) {
+        if (target) {
+          // Sort moves to approach target closest via Manhattan distance
+          validMoves.sort((a, b) => {
+            const distA = Math.abs(pos.x + a.x - target!.x) + Math.abs(pos.y + a.y - target!.y);
+            const distB = Math.abs(pos.x + b.x - target!.x) + Math.abs(pos.y + b.y - target!.y);
+            return distA - distB;
+          });
+          chosenDir = validMoves[0];
+        } else {
+          // Fallback wander if nothing left to consume
+          const keepGoing = validMoves.find((m) => m.x === dir.x && m.y === dir.y);
+          chosenDir = keepGoing || validMoves[Math.floor(Math.random() * validMoves.length)];
+        }
+      } else {
+        // Trapped/Enclosed: Reset cycle early
         stopSnake();
         setSnake([]);
-        snakeTimeoutRef.current = setTimeout(() => startSnake(grid), 2000);
+        setEatenPositions(new Set());
+        snakeTimeoutRef.current = setTimeout(() => startSnake(grid), 1000);
         return;
       }
 
-      visited.add(key(pos.x, pos.y));
+      // Update vectors
+      dir = chosenDir;
+      pos = { x: pos.x + dir.x, y: pos.y + dir.y };
       steps++;
 
-      path = [...path, { ...pos }].slice(-6);
+      // 3. Digestion phase: Check if stepping onto food target
+      const currentCell = grid[pos.x]?.[pos.y];
+      if (currentCell && currentCell.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
+        localEaten.add(key(pos.x, pos.y));
+        currentMaxLength = Math.min(currentMaxLength + 1, 18); // Grow segment cap out safely
+        setEatenPositions(new Set(localEaten));
+      }
+
+      path = [...path, { ...pos }].slice(-currentMaxLength);
       setSnake([...path]);
 
-      if (steps >= totalCells) {
+      // Cycle reset if map is completely wiped or loop limit hit
+      if (steps >= totalCells * 2 || (target === null && validMoves.length === 0)) {
         stopSnake();
         setSnake([]);
+        setEatenPositions(new Set());
         snakeTimeoutRef.current = setTimeout(() => startSnake(grid), 2000);
       }
     };
 
-    snakeIntervalRef.current = setInterval(tick, 120);
+    snakeIntervalRef.current = setInterval(tick, 110);
   };
 
-  const getColor = (count: number) => {
-    if (count === 0) return "bg-zinc-800/40 dark:bg-zinc-800/60";
+  const getColor = (count: number, isEaten: boolean) => {
+    if (count === 0 || isEaten) return "bg-zinc-800/40 dark:bg-zinc-800/60 transition-all duration-300";
     if (count <= 2) return "bg-emerald-950/80 dark:bg-emerald-900/60";
     if (count <= 5) return "bg-emerald-800/80 dark:bg-emerald-700/70";
     if (count <= 10) return "bg-emerald-600/80 dark:bg-emerald-500/70";
@@ -313,7 +352,7 @@ function GitHubGraph() {
 
   return (
     <div className="mt-1">
-      {/* Mini Stats Banner */}
+      {/* Stats Banner */}
       <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--text-secondary)]">
         <span>
           <strong className="text-[var(--text-primary)]">{totalCommits.toLocaleString()}</strong> commits
@@ -333,9 +372,8 @@ function GitHubGraph() {
         )}
       </div>
 
-      {/* Grid Layout Container */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* The Matrix Graph */}
+        {/* Matrix Grid */}
         <div className="overflow-x-auto pb-2 lg:col-span-2">
           <div className="flex gap-[3px] min-w-max">
             {weeks.map((week, col) => (
@@ -344,6 +382,7 @@ function GitHubGraph() {
                   const snakeIdx = snake.findIndex((s) => s.x === col && s.y === row);
                   const isSnake = snakeIdx !== -1;
                   const isHead = snakeIdx === snake.length - 1;
+                  const isEaten = eatenPositions.has(`${col},${row}`);
 
                   return (
                     <div
@@ -351,7 +390,7 @@ function GitHubGraph() {
                       onMouseEnter={(e) => {
                         if (!day.date) return;
                         setTooltip({
-                          count: day.count,
+                          count: isEaten ? 0 : day.count,
                           date: day.date,
                           x: e.clientX,
                           y: e.clientY,
@@ -368,7 +407,7 @@ function GitHubGraph() {
                           ? isHead
                             ? "bg-[var(--text-primary)] scale-125 shadow-sm z-10"
                             : "bg-violet-500/80 dark:bg-violet-400/80"
-                          : getColor(day.count)
+                          : getColor(day.count, isEaten)
                       }`}
                     />
                   );
@@ -378,7 +417,7 @@ function GitHubGraph() {
           </div>
         </div>
 
-        {/* Live Activity Column */}
+        {/* Live Activity Feed */}
         {events.length > 0 && (
           <div className="space-y-2 min-w-0 border-t border-dashed border-[var(--card-border)] pt-4 lg:border-t-0 lg:pt-0">
             {events
@@ -430,7 +469,7 @@ function GitHubGraph() {
         )}
       </div>
 
-      {/* Floating Hover Tooltip */}
+      {/* Hover Tooltip */}
       {tooltip && (
         <div
           className="fixed z-50 px-2.5 py-1.5 rounded-lg border text-[11px] shadow-xl pointer-events-none font-sans backdrop-blur-sm"
@@ -483,7 +522,7 @@ export default function Projects() {
 
   return (
     <div className="space-y-8">
-      {/* GitHub Analytics Graph Dashboard Box */}
+      {/* Analytics Panel */}
       <div
         className="rounded-2xl border p-5 sm:p-6"
         style={{
@@ -499,7 +538,7 @@ export default function Projects() {
       </div>
 
       <div>
-        {/* Tab row */}
+        {/* Navigation Tabs */}
         <div className="mb-6 flex items-center justify-between gap-4">
           <div
             className="inline-flex gap-0.5 rounded-full border p-0.5"
@@ -540,7 +579,7 @@ export default function Projects() {
           )}
         </div>
 
-        {/* Grid */}
+        {/* Layout Grid */}
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
