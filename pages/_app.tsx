@@ -83,53 +83,71 @@ function MyApp({ Component, pageProps }: AppProps) {
 
       // Synchronize asset loads concurrently before logging text arrays
       Promise.all([convertToBase64(pfpUrl), convertToBase64(bannerUrl)]).then(([pfpBase64, bannerBase64]) => {
-        
-        // 1. Render Square JPG Profile Box (FIXED: line-height removed to prevent box collapse)
+        let logDelay = 0;
+
+        // 1. Render Square JPG Profile Box (Staggered to prevent buffer collision)
         if (pfpBase64) {
-          console.log(
-            "%c ",
-            `
-              font-size: 1px;
-              padding: 44px;
-              background: url(${pfpBase64}) center/cover no-repeat;
-              border-radius: 0px;
-            `
-          );
+          setTimeout(() => {
+            console.log(
+              "%c ",
+              `
+                font-size: 1px;
+                padding: 44px;
+                background: url(${pfpBase64}) center/cover no-repeat;
+                border-radius: 0px;
+              `
+            );
+          }, logDelay);
+          logDelay += 40;
         }
 
-        // 2. Render Textual Logs
-        console.log(
-          "%c> hello, explorer.",
-          "color:#60a5fa;font-size:18px;font-weight:bold;"
-        );
-
-        console.log(
-          "%cYou weren't supposed to find anything interesting here :p",
-          "color:#9ca3af;font-size:13px;"
-        );
-
-        console.log(
-          "%cIf you discovered a bug, have feedback, or want to collaborate,",
-          "color:#e5e7eb;font-size:13px;"
-        );
-
-        console.log(
-          "%cmy inbox is always open → abyn@abyn.xyz",
-          "color:#22c55e;font-size:13px;font-weight:600;"
-        );
-
-        // 3. Render Animated GIF Banner block underneath logs (FIXED: line-height removed)
-        if (bannerBase64) {
+        // 2. Render Textual Logs (Staggered so they don't get swallowed by Chrome)
+        setTimeout(() => {
           console.log(
-            "%c ",
-            `
-              font-size: 1px;
-              padding: 110px 190px;
-              margin-top: 12px;
-              background: url(${bannerBase64}) center/cover no-repeat;
-              border-radius: 12px;
-            `
+            "%c> hello, explorer.",
+            "color:#60a5fa;font-size:18px;font-weight:bold;"
           );
+        }, logDelay);
+        logDelay += 40;
+
+        setTimeout(() => {
+          console.log(
+            "%cYou weren't supposed to find anything interesting here :p",
+            "color:#9ca3af;font-size:13px;"
+          );
+        }, logDelay);
+        logDelay += 40;
+
+        setTimeout(() => {
+          console.log(
+            "%cIf you discovered a bug, have feedback, or want to collaborate,",
+            "color:#e5e7eb;font-size:13px;"
+          );
+        }, logDelay);
+        logDelay += 40;
+
+        setTimeout(() => {
+          console.log(
+            "%cmy inbox is always open → abyn@abyn.xyz",
+            "color:#22c55e;font-size:13px;font-weight:600;"
+          );
+        }, logDelay);
+        logDelay += 40;
+
+        // 3. Render Animated GIF Banner block underneath logs
+        if (bannerBase64) {
+          setTimeout(() => {
+            console.log(
+              "%c ",
+              `
+                font-size: 1px;
+                padding: 110px 190px;
+                margin-top: 12px;
+                background: url(${bannerBase64}) center/cover no-repeat;
+                border-radius: 12px;
+              `
+            );
+          }, logDelay);
         }
       });
     }
