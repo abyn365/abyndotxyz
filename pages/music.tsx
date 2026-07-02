@@ -290,11 +290,13 @@ function ChartCard({
         boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
       }}
     >
-      <div>
-        <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2">
-          {title}
-        </p>
-        {children}
+      <div className="flex flex-col h-full w-full justify-between">
+        <div>
+          <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2">
+            {title}
+          </p>
+          {children}
+        </div>
       </div>
     </motion.div>
   );
@@ -334,7 +336,7 @@ function DonutChart({
     plugins: {
       legend: { display: false },
       tooltip: {
-        enabled: false, // Disabling native fallback layout block
+        enabled: false,
         external: (context: any) => {
           const { chart, tooltip } = context;
           let tooltipEl = chart.canvas.parentNode.querySelector('.chartjs-custom-tooltip');
@@ -355,7 +357,7 @@ function DonutChart({
             tooltipEl.style.zIndex = '100';
             tooltipEl.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3)';
             tooltipEl.style.padding = '8px 12px';
-            tooltipEl.style.minWidth = '140px';
+            tooltipEl.style.minWidth = '150px';
             tooltipEl.style.fontFamily = 'var(--font-sans), sans-serif';
 
             chart.canvas.parentNode.appendChild(tooltipEl);
@@ -367,19 +369,19 @@ function DonutChart({
           }
 
           if (tooltip.body) {
-            const bodyLines = tooltip.body.map((b: any) => b.lines);
             let innerHtml = '';
 
             if (context.tooltip.dataPoints && context.tooltip.dataPoints.length) {
-              const currentLabel = context.tooltip.dataPoints[0].label;
-              innerHtml += `<div style="font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; tracking: 0.1em; color: var(--text-secondary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">${currentLabel}</div>`;
+              const dataPoint = context.tooltip.dataPoints[0];
+              const idx = dataPoint.dataIndex;
+              const item = slicedData[idx];
+              
+              innerHtml += `<div style="font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; tracking: 0.1em; color: var(--text-secondary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">${item.name}</div>`;
+              
+              const colorMarker = `<span style="background:${dataPoint.dataset.backgroundColor[idx]}; width:8px; height:8px; display:inline-block; border-radius:50%; margin-right:8px; flex-shrink:0;"></span>`;
+              
+              innerHtml += `<div style="display:flex; align-items:center; font-size:12px; font-weight:600; color:var(--text-primary); white-space:nowrap;">${colorMarker}${item.plays} plays (${item.share}%)</div>`;
             }
-
-            bodyLines.forEach((body: string, i: number) => {
-              const colors = tooltip.labelColors[i];
-              const colorMarker = `<span style="background:${colors.backgroundColor}; width:8px; height:8px; display:inline-block; border-radius:50%; margin-right:8px; flex-shrink:0;"></span>`;
-              innerHtml += `<div style="display:flex; align-items:center; font-size:12px; font-weight:600; color:var(--text-primary); white-space:nowrap;">${colorMarker}${body}</div>`;
-            });
 
             tooltipEl.innerHTML = innerHtml;
           }
@@ -402,11 +404,11 @@ function DonutChart({
   const isArtist = label.toLowerCase().includes("artist");
 
   return (
-    <ChartCard title={label} className="flex-1">
+    <ChartCard title={label} className="flex-1 flex flex-col justify-between">
       {!data.length ? (
         <EmptyState message={emptyText} />
       ) : (
-        <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0 w-full py-0.5 overflow-visible">
+        <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0 w-full py-0.5 overflow-visible flex-1">
           <div className="flex flex-col items-center justify-center shrink-0 overflow-visible">
             <div className="h-20 w-20 relative flex items-center justify-center overflow-visible">
               <Doughnut data={chartData} options={chartOptions} />
@@ -458,82 +460,84 @@ function ListeningClock({
   const max = Math.max(...data.map((d) => d.plays), 1);
 
   return (
-    <ChartCard title="Listening clock" className="h-full flex-1">
+    <ChartCard title="Listening clock" className="h-full flex-1 flex flex-col justify-between">
       <Tooltip tooltip={tooltip} />
-      <div className="flex items-start justify-between gap-4 mb-3">
-        <h2 className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
-          24-hour rhythm
-        </h2>
-        <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
-          <span className="text-indigo-500 dark:text-indigo-400 font-black">Peak {formatHour12(peakHour)}</span>
-          <br />
-          Quiet {formatHour12(quietHour)}
-        </p>
-      </div>
-      {!data.some((item) => item.plays) ? (
-        <EmptyState message="No listening history for this period." />
-      ) : (
-        <div
-          className="relative grid gap-[4px] h-36 items-end px-1 rounded-xl"
-          style={{ 
-            gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
-            backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
-            backgroundSize: "100% 20px"
-          }}
-        >
-          {data.map((item) => {
-            const isPeak = item.hour === peakHour;
-            const isHovered = hoveredHour === item.hour;
-            const isAnyHovered = hoveredHour !== null;
-
-            return (
-              <button
-                key={item.hour}
-                type="button"
-                className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none"
-                onMouseMove={(event) => {
-                  setHoveredHour(item.hour);
-                  setTooltip({
-                    title: formatHour12(item.hour),
-                    lines: [
-                      `${item.plays} plays`,
-                      isPeak ? "Peak listening hour" : "Hourly activity",
-                    ],
-                    x: event.clientX,
-                    y: event.clientY,
-                  });
-                }}
-                onMouseLeave={() => {
-                  setHoveredHour(null);
-                  setTooltip(null);
-                }}
-              >
-                <motion.span
-                  initial={{ height: 0 }}
-                  animate={{ height: `${Math.max(8, (item.plays / max) * 100)}%` }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="w-full rounded-t-[3px] transition-all duration-200"
-                  style={{
-                    background: isPeak
-                      ? "linear-gradient(180deg, #8b5cf6, #6366f1)"
-                      : isHovered
-                      ? "linear-gradient(180deg, #a5b4fc, #6366f1)"
-                      : "linear-gradient(180deg, rgba(99,102,241,0.35), rgba(99,102,241,0.7))",
-                    boxShadow: isPeak ? "0 0 18px rgba(99,102,241,0.45)" : "none",
-                    opacity: isAnyHovered && !isHovered ? 0.65 : 1,
-                  }}
-                />
-              </button>
-            );
-          })}
+      <div className="w-full flex flex-col h-full justify-between">
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <h2 className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
+            24-hour rhythm
+          </h2>
+          <p className="text-right font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] leading-normal">
+            <span className="text-indigo-500 dark:text-indigo-400 font-black">Peak {formatHour12(peakHour)}</span>
+            <br />
+            Quiet {formatHour12(quietHour)}
+          </p>
         </div>
-      )}
-      <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold" style={{ borderColor: "var(--card-border)" }}>
-        <span>12 AM</span>
-        <span>6 AM</span>
-        <span>12 PM</span>
-        <span>6 PM</span>
-        <span>11 PM</span>
+        {!data.some((item) => item.plays) ? (
+          <EmptyState message="No listening history for this period." />
+        ) : (
+          <div
+            className="relative grid gap-[4px] px-1 rounded-xl flex-1 min-h-[150px] items-end"
+            style={{ 
+              gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
+              backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
+              backgroundSize: "100% 20px"
+            }}
+          >
+            {data.map((item) => {
+              const isPeak = item.hour === peakHour;
+              const isHovered = hoveredHour === item.hour;
+              const isAnyHovered = hoveredHour !== null;
+
+              return (
+                <button
+                  key={item.hour}
+                  type="button"
+                  className="group relative flex h-full items-end justify-center rounded-sm select-none"
+                  onMouseMove={(event) => {
+                    setHoveredHour(item.hour);
+                    setTooltip({
+                      title: formatHour12(item.hour),
+                      lines: [
+                        `${item.plays} plays`,
+                        isPeak ? "Peak listening hour" : "Hourly activity",
+                      ],
+                      x: event.clientX,
+                      y: event.clientY,
+                    });
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredHour(null);
+                    setTooltip(null);
+                  }}
+                >
+                  <motion.span
+                    initial={{ height: 0 }}
+                    animate={{ height: `${Math.max(8, (item.plays / max) * 100)}%` }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="w-full rounded-t-[3px] transition-all duration-200"
+                    style={{
+                      background: isPeak
+                        ? "linear-gradient(180deg, #8b5cf6, #6366f1)"
+                        : isHovered
+                        ? "linear-gradient(180deg, #a5b4fc, #6366f1)"
+                        : "linear-gradient(180deg, rgba(99,102,241,0.35), rgba(99,102,241,0.7))",
+                      boxShadow: isPeak ? "0 0 18px rgba(99,102,241,0.45)" : "none",
+                      opacity: isAnyHovered && !isHovered ? 0.65 : 1,
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold" style={{ borderColor: "var(--card-border)" }}>
+          <span>12 AM</span>
+          <span>6 AM</span>
+          <span>12 PM</span>
+          <span>6 PM</span>
+          <span>11 PM</span>
+        </div>
       </div>
     </ChartCard>
   );
@@ -549,12 +553,12 @@ function ListeningHistory({
   const max = Math.max(...data.map((x) => x.plays), 1);
 
   return (
-    <ChartCard title="Listening timeline" className="h-full flex-1">
+    <ChartCard title="Listening timeline" className="h-full flex-1 flex flex-col justify-between">
       <Tooltip tooltip={tooltip} />
       {!data.length ? (
         <EmptyState message="No listening history for this period." />
       ) : (
-        <div className="flex h-36 items-end gap-2 pt-2 px-1">
+        <div className="flex items-end gap-2 pt-6 px-1 flex-1 h-full min-h-[150px]">
           {data.map((d, idx) => {
             const isHovered = hoveredIdx === idx;
             return (
@@ -889,7 +893,7 @@ export default function MusicPage() {
         </div>
 
         {isStatsLoading && !stats ? (
-          <div className="grid gap-4 lg:grid-cols-5">
+          <div className="grid gap-4 lg:grid-cols-5 mb-12">
             <div className="space-y-4 lg:col-span-3">
               <SkeletonBlock className="h-64" />
               <SkeletonBlock className="h-56" />
@@ -902,7 +906,7 @@ export default function MusicPage() {
           </div>
         ) : (
           stats && (
-            <div className="grid items-stretch gap-4 lg:grid-cols-5 animate-fadeIn">
+            <div className="grid items-stretch gap-4 lg:grid-cols-5 animate-fadeIn mb-12">
               {/* Left Column Section */}
               <div className="lg:col-span-3 flex flex-col gap-4 h-full self-stretch">
                 <div className="flex-1 flex flex-col min-h-0">
@@ -917,7 +921,7 @@ export default function MusicPage() {
                 </div>
               </div>
 
-              {/* Proportional Unified Right Column Sidebar Section */}
+              {/* Right Column Sidebar Section */}
               <div className="lg:col-span-2 flex flex-col gap-4 h-full self-stretch overflow-visible">
                 <div className="flex-1 flex flex-col min-h-0 overflow-visible">
                   <DonutChart
