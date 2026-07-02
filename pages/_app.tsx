@@ -81,74 +81,25 @@ function MyApp({ Component, pageProps }: AppProps) {
       const pfpUrl = "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
       const bannerUrl = "https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif";
 
-      // Synchronize asset loads concurrently before logging text arrays
+      // Synchronize asset loads concurrently
       Promise.all([convertToBase64(pfpUrl), convertToBase64(bannerUrl)]).then(([pfpBase64, bannerBase64]) => {
-        let logDelay = 0;
-
-        // 1. Render Square JPG Profile Box (Staggered to prevent buffer collision)
-        if (pfpBase64) {
-          setTimeout(() => {
-            console.log(
-              "%c ",
-              `
-                font-size: 1px;
-                padding: 44px;
-                background: url(${pfpBase64}) center/cover no-repeat;
-                border-radius: 0px;
-              `
-            );
-          }, logDelay);
-          logDelay += 40;
-        }
-
-        // 2. Render Textual Logs (Staggered so they don't get swallowed by Chrome)
+        // FIXED: Wrap the single consolidated block into a slight timeout window 
+        // This ensures the DevTools rendering layer is fully active and catches all assets on initialization
         setTimeout(() => {
           console.log(
-            "%c> hello, explorer.",
-            "color:#60a5fa;font-size:18px;font-weight:bold;"
+            "%c \n\n%c> hello, explorer.\n%cYou weren't supposed to find anything interesting here :p\n%cIf you discovered a bug, have feedback, or want to collaborate,\n%cmy inbox is always open → abyn@abyn.xyz\n\n%c ",
+            pfpBase64 
+              ? `font-size: 1px; padding: 44px; background: url(${pfpBase64}) center/cover no-repeat; border-radius: 0px; line-height: 88px; display: inline-block;` 
+              : "display: none;",
+            "color: #60a5fa; font-size: 18px; font-weight: bold; font-family: monospace;",
+            "color: #9ca3af; font-size: 13px; font-family: monospace;",
+            "color: #e5e7eb; font-size: 13px; font-family: monospace;",
+            "color: #22c55e; font-size: 13px; font-weight: 600; font-family: monospace;",
+            bannerBase64 
+              ? `font-size: 1px; padding: 110px 190px; background: url(${bannerBase64}) center/cover no-repeat; border-radius: 12px; line-height: 220px; display: inline-block;` 
+              : "display: none;"
           );
-        }, logDelay);
-        logDelay += 40;
-
-        setTimeout(() => {
-          console.log(
-            "%cYou weren't supposed to find anything interesting here :p",
-            "color:#9ca3af;font-size:13px;"
-          );
-        }, logDelay);
-        logDelay += 40;
-
-        setTimeout(() => {
-          console.log(
-            "%cIf you discovered a bug, have feedback, or want to collaborate,",
-            "color:#e5e7eb;font-size:13px;"
-          );
-        }, logDelay);
-        logDelay += 40;
-
-        setTimeout(() => {
-          console.log(
-            "%cmy inbox is always open → abyn@abyn.xyz",
-            "color:#22c55e;font-size:13px;font-weight:600;"
-          );
-        }, logDelay);
-        logDelay += 40;
-
-        // 3. Render Animated GIF Banner block underneath logs
-        if (bannerBase64) {
-          setTimeout(() => {
-            console.log(
-              "%c ",
-              `
-                font-size: 1px;
-                padding: 110px 190px;
-                margin-top: 12px;
-                background: url(${bannerBase64}) center/cover no-repeat;
-                border-radius: 12px;
-              `
-            );
-          }, logDelay);
-        }
+        }, 200);
       });
     }
 
