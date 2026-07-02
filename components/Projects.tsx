@@ -567,7 +567,7 @@ function GitHubGraph() {
         <div className="min-w-0">
           {isManual ? (
             <div className="flex flex-col items-center justify-center p-4 border border-dashed border-[var(--card-border)] rounded-xl bg-zinc-100/40 dark:bg-zinc-900/30 min-h-[140px] relative select-none">
-              <span className="absolute top-2 left-3 font-mono text-[9px] uppercase opacity-35 tracking-wider">Tactile Mobile D-Pad Control</span>
+              <span className="absolute top-2 left-3 font-mono text-[9px] uppercase opacity-35 tracking-wider">D-Pad</span>
               <div className="grid grid-cols-3 gap-2.5 w-32 h-32 items-center justify-center text-center font-mono select-none">
                 <div />
                 <button 
