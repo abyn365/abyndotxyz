@@ -23,7 +23,8 @@ import "../components/ClickSpark/ClickSpark";
 
 declare global {
   interface Console {
-    load?: (url: string, size?: number) => Promise<void>;
+    // FIXED: Changed url to an optional parameter to support 0-argument execution calls
+    load?: (url?: string, size?: number) => Promise<void>;
   }
 
   interface Window {
@@ -41,7 +42,8 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (!window.__consoleMessageShown) {
       window.__consoleMessageShown = true;
 
-      console.load ??= (url: string, size = 88) =>
+      // FIXED: Adjusted implementation signature to accept an optional url string parameter
+      console.load ??= (url?: string, size = 88) =>
         new Promise<void>((resolve) => {
           const img = new Image();
           img.crossOrigin = "anonymous";
@@ -73,8 +75,9 @@ function MyApp({ Component, pageProps }: AppProps) {
             resolve();
           };
 
+          // Use optional parameter value if provided, otherwise default smoothly to fallback avatar
           img.src =
-            "https://avatars.githubusercontent.com/u/190515700?v=4";
+            url || "https://avatars.githubusercontent.com/u/190515700?v=4";
         });
 
       console.load().then(() => {
