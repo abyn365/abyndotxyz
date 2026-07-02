@@ -43,15 +43,14 @@ function MyApp({ Component, pageProps }: AppProps) {
 
       console.load ??= (url?: string, size = 88) =>
         new Promise<void>((resolve) => {
-          // FIXED: Set default path to your GIF file instead of the static GitHub avatar string
+          // SWAPPED: Using the new static JPG image link as the fallback profile asset
           const targetUrl =
-            url || "https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif";
+            url || "https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg";
 
           const img = new Image();
           img.crossOrigin = "anonymous";
 
           img.onload = () => {
-            // FIXED: Bypassed HTML5 Canvas completely to preserve native GIF animation timelines and remove rounding clip mask
             console.log(
               "%c ",
               `
@@ -64,7 +63,6 @@ function MyApp({ Component, pageProps }: AppProps) {
             resolve();
           };
 
-          // Graceful fallback error boundary
           img.onerror = () => {
             resolve();
           };
@@ -99,7 +97,8 @@ function MyApp({ Component, pageProps }: AppProps) {
             font-size: 1px;
             padding: 110px 190px;
             margin-top: 12px;
-            background: url(https://cloud.abyn.xyz/file/img/1783016431295_light1of4your3life_pindown.io_1783016178.gif) center/cover no-repeat;
+            /* SWAPPED: Replaced the banner background asset with the new JPG link */
+            background: url(https://cloud.abyn.xyz/file/test/1782454424220_bc47713a5d54a6a9f506adbebe661273.jpg) center/cover no-repeat;
             border-radius: 12px;
           `
         );
