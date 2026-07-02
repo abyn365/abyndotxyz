@@ -423,8 +423,8 @@ function GitHubGraph() {
           });
           dir = safeMoves[0];
         } else {
-          const keepGoing = safeMoves.find((m) => m.x === dir.x && m.y === dir.y);
-          dir = keepGoing || safeMoves[Math.floor(Math.random() * safeMoves.length)];
+          const forwardMove = safeMoves.find((m) => m.x === dir.x && m.y === dir.y);
+          dir = forwardMove || safeMoves[Math.floor(Math.random() * safeMoves.length)];
         }
       }
 
@@ -476,7 +476,7 @@ function GitHubGraph() {
         setEatenPositions(new Set());
 
         if (status === "red") {
-          // FIXED: Clear maps instantly, then implement an explicit 3-second post-crash standby countdown
+          // Clear maps instantly, then implement an explicit 3-second post-crash standby countdown
           const resetGrid = rawFetchedGridRef.current;
           setWeeks(resetGrid);
           
@@ -570,16 +570,16 @@ function GitHubGraph() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* FIXED: Matrix Grid Sizing matrix compressed down responsively to eliminate mobile horizontal scaling overflows */}
+        {/* FIXED: Balanced breakpoint layout alignment matches the classic desktop view centered aesthetics, keeping responsive scaling metrics for mobile */}
         <div 
-          className={`rounded-xl p-2 transition-all duration-300 select-none mx-auto lg:mx-0 lg:col-span-2 ${
+          className={`overflow-x-auto pb-2 lg:col-span-2 rounded-xl p-2 transition-all duration-300 select-none ${
             flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-2 ring-red-500/50 animate-pulse" :
             flashStatus === "green" ? "bg-emerald-500/10 dark:bg-emerald-500/20 ring-2 ring-emerald-500/50 animate-pulse" : ""
           }`}
         >
-          <div className="flex sm:gap-[3px] gap-[2px] min-w-max justify-center">
+          <div className="flex gap-[2px] sm:gap-[3px] min-w-max justify-center lg:justify-start">
             {weeks.map((week, col) => (
-              <div key={col} className="flex flex-col sm:gap-[3px] gap-[2px]">
+              <div key={col} className="flex flex-col gap-[2px] sm:gap-[3px]">
                 {week.map((day, row) => {
                   const snakeIdx = snake.findIndex((s) => s.x === col && s.y === row);
                   const isSnake = snakeIdx !== -1;
