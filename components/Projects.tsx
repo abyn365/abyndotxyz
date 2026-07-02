@@ -154,17 +154,16 @@ function GitHubGraph() {
         setWeeks(last24);
         setLoading(false);
 
-        // Intentionally wait 3 seconds before first snake initialization on page load
+        // Wait exactly 3 seconds on initial page load before starting the snake
         snakeTimeoutRef.current = setTimeout(() => {
           startSnake(last24);
         }, 3000);
       })
       .catch(() => setLoading(false));
 
-    // FIXED: Removed client-side secrets exposure (CWE-200) - requests are executed anonymously
     const headers: Record<string, string> = {};
 
-    // FIXED: API fallback sorting manual algorithm ensures calculation matches true top starred project
+    // Fetch repositories and sort descending manually to find top project accurately
     fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100`, { headers })
       .then((r) => r.json())
       .then((repos) => {
@@ -232,13 +231,13 @@ function GitHubGraph() {
     let pos = { x: 0, y: Math.floor(ROWS / 2) };
     let dir = { x: 1, y: 0 };
     let path = [{ ...pos }];
-    let currentMaxLength = 3;
+    let currentMaxLength = 3; // Starts at traditional base length
     
     const localEaten = new Set<string>();
     const key = (x: number, y: number) => `${x},${y}`;
     const isValid = (x: number, y: number) => x >= 0 && x < cols && y >= 0 && y < ROWS;
 
-    // Count how many valid squares on the board contain an active contribution
+    // Pre-calculate the total food pieces scattered on the timeline grid
     let totalTargetFoodCells = 0;
     for (let x = 0; x < cols; x++) {
       for (let y = 0; y < ROWS; y++) {
@@ -247,7 +246,7 @@ function GitHubGraph() {
     }
 
     const tick = () => {
-      // 1. Pathfinding: Locate the closest uneaten contribution target
+      // 1. Pathfinding: Locate the closest active contribution square
       let target: { x: number; y: number } | null = null;
       let minDist = Infinity;
 
@@ -264,7 +263,6 @@ function GitHubGraph() {
         }
       }
 
-      // 2. Validate move vectors
       const directions = [
         { x: 1, y: 0 },
         { x: -1, y: 0 },
@@ -272,52 +270,57 @@ function GitHubGraph() {
         { x: 0, y: -1 },
       ];
 
-      const validMoves = directions.filter((d) => {
+      // Build out standard safe options within bounds
+      const inBoundsMoves = directions.filter((d) => isValid(pos.x + d.x, pos.y + d.y));
+
+      if (inBoundsMoves.length === 0) {
+        handleResetCycle(grid);
+        return;
+      }
+
+      // Filter options to prevent body collision
+      const activeBody = path.slice(-currentMaxLength);
+      let safeMoves = inBoundsMoves.filter((d) => {
         const nx = pos.x + d.x;
         const ny = pos.y + d.y;
-        if (!isValid(nx, ny)) return false;
-        
-        // Prevent the snake from colliding directly into its active tail frame
-        const activeBody = path.slice(-currentMaxLength);
         return !activeBody.some((b) => b.x === nx && b.y === ny);
       });
 
+      // ESCAPE MECHANISM: If completely enclosed, clip through body to keep going until everything is eaten
+      if (safeMoves.length === 0) {
+        safeMoves = inBoundsMoves;
+      }
+
       let chosenDir = dir;
-      if (validMoves.length > 0) {
-        if (target) {
-          // Sort remaining valid options to approach the food target closest
-          validMoves.sort((a, b) => {
-            const distA = Math.abs(pos.x + a.x - target!.x) + Math.abs(pos.y + a.y - target!.y);
-            const distB = Math.abs(pos.x + b.x - target!.x) + Math.abs(pos.y + b.y - target!.y);
-            return distA - distB;
-          });
-          chosenDir = validMoves[0];
-        } else {
-          // No targets left: check forward vector or grab random empty safe lane
-          const keepGoing = validMoves.find((m) => m.x === dir.x && m.y === dir.y);
-          chosenDir = keepGoing || validMoves[Math.floor(Math.random() * validMoves.length)];
-        }
+      if (target) {
+        // Order choices to continuously narrow down distance to the targeted square
+        safeMoves.sort((a, b) => {
+          const distA = Math.abs(pos.x + a.x - target!.x) + Math.abs(pos.y + a.y - target!.y);
+          const distB = Math.abs(pos.x + b.x - target!.x) + Math.abs(pos.y + b.y - target!.y);
+          return distA - distB;
+        });
+        chosenDir = safeMoves[0];
       } else {
-        // Enclosed or trapped: reset early
-        handleResetCycle(grid);
-        return;
+        const keepGoing = safeMoves.find((m) => m.x === dir.x && m.y === dir.y);
+        chosenDir = keepGoing || safeMoves[Math.floor(Math.random() * safeMoves.length)];
       }
 
       dir = chosenDir;
       pos = { x: pos.x + dir.x, y: pos.y + dir.y };
 
-      // 3. Check for consumption
+      // 3. Digest food target
       const currentCell = grid[pos.x]?.[pos.y];
       if (currentCell && currentCell.count > 0 && !localEaten.has(key(pos.x, pos.y))) {
         localEaten.add(key(pos.x, pos.y));
-        currentMaxLength = Math.min(currentMaxLength + 1, 16); // Grow tail frame
+        // Permanent tail growth calculation based on elements consumed
+        currentMaxLength = 3 + localEaten.size;
         setEatenPositions(new Set(localEaten));
       }
 
       path = [...path, { ...pos }].slice(-currentMaxLength);
       setSnake([...path]);
 
-      // CRITICAL ENGINE RULE: Stop immediately and clear once all food on board has been eaten
+      // Complete cycle check: triggers ONLY when all cells are completely eaten
       if (localEaten.size >= totalTargetFoodCells && totalTargetFoodCells > 0) {
         handleResetCycle(grid);
       }
@@ -327,7 +330,7 @@ function GitHubGraph() {
       stopSnake();
       setSnake([]);
       setEatenPositions(new Set());
-      // Wait exactly 3 seconds before generating the next loop sequence
+      // Wait exactly 3 seconds before spawning the next round sequence
       snakeTimeoutRef.current = setTimeout(() => {
         startSnake(currentGrid);
       }, 3000);
@@ -336,7 +339,7 @@ function GitHubGraph() {
     snakeIntervalRef.current = setInterval(tick, 110);
   };
 
-  // IMPROVED: High contrast balanced values that work beautifully for light and dark layouts
+  // High contrast palette tuned for both light and dark backgrounds
   const getColor = (count: number, isEaten: boolean) => {
     if (count === 0 || isEaten) {
       return "bg-zinc-200 dark:bg-zinc-800/60 transition-all duration-300";
@@ -536,12 +539,11 @@ export default function Projects() {
 
   return (
     <div className="space-y-8">
-      {/* Activity Timeline Dashboard Section */}
+      {/* Activity Timeline Section — Configured with #FFFFFDFA for Light Modes */}
       <div
-        className="rounded-2xl border p-5 sm:p-6"
+        className="rounded-2xl border p-5 sm:p-6 bg-[#FFFFFDFA] dark:bg-[var(--bg-secondary)]"
         style={{
           borderColor: "var(--card-border)",
-          background: "var(--bg-secondary)",
         }}
       >
         <h3 className="mb-4 flex items-center gap-2 font-medium text-sm text-[var(--text-primary)]">
@@ -593,7 +595,7 @@ export default function Projects() {
           )}
         </div>
 
-        {/* Main Grid Render Window */}
+        {/* Layout Window Grid */}
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -613,7 +615,7 @@ export default function Projects() {
             style={{
               borderColor: "var(--card-border)",
               background: "var(--bg-secondary)",
-                }}
+            }}
           >
             <p className="font-display text-xl font-bold text-[var(--text-primary)]">
               Nothing here yet
