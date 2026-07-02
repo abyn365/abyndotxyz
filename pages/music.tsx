@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { NextSeo } from "next-seo";
 import { ArrowLeft, ArrowRight, Radio, Sparkles } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import useSWR from "swr";
 import MusicArtwork from "../components/music/MusicArtwork";
 import MusicPeriodTabs from "../components/music/MusicPeriodTabs";
@@ -94,16 +94,40 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
   );
 }
 
-// Seamless dynamic equalizer built using standard Tailwind configurations
-function EqualizerBars() {
+const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
+  const [barHeights, setBarHeights] = useState<number[]>([38, 64, 48]);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (isPlaying) {
+      intervalRef.current = setInterval(() => {
+        setBarHeights([0, 0, 0].map(() => Math.random() * 68 + 24));
+      }, 160);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      setBarHeights([38, 64, 48]);
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPlaying]);
+
   return (
-    <div className="flex h-3 items-end gap-[2px]">
-      <span className="w-[2px] rounded-t-sm bg-[var(--text-primary)] animate-[bounce_1s_infinite_100ms] h-1" />
-      <span className="w-[2px] rounded-t-sm bg-[var(--text-primary)] animate-[bounce_1s_infinite_300ms] h-3" />
-      <span className="w-[2px] rounded-t-sm bg-[var(--text-primary)] animate-[bounce_1s_infinite_200ms] h-2" />
+    <div className="flex h-3 items-end gap-[2px]" aria-hidden="true">
+      {barHeights.map((height, index) => (
+        <motion.span
+          key={index}
+          className={`w-[2px] rounded-full transition-colors duration-300 ${
+            isPlaying ? "bg-[var(--text-primary)]" : "bg-[var(--card-border)]"
+          }`}
+          animate={{ height: `${height}%` }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+        />
+      ))}
     </div>
   );
-}
+};
 
 function LivePresenceCard() {
   const { data: presence } = useSWR<LanyardResponse>(
@@ -130,7 +154,7 @@ function LivePresenceCard() {
     );
   }
 
-  const isSpotify = presence.data.listening_to_spotify && presence.data.spotify;
+  const isSpotify = !!(presence.data.listening_to_spotify && presence.data.spotify);
 
   return (
     <div className="rounded-2xl border p-4 transition-all duration-300" style={{ borderColor: "var(--card-border)", background: "var(--social-bg-mix)" }}>
@@ -141,7 +165,7 @@ function LivePresenceCard() {
             {isSpotify ? "Live on Spotify" : "Status"}
           </p>
         </div>
-        {isSpotify && <EqualizerBars />}
+        <Visualizer isPlaying={isSpotify} />
       </div>
 
       {isSpotify ? (
@@ -276,6 +300,16 @@ function DonutChart({
   const slicedData = useMemo(() => data.slice(0, 6), [data]);
   const total = useMemo(() => slicedData.reduce((sum, item) => sum + item.plays, 0) || 1, [slicedData]);
 
+  // Premium, highly vibrant balanced dark/light mode accent colors for presentation analytics
+  const chartColors = [
+    "var(--text-primary)", 
+    "color-mix(in srgb, #6366f1 85%, var(--text-primary))", // Indigo
+    "color-mix(in srgb, #3b82f6 75%, var(--text-primary))", // Blue
+    "color-mix(in srgb, #14b8a6 70%, var(--text-primary))", // Teal
+    "color-mix(in srgb, #a855f7 65%, var(--text-primary))", // Purple
+    "color-mix(in srgb, var(--text-primary) 35%, var(--bg-secondary))"
+  ];
+
   const handleMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
     if (!svgRef.current || !slicedData.length) return;
     const rect = svgRef.current.getBoundingClientRect();
@@ -352,11 +386,11 @@ function DonutChart({
                   cy="21"
                   r="15.915"
                   fill="transparent"
-                  stroke={isHovered ? "var(--text-primary)" : `color-mix(in srgb, var(--text-primary) ${95 - index * 14}%, var(--bg-secondary))`}
+                  stroke={chartColors[index] ?? "var(--text-primary)"}
                   strokeDashoffset={100 - currentOffset}
                   strokeLinecap="round"
                   style={{
-                    opacity: isAnyHovered && !isHovered ? 0.35 : 1,
+                    opacity: isAnyHovered && !isHovered ? 0.25 : 1,
                     transition: "opacity 0.2s ease, stroke 0.2s ease",
                   }}
                 />
@@ -372,7 +406,7 @@ function DonutChart({
                   background: activeIndex === idx ? "var(--bg-secondary)" : "transparent",
                 }}
               >
-                <span className={`truncate transition-colors ${activeIndex === idx ? "text-[var(--text-primary)] font-semibold" : "text-[var(--text-secondary)]"}`}>
+                <span className={`truncate transition-colors ${activeIndex === idx ? "text-[var(--text-primary)] font-bold" : "text-[var(--text-secondary)]"}`}>
                   {item.name}
                 </span>
                 <span className="font-mono text-xs text-[var(--text-secondary)] shrink-0 font-medium">
@@ -826,7 +860,7 @@ export default function MusicPage() {
           </div>
         ) : (
           stats && (
-            <div className="grid items-start gap-4 lg:grid-cols-5">
+            <div className="grid items-start gap-4 lg:grid-cols-5 animate-fadeIn">
               <div className="space-y-4 lg:col-span-3 flex flex-col h-full justify-between">
                 <ListeningClock
                   data={stats.charts.listeningClock}
