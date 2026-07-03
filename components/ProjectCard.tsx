@@ -34,67 +34,62 @@ export default function ProjectCard({
         target="_blank"
         rel="noopener noreferrer"
         className={[
-          "block overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-0.5",
-          isFeatured ? "sm:grid sm:grid-cols-[1.1fr_0.9fr]" : "",
+          "block py-6 border-b transition-colors duration-300 hover:bg-[var(--bg-secondary)]/30",
+          isFeatured ? "sm:grid sm:grid-cols-[1.2fr_0.8fr] sm:gap-6 items-center" : "",
         ].join(" ")}
         style={{
           borderColor: "var(--card-border)",
-          background: "var(--card-bg)",
-          boxShadow: "var(--card-shadow)",
         }}
       >
-        {/* Content side */}
-        <div
-          className={
-            isFeatured ? "flex flex-col justify-between p-6 sm:p-7" : "p-5"
-          }
-        >
-          <div>
-            {/* Meta row */}
-            <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
-              {project.github ? (
-                <FaGithub className="h-3 w-3" />
-              ) : project.homepage ? (
-                <Globe className="h-3 w-3" />
-              ) : null}
-              {project.homepage
-                ? "Live"
-                : project.github
-                ? "Open source"
-                : "Project"}
-              {project.stars ? (
-                <span>· {project.stars.toLocaleString()} ★</span>
-              ) : null}
-            </div>
-
-            <h3
-              className={[
-                "font-display font-bold tracking-tight text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]",
-                isFeatured ? "text-2xl sm:text-3xl" : "text-lg",
-              ].join(" ")}
-            >
-              {project.name}
-            </h3>
-
-            {project.description && (
-              <p
-                className={[
-                  "mt-2 leading-relaxed text-[var(--text-secondary)]",
-                  isFeatured
-                    ? "text-sm sm:text-base"
-                    : "mt-2 line-clamp-3 text-sm",
-                ].join(" ")}
-              >
-                {project.description}
-              </p>
-            )}
+        {/* Content Side */}
+        <div className="px-2">
+          {/* Meta row */}
+          <div className="mb-2 flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
+            {project.github ? (
+              <FaGithub className="h-3 w-3" />
+            ) : project.homepage ? (
+              <Globe className="h-3 w-3" />
+            ) : null}
+            {project.homepage
+              ? "Live"
+              : project.github
+              ? "Open source"
+              : "Project"}
+            {project.stars ? (
+              <span>· {project.stars.toLocaleString()} ★</span>
+            ) : null}
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+          <h3
+            className={[
+              "font-display font-bold tracking-tight text-[var(--text-primary)] transition-all duration-300 group-hover:translate-x-0.5",
+              isFeatured ? "text-xl sm:text-2xl" : "text-base sm:text-lg",
+            ].join(" ")}
+          >
+            <span className="relative inline-block">
+              {project.name}
+              <span className="absolute left-0 bottom-0.5 h-0.5 w-0 bg-[var(--text-primary)] transition-all duration-300 group-hover:w-full" />
+            </span>
+          </h3>
+
+          {project.description && (
+            <p
+              className={[
+                "mt-2 leading-relaxed text-[var(--text-secondary)] font-medium",
+                isFeatured
+                  ? "text-xs sm:text-sm"
+                  : "text-xs line-clamp-3",
+              ].join(" ")}
+            >
+              {project.description}
+            </p>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-1.5">
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider"
+                className="rounded-md border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest"
                 style={{
                   borderColor: "var(--card-border)",
                   color: "var(--text-secondary)",
@@ -104,16 +99,16 @@ export default function ProjectCard({
                 {tag}
               </span>
             ))}
-            <span className="ml-auto">
+            <span className="ml-auto opacity-40 group-hover:opacity-100 transition-opacity duration-300">
               <ArrowUpRight className="h-4 w-4 text-[var(--text-secondary)] transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </span>
           </div>
         </div>
 
-        {/* Image side (featured only) */}
+        {/* Media Preview Side (featured only) */}
         {isFeatured && (
           <div
-            className="relative min-h-56 border-t sm:min-h-full sm:border-l sm:border-t-0"
+            className="relative mt-4 sm:mt-0 aspect-video sm:aspect-square md:aspect-video rounded-xl overflow-hidden border shrink-0"
             style={{ borderColor: "var(--card-border)" }}
           >
             {imageSrc ? (
@@ -122,9 +117,9 @@ export default function ProjectCard({
                   src={imageSrc}
                   alt={project.name}
                   loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-black/20 dark:to-black/40" />
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-black/10 dark:to-black/20" />
               </>
             ) : (
               <div
@@ -133,7 +128,7 @@ export default function ProjectCard({
               >
                 <div className="flex flex-col items-center gap-2 text-[var(--text-secondary)]">
                   <ImageOff className="h-6 w-6" />
-                  <span className="font-mono text-[10px] uppercase tracking-widest">
+                  <span className="font-mono text-[9px] uppercase tracking-widest">
                     No preview
                   </span>
                 </div>

@@ -348,7 +348,7 @@ export default async function handler(
           plays: numberOf(item.playcount),
           share: Math.round((numberOf(item.playcount) / topArtistTotal) * 100),
         })),
-        topAlbums: chartAlbums.slice(0, 8).map((item) => ({
+        topAlbums: topAlbums.slice(0, 20).map((item) => ({
           name: item.name,
           artist:
             typeof item.artist === "string"
@@ -356,6 +356,11 @@ export default async function handler(
               : item.artist?.name ?? "",
           plays: numberOf(item.playcount),
           share: Math.round((numberOf(item.playcount) / topAlbumTotal) * 100),
+          coverUrl: item.image?.find((img) => img.size === "extralarge")?.["#text"]
+            || item.image?.find((img) => img.size === "large")?.["#text"]
+            || item.image?.[item.image.length - 1]?.["#text"]
+            || undefined,
+          url: item.url ?? undefined,
         })),
         topTracks: chartTracks.slice(0, 8).map((item) => ({
           name: item.name,

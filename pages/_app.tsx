@@ -11,6 +11,10 @@ import { ThemeProvider } from "../components/ThemeProvider";
 import Navbar from "../components/Navbar";
 import KeyboardShortcuts from "../components/KeyboardShortcuts";
 import Squares from "../components/Squares";
+import { MusicPlayerProvider } from "../components/music/MusicPlayerContext";
+import MusicPlayerBar from "../components/music/MusicPlayerBar";
+import MusicLyricsPanel from "../components/music/MusicLyricsPanel";
+import FirstLoadOverlay from "../components/FirstLoadOverlay";
 
 import "@fontsource/jost/400.css";
 import "@fontsource/jost/500.css";
@@ -99,6 +103,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <ThemeProvider>
+      <MusicPlayerProvider>
       <Head>
         <meta property="og:title" content="Abyan — student developer" />
         <meta
@@ -108,6 +113,15 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:image" content="https://abyn.xyz/api/og" />
         <meta property="og:url" content="https://abyn.xyz" />
         <meta property="og:type" content="website" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (sessionStorage.getItem('has_entered') === 'true') {
+                document.documentElement.classList.add('has-entered');
+              }
+            `,
+          }}
+        />
       </Head>
 
       <NextSeo
@@ -185,10 +199,16 @@ function MyApp({ Component, pageProps }: AppProps) {
               <Component {...pageProps} />
             </motion.div>
           </AnimatePresence>
-
-          <KeyboardShortcuts />
         </div>
       </div>
+
+      <FirstLoadOverlay />
+
+      {/* Global music player — persists across all pages */}
+      <MusicPlayerBar />
+      <MusicLyricsPanel />
+      <KeyboardShortcuts />
+    </MusicPlayerProvider>
     </ThemeProvider>
   );
 }

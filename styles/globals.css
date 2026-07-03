@@ -41,6 +41,12 @@
   --status-idle: #d97706;
   --status-dnd: #dc2626;
   --status-offline: #9ca3af;
+
+  /* Music player — dynamic accent (overridden by colorthief) */
+  --music-accent: #6366f1;
+  --music-accent-secondary: #8b5cf6;
+  --music-glow: rgba(99, 102, 241, 0.45);
+  --music-accent-rgb: 99, 102, 241;
 }
 
 .dark {
@@ -73,6 +79,14 @@
   --status-idle: #fb923c;
   --status-dnd: #f87171;
   --status-offline: #71717a;
+}
+
+/* Smooth music accent transitions — applied via JS */
+html {
+  transition:
+    --music-accent 600ms ease,
+    --music-accent-secondary 600ms ease,
+    --music-glow 600ms ease;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -171,6 +185,20 @@ click-spark {
 
 .animate-spin-slow {
   animation: spin-slow 8s linear infinite;
+}
+
+@keyframes disk-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s ease-out both;
 }
 
 @keyframes progress-pulse {
@@ -303,3 +331,35 @@ click-spark {
   background: color-mix(in srgb, var(--text-primary) 18%, transparent);
   border-radius: 999px;
 }
+
+/* Linear fade mask for synchronized lyrics area */
+.mask-linear-fade {
+  mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 90%, transparent 100%);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FIRST LOAD OVERLAY SSR BLOCKING & ANIMATIONS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+html.has-entered .first-load-overlay {
+  display: none !important;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-15px) scale(1.03); }
+}
+
+@keyframes float-slower {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(15px) scale(0.97); }
+}
+
+.animate-float-slow {
+  animation: float-slow 10s ease-in-out infinite;
+}
+
+.animate-float-slower {
+  animation: float-slower 14s ease-in-out infinite;
+}
+

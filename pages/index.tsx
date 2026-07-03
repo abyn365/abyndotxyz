@@ -87,29 +87,32 @@ function CollapsibleSection({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const [overflowVisible, setOverflowVisible] = useState(defaultOpen);
 
   return (
-    <section>
+    <div
+      className="transition-all duration-300 overflow-hidden border-b"
+      style={{
+        borderColor: "var(--card-border)",
+        background: "transparent",
+      }}
+    >
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="group flex w-full items-center gap-3 py-0.5"
+        className="flex w-full items-center justify-between py-4 hover:opacity-80 transition-opacity"
       >
-        <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">
-          {index}
-        </span>
-        <span
-          className="flex-1 border-t transition-colors duration-200 group-hover:border-[var(--accent)]"
-          style={{ borderColor: "var(--card-border)" }}
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] opacity-50">
+            {index}
+          </span>
+          <span className="font-display text-sm font-bold text-[var(--text-primary)]">
+            {label}
+          </span>
+        </div>
+        <ChevronDown
+          className="h-4 w-4 text-[var(--text-secondary)] transition-transform duration-250"
+          style={{ transform: open ? "rotate(0deg)" : "rotate(-90deg)" }}
         />
-        <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] transition-colors duration-200 group-hover:text-[var(--text-primary)]">
-          {label}
-          <ChevronDown
-            className="h-3 w-3 transition-transform duration-200"
-            style={{ transform: open ? "rotate(0deg)" : "rotate(-90deg)" }}
-          />
-        </span>
       </button>
 
       <AnimatePresence initial={false}>
@@ -119,16 +122,15 @@ function CollapsibleSection({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            onAnimationStart={() => setOverflowVisible(false)}
-            onAnimationComplete={() => setOverflowVisible(open)}
-            style={{ overflow: overflowVisible ? "visible" : "hidden" }}
-            transition={{ duration: 0.22, ease: "easeInOut" }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
           >
-            <div className="mt-5">{children}</div>
+            <div className="pb-5 pt-2">
+              {children}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </section>
+    </div>
   );
 }
 

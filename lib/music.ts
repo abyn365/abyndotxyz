@@ -50,7 +50,7 @@ export type MusicDashboardStats = {
     weeklyActivity: { day: string; plays: number }[];
     listeningHistory: { label: string; plays: number }[];
     topArtists: { name: string; plays: number; share: number }[];
-    topAlbums: { name: string; artist: string; plays: number; share: number }[];
+    topAlbums: { name: string; artist: string; plays: number; share: number; coverUrl?: string; url?: string; year?: string }[];
     topTracks: { name: string; artist: string; plays: number; share: number }[];
   };
 };

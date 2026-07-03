@@ -1,14 +1,19 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { NextSeo } from "next-seo";
-import { ArrowLeft, ArrowRight, Radio, Sparkles } from "lucide-react";
-import { useMemo, useRef, useState, useEffect } from "react";
+import { ArrowLeft, ArrowRight, Radio, Sparkles, Play, Pause } from "lucide-react";
+import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import useSWR from "swr";
 import { Chart as ChartJS, ArcElement, Tooltip as ChartTooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import MusicArtwork from "../components/music/MusicArtwork";
 import MusicPeriodTabs from "../components/music/MusicPeriodTabs";
 import MusicTrackSkeleton from "../components/music/MusicTrackSkeleton";
+import MusicTrackCard from "../components/music/MusicTrackCard";
+import MusicVisualizer from "../components/music/MusicVisualizer";
+import AlbumCarousel from "../components/music/AlbumCarousel";
+import { useMusicPlayer } from "../components/music/MusicPlayerContext";
 import { useTopTracks } from "../hooks/useTopTracks";
+import { useDragScroll } from "../hooks/useDragScroll";
 import { fetcher } from "../lib/fetcher";
 import {
   DEFAULT_MUSIC_PERIOD,
@@ -17,6 +22,7 @@ import {
   type MusicDashboardStats,
   type MusicPeriod,
 } from "../lib/music";
+import { type TrackMetadata } from "../lib/music/metadata";
 import { PageFooter } from "./index";
 
 ChartJS.register(ArcElement, ChartTooltip, Legend);
@@ -106,11 +112,10 @@ function ChartCard({
   return (
     <motion.div
       layout="position"
-      className={`rounded-2xl border p-4 flex flex-col transition-all duration-300 ${className}`}
+      className={`flex flex-col py-6 border-b ${className}`}
       style={{
         borderColor: "var(--card-border)",
-        background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--card-bg)",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+        background: "transparent",
       }}
     >
       <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] mb-2 shrink-0">
@@ -136,47 +141,15 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
   );
 }
 
-const Visualizer = ({ isPlaying }: { isPlaying: boolean }) => {
-  const [barHeights, setBarHeights] = useState<number[]>([38, 64, 48]);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (isPlaying) {
-      intervalRef.current = setInterval(() => {
-        setBarHeights([0, 0, 0].map(() => Math.random() * 68 + 24));
-      }, 160);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      setBarHeights([38, 64, 48]);
-    }
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isPlaying]);
-
-  return (
-    <div className="flex h-2.5 items-end gap-[2px]" aria-hidden="true">
-      {barHeights.map((height, index) => (
-        <motion.span
-          key={index}
-          className={`w-[2px] rounded-full transition-colors duration-300 ${
-            isPlaying ? "bg-indigo-500" : "bg-[var(--card-border)]"
-          }`}
-          animate={{ height: `${height}%` }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
-        />
-      ))}
-    </div>
-  );
-};
 
 function LivePresenceCard() {
   const { data: presence } = useSWR<LanyardResponse>(
     `https://api.lanyard.rest/v1/users/${DISCORD_ID}`,
     fetcher,
-    { refreshInterval: 12000 }
+    { refreshInterval: 5000 }
   );
+  const { playSong, currentTrack, isPlaying } = useMusicPlayer();
 
   const statusColor = useMemo(() => {
     switch (presence?.data?.discord_status) {
@@ -187,19 +160,38 @@ function LivePresenceCard() {
     }
   }, [presence?.data?.discord_status]);
 
+  const handlePlaySpotify = useCallback(async () => {
+    const sp = presence?.data?.spotify;
+    if (!sp) return;
+    await playSong({
+      title: sp.song,
+      artist: sp.artist,
+      album: sp.album,
+      cover: sp.album_art_url,
+    });
+  }, [presence?.data?.spotify, playSong]);
+
   if (!presence?.success) {
     return (
-      <div className="rounded-2xl border p-4" style={{ borderColor: "var(--card-border)", background: "var(--social-bg-mix)" }}>
+      <div className="p-2">
         <Radio className="mb-2 h-4 w-4 text-[var(--text-secondary)] animate-pulse" />
-        <p className="text-sm font-medium text-[var(--text-primary)]">Connecting…</p>
+        <p className="text-sm font-semibold text-[var(--text-primary)]">Connecting…</p>
       </div>
     );
   }
 
   const isSpotify = !!(presence.data.listening_to_spotify && presence.data.spotify);
+  const sp = presence.data.spotify;
+  const isThisPlaying =
+    isSpotify && isPlaying &&
+    currentTrack?.title === sp?.song &&
+    currentTrack?.artist === sp?.artist;
 
   return (
-    <div className="rounded-2xl border p-4 transition-all duration-300 flex flex-col justify-center" style={{ borderColor: "var(--card-border)", background: "var(--social-bg-mix)" }}>
+    <div
+      className="p-2 transition-all duration-300 flex flex-col justify-center"
+      style={{ background: "transparent" }}
+    >
       <div className="flex items-center gap-1.5 mb-2">
         <span className={`h-2 w-2 rounded-full ${statusColor}`} />
         <p className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)]">
@@ -208,29 +200,42 @@ function LivePresenceCard() {
       </div>
 
       {isSpotify ? (
-        <a
-          href={`https://open.spotify.com/track/${presence.data.spotify?.track_id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-3 group min-w-0"
-        >
-          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border" style={{ borderColor: "var(--card-border)" }}>
-            <img src={presence.data.spotify?.album_art_url} alt="Album Art" className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
-          </div>
+        <div className="flex items-center gap-3 group min-w-0">
+          <button
+            onClick={handlePlaySpotify}
+            className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border group/art"
+            style={{ borderColor: "var(--card-border)" }}
+            aria-label={`Play ${sp?.song}`}
+          >
+            <img
+              src={sp?.album_art_url}
+              alt="Album Art"
+              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover/art:scale-[1.06]"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover/art:opacity-100 transition-opacity duration-200">
+              {isThisPlaying ? (
+                <Pause className="h-4 w-4 text-white fill-white" />
+              ) : (
+                <Play className="h-4 w-4 text-white fill-white" />
+              )}
+            </div>
+          </button>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-[var(--text-primary)] group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
-              {presence.data.spotify?.song}
-            </p>
+            <button
+              onClick={handlePlaySpotify}
+              className="text-left w-full"
+            >
+              <p className="truncate text-sm font-bold text-[var(--text-primary)] hover:text-indigo-500 transition-colors">
+                {sp?.song}
+              </p>
+            </button>
             <div className="flex items-center gap-2 mt-0.5 min-w-0">
               <p className="truncate text-xs text-[var(--text-secondary)] max-w-[80%]">
-                {presence.data.spotify?.artist}
+                {sp?.artist}
               </p>
-              <div className="shrink-0 flex items-center h-3">
-                <Visualizer isPlaying={isSpotify} />
-              </div>
             </div>
           </div>
-        </a>
+        </div>
       ) : (
         <div className="min-w-0">
           <p className="text-sm font-medium text-[var(--text-primary)]">
@@ -272,11 +277,9 @@ function StatCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay, ease: "easeOut" }}
-      className="group flex min-h-28 flex-col justify-between rounded-2xl border p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+      className="flex flex-col justify-between py-3 px-1"
       style={{
-        borderColor: "var(--card-border)",
-        background: "linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005)), var(--card-bg)",
-        boxShadow: "var(--card-shadow)",
+        background: "transparent",
       }}
     >
       <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)]">
@@ -776,11 +779,33 @@ function TrackCarousel({
   isLoading: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { setQueue, currentTrack, isPlaying, accentColor } = useMusicPlayer();
+
+  useDragScroll(ref);
+
+  const accent = accentColor.primary;
+  const accentGlow = accentColor.glow;
+
   const scroll = (dir: number) =>
     ref.current?.scrollBy({
       left: dir * Math.min(460, ref.current.clientWidth * 0.85),
       behavior: "smooth",
     });
+
+  const handlePlay = useCallback(
+    (track: TrackMetadata, index: number) => {
+      const queue: TrackMetadata[] = tracks.map((t) => ({
+        title: t.title,
+        artist: t.artist,
+        cover: t.cover,
+        songUrl: t.songUrl,
+        playcount: t.playcount,
+        rank: t.rank,
+      }));
+      setQueue(queue, index);
+    },
+    [tracks, setQueue]
+  );
 
   return (
     <section className="overflow-hidden">
@@ -790,7 +815,7 @@ function TrackCarousel({
             Top Tracks
           </h2>
           <p className="text-xs text-[var(--text-secondary)]">
-            A live rotation of the tracks soundtracking my life right now.
+            A live rotation of the tracks soundtracking my life right now. Click to play.
           </p>
         </div>
         <div className="flex gap-1.5">
@@ -815,7 +840,7 @@ function TrackCarousel({
       <div
         ref={ref}
         tabIndex={0}
-        className="music-carousel -mx-4 flex max-w-[100vw] snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 px-4 sm:-mx-6 sm:px-6 scroll-pl-4 sm:scroll-pl-6 style-scrollbar"
+        className="music-carousel -mx-4 flex max-w-[100vw] snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 px-4 sm:-mx-6 sm:px-6 scroll-pl-4 sm:scroll-pl-6"
         style={{ scrollbarWidth: "none" }}
       >
         {isLoading ? (
@@ -829,41 +854,74 @@ function TrackCarousel({
             </div>
           ))
         ) : tracks.length ? (
-          tracks.map((track) => (
-            <a
-              key={`${track.songUrl}-${track.rank}`}
-              href={track.songUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group w-[72vw] max-w-[240px] shrink-0 snap-start rounded-2xl border p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-56"
-              style={{
-                borderColor: "var(--card-border)",
-                background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)), var(--card-bg)",
-                boxShadow: "var(--card-shadow)",
-              }}
-            >
-              <div
-                className="relative aspect-square overflow-hidden rounded-xl border"
-                style={{ borderColor: "var(--card-border)" }}
+          tracks.map((track, idx) => {
+            const isThisPlaying =
+              isPlaying &&
+              currentTrack?.title === track.title &&
+              currentTrack?.artist === track.artist;
+
+            return (
+              <button
+                key={`${track.songUrl}-${track.rank}`}
+                onClick={() =>
+                  handlePlay(
+                    {
+                      title: track.title,
+                      artist: track.artist,
+                      cover: track.cover,
+                      songUrl: track.songUrl,
+                      playcount: track.playcount,
+                      rank: track.rank,
+                    },
+                    idx
+                  )
+                }
+                className="group w-[72vw] max-w-[240px] shrink-0 snap-start sm:w-56 text-left focus:outline-none"
+                style={{
+                  background: "transparent",
+                }}
               >
-                <MusicArtwork
-                  src={track.cover}
-                  alt={`${track.title} cover`}
-                  className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-                />
-                <div className="absolute inset-0 bg-black/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              </div>
-              <p className="mt-2.5 font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] transition-opacity duration-300 group-hover:opacity-80">
-                #{track.rank} · {formatPlaycount(track.playcount)} plays
-              </p>
-              <h3 className="mt-0.5 truncate font-display text-base font-bold text-[var(--text-primary)] transition-colors group-hover:text-indigo-500 dark:group-hover:text-indigo-400">
-                {track.title}
-              </h3>
-              <p className="truncate text-xs text-[var(--text-secondary)] font-medium">
-                {track.artist}
-              </p>
-            </a>
-          ))
+                <div
+                  className="relative aspect-square overflow-hidden rounded-xl border transition-all duration-500 ease-out group-hover:scale-[1.03]"
+                  style={{
+                    borderColor: isThisPlaying ? `${accent}80` : "var(--card-border)",
+                    boxShadow: isThisPlaying
+                      ? `0 12px 30px -5px ${accentGlow}, 0 8px 20px -8px ${accentGlow}`
+                      : "var(--card-shadow)",
+                  }}
+                >
+                  <MusicArtwork
+                    src={track.cover}
+                    alt={`${track.title} cover`}
+                    className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
+                  />
+                  {/* Play overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    {isThisPlaying ? (
+                      <Pause className="h-8 w-8 text-white fill-white drop-shadow-lg scale-105 transition-transform" />
+                    ) : (
+                      <Play className="h-8 w-8 text-white fill-white drop-shadow-lg hover:scale-105 transition-transform" />
+                    )}
+                  </div>
+                </div>
+                <p className="mt-2.5 font-mono text-[9px] uppercase tracking-widest text-[var(--text-secondary)] transition-opacity duration-300 group-hover:opacity-80">
+                  #{track.rank} · {formatPlaycount(track.playcount)} plays
+                </p>
+                <h3
+                  className="mt-0.5 truncate font-display text-base font-bold transition-colors duration-300"
+                  style={{
+                    color: isThisPlaying ? accent : "var(--text-primary)",
+                    transition: "color 600ms ease",
+                  }}
+                >
+                  {track.title}
+                </h3>
+                <p className="truncate text-xs text-[var(--text-secondary)] font-medium">
+                  {track.artist}
+                </p>
+              </button>
+            );
+          })
         ) : (
           <div className="w-full">
             <EmptyState message="No tracks found for this period." />
@@ -914,19 +972,19 @@ export default function MusicPage() {
         description="A modern Last.fm music analytics dashboard."
         canonical="https://abyn.xyz/music"
       />
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 pb-36 sm:px-6 lg:px-8 lg:py-12">
+
+        {/* ── Hero Section ── */}
         <motion.section
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-8 overflow-hidden rounded-3xl border p-6 sm:p-8 transition-colors duration-300"
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="mb-8 border-b pb-8 relative"
           style={{
             borderColor: "var(--card-border)",
-            background: "var(--card-bg)",
-            boxShadow: "var(--card-shadow)",
           }}
         >
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)]">
                 03 — Music dashboard
@@ -934,42 +992,51 @@ export default function MusicPage() {
               <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--text-primary)] sm:text-5xl">
                 Last.fm replay
               </h1>
-              <p className="mt-2.5 max-w-lg text-sm leading-relaxed text-[var(--text-secondary)]">
+              <p className="mt-3 max-w-lg text-sm leading-relaxed text-[var(--text-secondary)]">
                 <strong className="font-semibold text-[var(--text-primary)]">
                   My music history.
                 </strong>{" "}
-                Every scrobble tells a story.
+                Every scrobble tells a story — powered by Last.fm analytics.
               </p>
             </div>
             <div className="grid gap-3 sm:min-w-[340px] sm:grid-cols-2">
               <LivePresenceCard />
-              <div
-                className="rounded-2xl border p-4 animate-fadeIn"
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.15, duration: 0.25 }}
+                className="p-2 flex flex-col justify-center"
                 style={{
-                  borderColor: "var(--card-border)",
-                  background: "var(--social-bg-mix)",
+                  background: "transparent",
                 }}
               >
                 <Sparkles className="mb-2 h-4 w-4 text-[var(--text-primary)]" />
                 <p className="text-sm font-medium text-[var(--text-primary)]">
                   Favorite period
                 </p>
-                <p className="text-xs text-[var(--text-secondary)] font-bold">
+                <p className="text-xs text-[var(--text-secondary)] font-bold mt-0.5">
                   {stats?.insights.favoriteListeningPeriod ?? "Analyzing…"}
                 </p>
-              </div>
+              </motion.div>
             </div>
           </div>
         </motion.section>
 
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* ── Period filter + label ── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+          className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        >
           <p className="font-mono text-xs text-[var(--text-secondary)] font-bold">
             {activePeriod.description}
           </p>
           <MusicPeriodTabs active={period} onChange={setPeriod} />
-        </div>
+        </motion.div>
 
-        <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        {/* ── Stats grid ── */}
+        <div className="mb-10 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
           {isStatsLoading && !stats
             ? Array.from({ length: 12 }).map((_, i) => (
                 <SkeletonBlock key={i} className="h-28" />
@@ -985,10 +1052,20 @@ export default function MusicPage() {
               ))}
         </div>
 
-        <div className="mb-8">
+        {/* ── Top Tracks carousel ── */}
+        <div className="mb-10">
           <TrackCarousel tracks={tracks} isLoading={tracksLoading} />
         </div>
 
+        {/* ── Top Albums carousel ── */}
+        <div className="mb-10">
+          <AlbumCarousel
+            albums={stats?.charts.topAlbums ?? []}
+            isLoading={isStatsLoading && !stats}
+          />
+        </div>
+
+        {/* ── Analytics charts ── */}
         {isStatsLoading && !stats ? (
           <div className="grid gap-4 lg:grid-cols-5 mb-16">
             <div className="space-y-4 lg:col-span-3">
@@ -1003,8 +1080,13 @@ export default function MusicPage() {
           </div>
         ) : (
           stats && (
-            <div className="grid gap-4 lg:grid-cols-5 animate-fadeIn mb-16 items-stretch">
-              {/* Left Column Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="grid gap-4 lg:grid-cols-5 mb-16 items-stretch"
+            >
+              {/* Left Column */}
               <div className="lg:col-span-3 flex flex-col gap-4 h-full">
                 <ListeningClock
                   data={stats.charts.listeningClock}
@@ -1012,13 +1094,13 @@ export default function MusicPage() {
                   quietHour={stats.insights.quietHour}
                   className="flex-auto min-h-[250px]"
                 />
-                <ListeningHistory 
-                  data={stats.charts.listeningHistory} 
+                <ListeningHistory
+                  data={stats.charts.listeningHistory}
                   className="flex-auto min-h-[210px]"
                 />
               </div>
 
-              {/* Right Column Sidebar Section */}
+              {/* Right Column */}
               <div className="lg:col-span-2 flex flex-col gap-4 h-full overflow-visible">
                 <DonutChart
                   label="Top artists share"
@@ -1032,15 +1114,15 @@ export default function MusicPage() {
                   emptyText="No albums available for this period."
                   className="flex-auto min-h-[180px]"
                 />
-                <WeeklyHeatmap 
-                  data={stats.charts.weeklyActivity} 
+                <WeeklyHeatmap
+                  data={stats.charts.weeklyActivity}
                   className="flex-initial min-h-[130px]"
                 />
               </div>
-            </div>
+            </motion.div>
           )
         )}
-        
+
         <PageFooter />
       </main>
     </>

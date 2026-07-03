@@ -66,22 +66,20 @@ export default function UsesPage() {
 
               {/* Items */}
               <div
-                className="overflow-hidden rounded-2xl border"
+                className="divide-y border-t border-b"
                 style={{
                   borderColor: "var(--card-border)",
-                  background: "var(--card-bg)",
-                  boxShadow: "var(--card-shadow)",
+                  background: "transparent",
                 }}
               >
-                {category.items.map((item, itemIndex) => {
-                  const isLast = itemIndex === category.items.length - 1;
+                {category.items.map((item) => {
                   const content = (
                     <div
-                      className="flex items-start justify-between gap-4 px-4 py-3.5"
+                      className="flex items-start justify-between gap-4 px-2 py-4"
                     >
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium text-[var(--text-primary)]">
+                          <span className="font-semibold text-sm text-[var(--text-primary)]">
                             {item.name}
                           </span>
                           {item.note && (
@@ -97,7 +95,7 @@ export default function UsesPage() {
                             </span>
                           )}
                         </div>
-                        <p className="mt-0.5 text-sm text-[var(--text-secondary)]">
+                        <p className="mt-0.5 text-xs text-[var(--text-secondary)] font-medium leading-relaxed">
                           {item.description}
                         </p>
                       </div>
@@ -110,7 +108,6 @@ export default function UsesPage() {
                   return (
                     <div
                       key={item.name}
-                      className={isLast ? "" : "border-b"}
                       style={{ borderColor: "var(--card-border)" }}
                     >
                       {item.url ? (
@@ -118,7 +115,7 @@ export default function UsesPage() {
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group block transition-colors hover:bg-[var(--bg-secondary)]"
+                          className="group block transition-colors hover:bg-[var(--bg-secondary)]/40"
                         >
                           {content}
                         </a>

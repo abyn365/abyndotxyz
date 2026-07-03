@@ -1,130 +1,106 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Navigation, PlayCircle, Settings } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 
-const SHORTCUTS = [
-  { key: "h", label: "Home", description: "Go to /" },
-  { key: "p", label: "Projects", description: "Go to /projects" },
-  { key: "m", label: "Music", description: "Go to /music" },
-  { key: "u", label: "Uses", description: "Go to /uses" },
-  { key: "g", label: "GitHub", description: "Open GitHub profile" },
-  { key: "t", label: "Theme", description: "Toggle theme" },
-  { key: "/?", label: "/?", description: "Open / close this panel" },
-  { key: "Esc", label: "Esc", description: "Close panel" },
+const CATEGORIES = [
+  {
+    title: "Navigation",
+    icon: Navigation,
+    items: [
+      { key: "Alt + H", description: "Go to home page" },
+      { key: "Alt + P", description: "Go to projects list" },
+      { key: "Alt + M", description: "Go to music page" },
+      { key: "Alt + U", description: "Go to uses page" },
+      { key: "Alt + G", description: "Open GitHub profile" },
+    ],
+  },
+  {
+    title: "Music Player",
+    icon: PlayCircle,
+    items: [
+      { key: "Space", description: "Toggle playback" },
+      { key: "Shift + ← / →", description: "Seek ±10 seconds" },
+      { key: "M", description: "Mute / unmute audio" },
+      { key: "L", description: "Toggle immersive lyrics" },
+    ],
+  },
+  {
+    title: "General",
+    icon: Settings,
+    items: [
+      { key: "Alt + T", description: "Toggle dark/light theme" },
+      { key: "/ or ?", description: "Toggle shortcuts overlay" },
+      { key: "Esc", description: "Dismiss this overlay" },
+    ],
+  },
 ];
-
-const OFFSET = 18;
-const VIEWPORT_MARGIN = 16;
 
 export default function KeyboardShortcuts() {
   const router = useRouter();
   const { toggleTheme } = useTheme();
-
   const [open, setOpen] = useState(false);
-  const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
-
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  const mouseRef = useRef({
-    x: 0,
-    y: 0,
-  });
-
-  const [panelSize, setPanelSize] = useState({
-    width: 340,
-    height: 360,
-  });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseRef.current = {
-        x: e.clientX,
-        y: e.clientY,
-      };
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!open || !panelRef.current) return;
-
-    const updateSize = () => {
-      const rect = panelRef.current?.getBoundingClientRect();
-
-      if (!rect) return;
-
-      setPanelSize({
-        width: rect.width,
-        height: rect.height,
-      });
-    };
-
-    updateSize();
-
-    const observer = new ResizeObserver(updateSize);
-
-    observer.observe(panelRef.current);
-
-    return () => observer.disconnect();
-  }, [open]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
 
-      if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.tagName === "SELECT" ||
+        target?.isContentEditable
+      ) {
         return;
       }
 
-      if (target?.isContentEditable) return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey) return;
 
       const isDesktop = window.matchMedia("(min-width: 640px)").matches;
+      const key = e.key.toLowerCase();
 
+      // Navigation and actions require Alt modifier
+      if (e.altKey) {
+        switch (key) {
+          case "h":
+            e.preventDefault();
+            router.push("/");
+            break;
+
+          case "g":
+            e.preventDefault();
+            window.open("https://github.com/abyn365", "_blank", "noopener,noreferrer");
+            break;
+
+          case "p":
+            e.preventDefault();
+            router.push("/projects");
+            break;
+
+          case "m":
+            e.preventDefault();
+            router.push("/music");
+            break;
+
+          case "u":
+            e.preventDefault();
+            router.push("/uses");
+            break;
+
+          case "t":
+            e.preventDefault();
+            if (isDesktop) toggleTheme();
+            break;
+        }
+        return;
+      }
+
+      // Panel triggers do not require Alt
       switch (e.key) {
-        case "h":
-        case "H":
-          router.push("/");
-          break;
-
-        case "g":
-        case "G":
-          window.open("/github", "_blank", "noopener,noreferrer");
-          break;
-
-        case "p":
-        case "P":
-          router.push("/projects");
-          break;
-
-        case "m":
-        case "M":
-          router.push("/music");
-          break;
-
-        case "u":
-        case "U":
-          router.push("/uses");
-          break;
-
-        case "t":
-        case "T":
-          if (isDesktop) toggleTheme();
-          break;
-
         case "?":
         case "/":
-          if (!open) {
-            setMenuPos(mouseRef.current);
-          }
-
+          e.preventDefault();
           setOpen((o) => !o);
           break;
 
@@ -134,183 +110,96 @@ export default function KeyboardShortcuts() {
       }
     };
 
-    document.addEventListener("keydown", handleKey);
-
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, [router, open, toggleTheme]);
-
-  const position = useMemo(() => {
-    if (typeof window === "undefined") {
-      return {
-        left: 0,
-        top: 0,
-        origin: "top left",
-        flippedX: false,
-        flippedY: false,
-      };
-    }
-
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    let left = menuPos.x + OFFSET;
-    let top = menuPos.y + OFFSET;
-
-    let flippedX = false;
-    let flippedY = false;
-
-    const wouldOverflowRight =
-      left + panelSize.width + VIEWPORT_MARGIN > viewportWidth;
-
-    const wouldOverflowBottom =
-      top + panelSize.height + VIEWPORT_MARGIN > viewportHeight;
-
-    if (wouldOverflowRight) {
-      left = menuPos.x - panelSize.width - OFFSET;
-      flippedX = true;
-    }
-
-    if (wouldOverflowBottom) {
-      top = menuPos.y - panelSize.height - OFFSET;
-      flippedY = true;
-    }
-
-    left = Math.max(
-      VIEWPORT_MARGIN,
-      Math.min(left, viewportWidth - panelSize.width - VIEWPORT_MARGIN)
-    );
-
-    top = Math.max(
-      VIEWPORT_MARGIN,
-      Math.min(top, viewportHeight - panelSize.height - VIEWPORT_MARGIN)
-    );
-
-    const origin = `${flippedY ? "bottom" : "top"} ${
-      flippedX ? "right" : "left"
-    }`;
-
-    return {
-      left,
-      top,
-      origin,
-      flippedX,
-      flippedY,
-    };
-  }, [menuPos, panelSize]);
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [router, toggleTheme]);
 
   return (
     <AnimatePresence>
       {open && (
-        <>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
+          {/* Backdrop Blur Overlay */}
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-[60]"
-            style={{
-              background: "rgba(0,0,0,0.35)",
-              backdropFilter: "blur(4px)",
-            }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-md"
             onClick={() => setOpen(false)}
           />
 
+          {/* Centered Shortcuts Panel */}
           <motion.div
-            ref={panelRef}
             key="panel"
-            initial={{
-              opacity: 0,
-              scale: 0.88,
-              x: position.flippedX ? 10 : -10,
-              y: position.flippedY ? 10 : -10,
-            }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              x: 0,
-              y: 0,
-            }}
-            exit={{
-              opacity: 0,
-              scale: 0.88,
-              x: position.flippedX ? 10 : -10,
-              y: position.flippedY ? 10 : -10,
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 420,
-              damping: 28,
-            }}
-            className="fixed z-[70] w-full max-w-xs overflow-hidden rounded-2xl border p-5 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="relative z-50 w-full max-w-lg rounded-2xl border p-6 shadow-2xl select-none max-h-[85vh] flex flex-col"
             style={{
-              left: position.left,
-              top: position.top,
-              transformOrigin: position.origin,
               background: "var(--card-bg)",
               borderColor: "var(--card-border)",
               boxShadow: "var(--card-shadow)",
             }}
           >
-            {/* Glow */}
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.05), transparent 60%)",
-              }}
-            />
-
-            <div className="relative">
-              {/* Header */}
-              <div className="mb-4 flex items-center justify-between">
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--text-secondary)]">
-                  Keyboard shortcuts
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b shrink-0" style={{ borderColor: "var(--card-border)" }}>
+              <div>
+                <h3 className="font-display text-base font-bold text-[var(--text-primary)]">
+                  Keyboard Shortcuts
+                </h3>
+                <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5 uppercase tracking-wider">
+                  Press /? anywhere to close
                 </p>
-
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="rounded-lg p-1 text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-                  aria-label="Close"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
               </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-lg border p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                style={{ borderColor: "var(--card-border)" }}
+                aria-label="Close keyboard shortcuts dialog"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
 
-              {/* Rows */}
-              <div className="space-y-1">
-                {SHORTCUTS.map((s) => (
-                  <div
-                    key={s.key}
-                    className="flex items-center justify-between gap-4 rounded-xl px-2 py-2 transition-colors hover:bg-[var(--bg-secondary)]"
-                  >
-                    <span className="text-sm text-[var(--text-secondary)]">
-                      {s.description}
-                    </span>
-
-                    <kbd
-                      className="shrink-0 rounded-md border px-2 py-1 font-mono text-[10px] text-[var(--text-primary)]"
-                      style={{
-                        borderColor: "var(--card-border)",
-                        background: "var(--bg-secondary)",
-                      }}
-                    >
-                      {s.key}
-                    </kbd>
+            {/* Scrollable Categories Content */}
+            <div className="flex-1 overflow-y-auto py-4 space-y-6 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+              {CATEGORIES.map((category) => {
+                const Icon = category.icon;
+                return (
+                  <div key={category.title} className="space-y-2.5">
+                    <h4 className="flex items-center gap-2 font-display text-xs font-bold text-[var(--text-primary)] opacity-80 uppercase tracking-widest">
+                      <Icon className="h-3.5 w-3.5" />
+                      {category.title}
+                    </h4>
+                    <div className="divide-y divide-[var(--card-border)] rounded-xl border overflow-hidden" style={{ borderColor: "var(--card-border)" }}>
+                      {category.items.map((item) => (
+                        <div
+                          key={item.key}
+                          className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-[var(--bg-secondary)] transition-colors"
+                        >
+                          <span className="text-xs text-[var(--text-secondary)] font-medium">
+                            {item.description}
+                          </span>
+                          <kbd
+                            className="shrink-0 rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold text-[var(--text-primary)] shadow-sm bg-white/5"
+                            style={{
+                              borderColor: "var(--card-border)",
+                              background: "var(--bg-secondary)",
+                            }}
+                          >
+                            {item.key}
+                          </kbd>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Footer */}
-              <p className="mt-4 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
-                press /? to toggle
-              </p>
+                );
+              })}
             </div>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );
