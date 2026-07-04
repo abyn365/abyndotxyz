@@ -20,12 +20,14 @@ import {
   Volume1,
   Volume2,
   VolumeX,
+  ListMusic,
 } from "lucide-react";
 import { useEffect, useRef, useCallback, useState } from "react";
 import { FaSpotify } from "react-icons/fa";
 import { useMusicPlayer } from "./MusicPlayerContext";
 import { formatDuration } from "../../lib/music/metadata";
 import MusicArtwork from "./MusicArtwork";
+import MusicVisualizer from "./MusicVisualizer";
 
 export default function MusicLyricsPanel() {
   const {
@@ -54,6 +56,8 @@ export default function MusicLyricsPanel() {
     plainLyrics,
     lyricsState,
     accentColor,
+    isQueueOpen,
+    toggleQueue,
   } = useMusicPlayer();
 
   const activeLineRef = useRef<HTMLButtonElement | null>(null);
@@ -63,6 +67,24 @@ export default function MusicLyricsPanel() {
   // Local Shuffle & Repeat states (visual toggles)
   const [isShuffle, setIsShuffle] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
+
+  // Mobile Volume Slider auto-hide state and timer
+  const [showVolume, setShowVolume] = useState(false);
+  const volumeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerVolumeActive = useCallback(() => {
+    setShowVolume(true);
+    if (volumeTimerRef.current) clearTimeout(volumeTimerRef.current);
+    volumeTimerRef.current = setTimeout(() => {
+      setShowVolume(false);
+    }, 3500); // hide after 3.5 seconds of inactivity
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (volumeTimerRef.current) clearTimeout(volumeTimerRef.current);
+    };
+  }, []);
 
   // Smooth scroll to active lyric
   const scrollToActive = useCallback(() => {
@@ -224,6 +246,11 @@ export default function MusicLyricsPanel() {
                 </p>
               </div>
 
+              {/* Audio Visualizer */}
+              <div className="mt-5 w-full h-8 flex items-center justify-center opacity-85">
+                <MusicVisualizer isPlaying={isPlaying} trackId={currentTrack.title} barCount={28} height={28} />
+              </div>
+
               {/* Progress Slider */}
               <div className="mt-4 w-full flex flex-col gap-2">
                 <div className="relative w-full h-1 bg-[var(--card-border)] rounded-full overflow-hidden cursor-pointer"
@@ -298,6 +325,16 @@ export default function MusicLyricsPanel() {
                   aria-label="Toggle repeat"
                 >
                   <Repeat className="h-4.5 w-4.5" />
+                </button>
+
+                <button
+                  onClick={toggleQueue}
+                  className="rounded-full p-2 transition-all hover:bg-[var(--bg-secondary)] active:scale-95 text-[var(--text-secondary)]"
+                  style={{ color: isQueueOpen ? accent : undefined }}
+                  aria-label="Toggle queue"
+                  title="Queue"
+                >
+                  <ListMusic className="h-4.5 w-4.5" />
                 </button>
               </div>
 
@@ -457,93 +494,153 @@ export default function MusicLyricsPanel() {
 
             {/* ── MOBILE ONLY FOOTER CONTROLS (Hidden on Desktop) ── */}
             <div
-              className="shrink-0 flex flex-col gap-3 border-t pt-3 pb-4 px-3 lg:hidden"
+              className="shrink-0 flex flex-col gap-4 border-t pt-4 pb-5 px-4 lg:hidden"
               style={{
                 borderColor: "var(--card-border)",
-                background: "color-mix(in srgb, var(--bg-primary) 95%, transparent)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-                paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+                background: "color-mix(in srgb, var(--bg-primary) 96%, transparent)",
+                backdropFilter: "blur(24px)",
+                WebkitBackdropFilter: "blur(24px)",
+                paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))",
               }}
             >
-              {/* Progress Slider */}
-              <div className="w-full flex flex-col gap-1">
-                <div
-                  className="relative w-full h-1.5 bg-[var(--card-border)] rounded-full cursor-pointer"
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const ratio = (e.clientX - rect.left) / rect.width;
-                    seek(ratio * duration);
-                  }}
-                >
-                  <div
-                    className="absolute inset-y-0 left-0 rounded-full"
-                    style={{
-                      width: `${pct}%`,
-                      background: `linear-gradient(90deg, ${accent}, ${accentColor.secondary})`
-                    }}
-                  />
-                </div>
+              {/* Audio Visualizer */}
+              <div className="w-full h-6 flex items-center justify-center opacity-85">
+                <MusicVisualizer isPlaying={isPlaying} trackId={currentTrack.title} barCount={20} height={20} />
+              </div>
 
-                <div className="flex items-center justify-between font-mono text-[9px] text-[var(--text-secondary)]">
+              {/* Progress Scrubber (Touch Friendly Input Range) */}
+              <div className="w-full flex flex-col gap-1.5">
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 100}
+                  value={progress}
+                  onChange={(e) => seek(Number(e.target.value))}
+                  className="w-full h-1.5 bg-[var(--card-border)] rounded-full appearance-none cursor-pointer outline-none accent-transparent"
+                  style={{
+                    background: `linear-gradient(to right, ${accent} 0%, ${accent} ${pct}%, var(--card-border) ${pct}%, var(--card-border) 100%)`,
+                  }}
+                />
+
+                <div className="flex items-center justify-between font-mono text-[10px] text-[var(--text-secondary)] font-medium">
                   <span>{formatDuration(progress)}</span>
                   <span>{formatDuration(duration)}</span>
                 </div>
               </div>
 
-              {/* Control Buttons */}
-              <div className="flex items-center justify-between px-2">
-                <button
-                  onClick={() => setIsShuffle(!isShuffle)}
-                  className="rounded-full p-2 transition-all active:scale-95 text-[var(--text-secondary)]"
-                  style={{ color: isShuffle ? accent : undefined }}
-                  aria-label="Shuffle"
-                >
-                  <Shuffle className="h-4 w-4" />
-                </button>
-
-                <button
-                  onClick={prev}
-                  className="rounded-full border p-2.5 transition-all hover:bg-[var(--bg-secondary)] active:scale-95"
-                  style={{ borderColor: "var(--card-border)" }}
-                  aria-label="Previous track"
-                >
-                  <SkipBack className="h-4 w-4 text-[var(--text-primary)]" />
-                </button>
-
-                <button
-                  onClick={isPlaying ? pause : resume}
-                  className="flex h-12 w-12 items-center justify-center rounded-full transition-all hover:scale-105 active:scale-95 text-white shadow-lg"
-                  style={{
-                    background: `linear-gradient(135deg, ${accent}, ${accentColor.secondary})`,
-                    boxShadow: isPlaying ? `0 0 20px ${accentGlow}` : "none",
-                  }}
-                  aria-label={isPlaying ? "Pause" : "Play"}
-                >
-                  {isPlaying ? (
-                    <Pause className="h-5 w-5 fill-white text-white" />
-                  ) : (
-                    <Play className="h-5 w-5 fill-white text-white ml-0.5" />
+              {/* Control Buttons & Volume slider */}
+              <div className="w-full flex flex-col gap-1">
+                {/* Volume Scrubber (Auto Hide Slider) */}
+                <AnimatePresence>
+                  {showVolume && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ type: "spring", damping: 20, stiffness: 200 }}
+                      className="w-full overflow-hidden"
+                    >
+                      <div className="w-full flex items-center gap-2 px-6 text-[var(--text-secondary)] pb-2 pt-1">
+                        <SpeakerIcon className="h-4 w-4 shrink-0" />
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={isMuted ? 0 : volume}
+                          onChange={(e) => {
+                            setVolume(Number(e.target.value));
+                            triggerVolumeActive();
+                          }}
+                          className="flex-1 h-1 bg-[var(--card-border)] rounded-full appearance-none cursor-pointer outline-none accent-transparent"
+                          style={{
+                            background: `linear-gradient(to right, ${accent} 0%, ${accent} ${isMuted ? 0 : volume * 100}%, var(--card-border) ${isMuted ? 0 : volume * 100}%, var(--card-border) 100%)`,
+                          }}
+                        />
+                      </div>
+                    </motion.div>
                   )}
-                </button>
+                </AnimatePresence>
 
-                <button
-                  onClick={next}
-                  className="rounded-full border p-2.5 transition-all hover:bg-[var(--bg-secondary)] active:scale-95"
-                  style={{ borderColor: "var(--card-border)" }}
-                  aria-label="Next track"
-                >
-                  <SkipForward className="h-4 w-4 text-[var(--text-primary)]" />
-                </button>
+                {/* Main Playback & App controls row */}
+                <div className="flex items-center justify-between w-full mt-1 px-6">
+                  {/* Volume Toggle Button */}
+                  <button
+                    onClick={() => {
+                      if (showVolume) {
+                        toggleMute();
+                        triggerVolumeActive();
+                      } else {
+                        triggerVolumeActive();
+                      }
+                    }}
+                    className="rounded-full p-2 transition-all active:scale-95 text-[var(--text-secondary)]"
+                    aria-label="Volume"
+                  >
+                    <SpeakerIcon className="h-4.5 w-4.5" />
+                  </button>
 
-                <button
-                  onClick={() => setIsRepeat(!isRepeat)}
-                  className="rounded-full p-2 transition-all active:scale-95 text-[var(--text-secondary)]"
-                  style={{ color: isRepeat ? accent : undefined }}
-                  aria-label="Repeat"
-                >
-                  <Repeat className="h-4 w-4" />
-                </button>
+                  <button
+                    onClick={() => setIsShuffle(!isShuffle)}
+                    className="rounded-full p-2 transition-all active:scale-95 text-[var(--text-secondary)]"
+                    style={{ color: isShuffle ? accent : undefined }}
+                    aria-label="Shuffle"
+                  >
+                    <Shuffle className="h-4.5 w-4.5" />
+                  </button>
+
+                  <button
+                    onClick={prev}
+                    className="rounded-full border p-2.5 transition-all hover:bg-[var(--bg-secondary)] active:scale-95"
+                    style={{ borderColor: "var(--card-border)" }}
+                    aria-label="Previous track"
+                  >
+                    <SkipBack className="h-4 w-4 text-[var(--text-primary)]" />
+                  </button>
+
+                  <button
+                    onClick={isPlaying ? pause : resume}
+                    className="flex h-13 w-13 items-center justify-center rounded-full transition-all hover:scale-105 active:scale-95 text-white shadow-lg shrink-0"
+                    style={{
+                      background: `linear-gradient(135deg, ${accent}, ${accentColor.secondary})`,
+                      boxShadow: isPlaying ? `0 4px 18px -2px ${accentGlow}` : "none",
+                    }}
+                    aria-label={isPlaying ? "Pause" : "Play"}
+                  >
+                    {isPlaying ? (
+                      <Pause className="h-5.5 w-5.5 fill-white text-white" />
+                    ) : (
+                      <Play className="h-5.5 w-5.5 fill-white text-white ml-0.5" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={next}
+                    className="rounded-full border p-2.5 transition-all hover:bg-[var(--bg-secondary)] active:scale-95"
+                    style={{ borderColor: "var(--card-border)" }}
+                    aria-label="Next track"
+                  >
+                    <SkipForward className="h-4 w-4 text-[var(--text-primary)]" />
+                  </button>
+
+                  <button
+                    onClick={() => setIsRepeat(!isRepeat)}
+                    className="rounded-full p-2 transition-all active:scale-95 text-[var(--text-secondary)]"
+                    style={{ color: isRepeat ? accent : undefined }}
+                    aria-label="Repeat"
+                  >
+                    <Repeat className="h-4.5 w-4.5" />
+                  </button>
+
+                  <button
+                    onClick={toggleQueue}
+                    className="rounded-full p-2 transition-all active:scale-95 text-[var(--text-secondary)]"
+                    style={{ color: isQueueOpen ? accent : undefined }}
+                    aria-label="Toggle queue"
+                  >
+                    <ListMusic className="h-4.5 w-4.5" />
+                  </button>
+                </div>
               </div>
             </div>
 

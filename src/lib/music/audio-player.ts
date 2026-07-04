@@ -12,6 +12,9 @@ export class MusicAudioPlayer {
   private audio: HTMLAudioElement | null = null;
   private callbacks: AudioPlayerCallbacks = {};
   private currentState: AudioPlayerState = "unstarted";
+  private audioContext: AudioContext | null = null;
+  private analyser: AnalyserNode | null = null;
+  private source: MediaElementAudioSourceNode | null = null;
 
   static getInstance(): MusicAudioPlayer {
     if (!MusicAudioPlayer.instance) {
@@ -65,6 +68,22 @@ export class MusicAudioPlayer {
       });
 
       this.audio.addEventListener("error", () => {
+        // Ignore errors if the source was cleared intentionally (empty src) or player is stopped
+        if (
+          !this.audio ||
+          !this.audio.src ||
+          this.audio.src === "" ||
+          this.audio.src === window.location.href ||
+          this.currentState === "unstarted"
+        ) {
+          return;
+        }
+
+        // Also ignore if the error message indicates an empty src attribute
+        if (this.audio.error?.message?.includes("Empty src attribute")) {
+          return;
+        }
+
         console.error("[MusicAudioPlayer] Audio error:", this.audio?.error);
         // Map any media error to standard code
         this.callbacks.onError?.(this.audio?.error?.code || 4);
@@ -94,6 +113,9 @@ export class MusicAudioPlayer {
   }
 
   play() {
+    if (this.audioContext && this.audioContext.state === "suspended") {
+      this.audioContext.resume().catch(() => {});
+    }
     this.audio?.play().catch(() => {});
   }
 
@@ -141,10 +163,40 @@ export class MusicAudioPlayer {
     return this.currentState;
   }
 
+  getAnalyser(): AnalyserNode | null {
+    if (typeof window === "undefined") return null;
+    if (!this.audio) return null;
+
+    if (!this.audioContext) {
+      try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        this.audioContext = new AudioContextClass();
+        this.analyser = this.audioContext.createAnalyser();
+        this.analyser.fftSize = 64; // 32 frequency bins
+        this.analyser.smoothingTimeConstant = 0.8;
+
+        this.source = this.audioContext.createMediaElementSource(this.audio);
+        this.source.connect(this.analyser);
+        this.analyser.connect(this.audioContext.destination);
+      } catch (err) {
+        console.warn("[MusicAudioPlayer] Failed to initialize Web Audio API:", err);
+        return null;
+      }
+    }
+
+    if (this.audioContext.state === "suspended") {
+      this.audioContext.resume().catch(() => {});
+    }
+
+    return this.analyser;
+  }
+
   stop() {
     if (this.audio) {
       this.audio.pause();
-      this.audio.src = "";
+      // Properly clear/reset media element resources in standard HTML5 browser environment
+      this.audio.removeAttribute("src");
+      this.audio.load();
     }
     this.currentState = "unstarted";
   }
@@ -155,6 +207,12 @@ export class MusicAudioPlayer {
 
   destroy() {
     this.stop();
+    if (this.audioContext) {
+      this.audioContext.close().catch(() => {});
+      this.audioContext = null;
+    }
+    this.source = null;
+    this.analyser = null;
     this.audio = null;
     MusicAudioPlayer.instance = null;
   }

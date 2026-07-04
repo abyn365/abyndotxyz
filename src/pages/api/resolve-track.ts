@@ -6,14 +6,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { title, artist } = req.query;
+  const { title, artist, album } = req.query;
 
-  if (!title || !artist) {
-    return res.status(400).json({ error: "Missing title or artist query parameters" });
+  const tStr = typeof title === "string" ? title.trim() : "";
+  const aStr = typeof artist === "string" ? artist.trim() : "";
+  const alStr = typeof album === "string" ? album.trim() : "";
+
+  if (!tStr || !aStr || tStr === "undefined" || tStr === "null" || aStr === "undefined" || aStr === "null") {
+    return res.status(400).json({ error: "Missing or invalid title or artist query parameters" });
   }
 
   try {
-    const searchQuery = `${title} ${artist}`;
+    const searchQuery = alStr && alStr !== "undefined" && alStr !== "null"
+      ? `${tStr} ${aStr} ${alStr}`
+      : `${tStr} ${aStr}`;
     const result = await searchTrack(searchQuery);
 
     if (!result) {

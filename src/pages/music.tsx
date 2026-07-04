@@ -22,7 +22,7 @@ import {
   type MusicDashboardStats,
   type MusicPeriod,
 } from "../lib/music";
-import { type TrackMetadata, formatDuration } from "../lib/music/metadata";
+import { type TrackMetadata, formatDuration, isSameTrack } from "../lib/music/metadata";
 import { PageFooter } from "../components/PageFooter";
 import { LanyardResponse } from "../@types/discord-status.type";
 
@@ -171,8 +171,7 @@ function LivePresenceCard() {
   const sp = presence.data.spotify;
   const isThisPlaying =
     isSpotify && isPlaying &&
-    currentTrack?.title === sp?.song &&
-    currentTrack?.artist === sp?.artist;
+    isSameTrack(currentTrack, { title: sp?.song, artist: sp?.artist });
 
   return (
     <div
@@ -844,8 +843,7 @@ function TrackCarousel({
           tracks.map((track, idx) => {
             const isThisPlaying =
               isPlaying &&
-              currentTrack?.title === track.title &&
-              currentTrack?.artist === track.artist;
+              isSameTrack(currentTrack, track);
 
             return (
               <button

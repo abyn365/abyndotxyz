@@ -38,11 +38,9 @@
 
 ## Documentation
 
-- [API docs](docs/api.md) for the site's public Next.js API routes, including:
-  - [Discord status](docs/api.md#get-apidiscord-status)
-  - [Visitor stats](docs/api.md#get-apivisitor-stats)
-  - [Top tracks](docs/api.md#get-apitop-tracks)
-  - [Location and weather APIs](docs/api.md#location-and-weather-apis)
+- [API docs](docs/api.md) for the site's public Next.js API routes.
+- [Windows Setup & Testing Guide](docs/windows_testing.md) for local testing instructions.
+- [Production VPS Deployment Guide](deploy/README.md) for Ubuntu/Debian server setup.
 
 ## License
 

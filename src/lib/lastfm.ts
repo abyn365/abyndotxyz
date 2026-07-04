@@ -99,6 +99,11 @@ export function getLastFmImage(
   images: LastFmImage[],
   preferredSize: "extralarge" | "large" | "medium" | "small" = "extralarge"
 ): string {
+  // Prioritize any image containing ".gif"
+  const gifMatch = images.find((image) => image["#text"]?.toLowerCase().includes(".gif"));
+  const gifUrl = gifMatch?.["#text"] ?? "";
+  if (isUsableCoverImage(gifUrl)) return gifUrl;
+
   const sizeOrder = ["extralarge", "large", "medium", "small"] as const;
   const startIndex = sizeOrder.indexOf(preferredSize);
 
@@ -192,7 +197,8 @@ export async function getItunesCoverArt(
 ): Promise<string> {
   const cleanTrack = cleanTrackTitleForCoverSearch(track);
   const cleanArtist = artist.replace(/&.*$/, "").trim(); // take first artist only
-  const cacheKey = `cover-art-v2:${cleanArtist.toLowerCase()}:${cleanTrack.toLowerCase()}`;
+  const normTrack = cleanTrack.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const cacheKey = `cover-art-v2:${cleanArtist.toLowerCase()}:${normTrack}`;
 
   try {
     const cached = await kv.get<string>(cacheKey);
@@ -247,7 +253,8 @@ export async function getSpotifyCoverArt(
   track: string
 ): Promise<string> {
   const cleanTrack = cleanTrackTitleForCoverSearch(track);
-  const cacheKey = `cover-art-v2:${artist.toLowerCase()}:${cleanTrack.toLowerCase()}`;
+  const normTrack = cleanTrack.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const cacheKey = `cover-art-v2:${artist.toLowerCase()}:${normTrack}`;
 
   try {
     const cached = await kv.get<string>(cacheKey);
@@ -332,7 +339,8 @@ export async function resolveTrackCoverArtBatch(
       const cachedCovers = await Promise.all(
         needsCacheCheck.map((i) => {
           const cleanTrack = cleanTrackTitleForCoverSearch(tracks[i].track);
-          const cacheKey = `cover-art-v2:${tracks[i].artist.toLowerCase()}:${cleanTrack.toLowerCase()}`;
+          const normTrack = cleanTrack.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+          const cacheKey = `cover-art-v2:${tracks[i].artist.toLowerCase()}:${normTrack}`;
           return kv.get<string>(cacheKey).catch(() => null);
         })
       );

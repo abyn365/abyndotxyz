@@ -14,6 +14,7 @@ import Squares from "../components/Squares";
 import { MusicPlayerProvider } from "../components/music/MusicPlayerContext";
 import MusicPlayerBar from "../components/music/MusicPlayerBar";
 import MusicLyricsPanel from "../components/music/MusicLyricsPanel";
+import MusicQueuePanel from "../components/music/MusicQueuePanel";
 import FirstLoadOverlay from "../components/FirstLoadOverlay";
 import ClickSound from "../components/ClickSound";
 
@@ -114,16 +115,19 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:image" content="https://abyn.xyz/api/og" />
         <meta property="og:url" content="https://abyn.xyz" />
         <meta property="og:type" content="website" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if (sessionStorage.getItem('has_entered') === 'true') {
-                document.documentElement.classList.add('has-entered');
-              }
-            `,
-          }}
-        />
       </Head>
+
+      <Script
+        id="has-entered"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            if (sessionStorage.getItem('has_entered') === 'true') {
+              document.documentElement.classList.add('has-entered');
+            }
+          `,
+        }}
+      />
 
       <NextSeo
         title="abyn — student developer"
@@ -208,6 +212,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       {/* Global music player — persists across all pages */}
       <MusicPlayerBar />
       <MusicLyricsPanel />
+      <MusicQueuePanel />
       <KeyboardShortcuts />
       <ClickSound />
     </MusicPlayerProvider>

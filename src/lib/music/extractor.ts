@@ -114,13 +114,21 @@ export async function searchTrack(query: string, signal?: AbortSignal): Promise<
  * Resolves a track's high-quality stream URL by its video ID or direct URL.
  * Automatically refreshes expired stream URLs.
  */
-export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal): Promise<ExtractedTrack> {
+export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal, forceRefresh = false): Promise<ExtractedTrack> {
   const isUrl = urlOrId.startsWith("http://") || urlOrId.startsWith("https://");
   const cacheKey = isUrl ? `url:${urlOrId}` : `id:${urlOrId}`;
   
-  const cached = trackCache.get(cacheKey);
-  if (cached && cached.streamUrl && cached.expiresAt && Date.now() < cached.expiresAt) {
-    return cached;
+  if (!forceRefresh) {
+    const cached = trackCache.get(cacheKey);
+    if (cached && cached.streamUrl && cached.expiresAt && Date.now() < cached.expiresAt) {
+      return cached;
+    }
+  } else {
+    trackCache.delete(cacheKey);
+    if (!isUrl) {
+      const target = `https://www.youtube.com/watch?v=${urlOrId}`;
+      trackCache.delete(`url:${target}`);
+    }
   }
 
   const target = isUrl ? urlOrId : `https://www.youtube.com/watch?v=${urlOrId}`;

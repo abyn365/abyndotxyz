@@ -19,6 +19,7 @@ import {
   VolumeX,
   X,
   Loader2,
+  ListMusic,
 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { useMusicPlayer } from "./MusicPlayerContext";
@@ -220,6 +221,8 @@ export default function MusicPlayerBar() {
     syncMode,
     resetToListeningAlong,
     spotifyData,
+    isQueueOpen,
+    toggleQueue,
   } = useMusicPlayer();
 
   if (!currentTrack) return null;
@@ -303,9 +306,14 @@ export default function MusicPlayerBar() {
                   {currentTrack.title}
                 </motion.p>
               </AnimatePresence>
-              <p className="truncate text-[10px] text-[var(--text-secondary)] leading-tight">
-                {currentTrack.artist}
-              </p>
+              <div className="flex items-center gap-2 leading-tight">
+                <p className="truncate text-[10px] text-[var(--text-secondary)]">
+                  {currentTrack.artist}
+                </p>
+                <div className="w-8 h-2.5 flex items-center shrink-0 opacity-80">
+                  <MusicVisualizer isPlaying={isPlaying} trackId={trackKey} barCount={6} height={10} />
+                </div>
+              </div>
             </div>
 
             {/* Mobile: lyrics + play/pause + close */}
@@ -317,6 +325,15 @@ export default function MusicPlayerBar() {
                 aria-label="Toggle lyrics"
               >
                 <Mic2 className="h-3.5 w-3.5" />
+              </button>
+
+              <button
+                onClick={toggleQueue}
+                className="rounded-full p-2 transition-all duration-200 hover:bg-[var(--bg-secondary)]"
+                style={{ color: isQueueOpen ? accent : "var(--text-secondary)" }}
+                aria-label="Toggle queue"
+              >
+                <ListMusic className="h-3.5 w-3.5" />
               </button>
 
               <motion.button
@@ -410,12 +427,17 @@ export default function MusicPlayerBar() {
                     {currentTrack.title}
                   </motion.p>
                 </AnimatePresence>
-                <p className="truncate text-xs text-[var(--text-secondary)] mt-0.5 leading-tight">
-                  {currentTrack.artist}
-                  {currentTrack.album ? (
-                    <span className="opacity-60"> · {currentTrack.album}</span>
-                  ) : null}
-                </p>
+                <div className="flex items-center gap-2.5 mt-0.5">
+                  <p className="truncate text-xs text-[var(--text-secondary)] leading-tight">
+                    {currentTrack.artist}
+                    {currentTrack.album ? (
+                      <span className="opacity-60"> · {currentTrack.album}</span>
+                    ) : null}
+                  </p>
+                  <div className="w-10 h-3 flex items-center shrink-0 opacity-80">
+                    <MusicVisualizer isPlaying={isPlaying} trackId={trackKey} barCount={8} height={12} />
+                  </div>
+                </div>
                 {/* Sync Mode indicator badge */}
                 <div className="flex items-center gap-1.5 mt-1">
                   {syncMode === "listening-along" ? (
@@ -520,6 +542,19 @@ export default function MusicPlayerBar() {
                 title="Lyrics (L)"
               >
                 <Mic2 className="h-3.5 w-3.5" />
+              </button>
+
+              <button
+                onClick={toggleQueue}
+                className="rounded-full p-2 transition-all duration-200 hover:bg-[var(--bg-secondary)]"
+                style={{
+                  color: isQueueOpen ? accent : "var(--text-secondary)",
+                  transition: "color 300ms ease",
+                }}
+                aria-label="Toggle queue"
+                title="Queue"
+              >
+                <ListMusic className="h-3.5 w-3.5" />
               </button>
 
               <button

@@ -5,6 +5,7 @@ import {
   isUsableCoverImage,
   getItunesCoverArt,
   getSpotifyCoverArt,
+  getLastFmImage,
   type LastFmImage,
   type TopItem,
   type RecentTrack,
@@ -349,12 +350,7 @@ export default async function handler(
               ? item.artist
               : item.artist?.name ?? "";
 
-          // Try Last.fm image sizes in order
-          const lastFmCover =
-            item.image?.find((img) => img.size === "extralarge")?.["#text"]
-            || item.image?.find((img) => img.size === "large")?.["#text"]
-            || item.image?.[item.image.length - 1]?.["#text"]
-            || "";
+          const lastFmCover = getLastFmImage(item.image ?? []);
 
           // If Last.fm gave us a real image, use it; otherwise fall back to iTunes then Spotify
           let coverUrl = isUsableCoverImage(lastFmCover) ? lastFmCover : "";

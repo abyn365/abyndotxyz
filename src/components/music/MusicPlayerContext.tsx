@@ -21,7 +21,7 @@ import React, {
 import { MusicAudioPlayer } from "../../lib/music/audio-player";
 import { cacheGet, cacheSet } from "../../lib/music/cache";
 import { fetchLyrics, getActiveLyricIndex, type LyricsLine } from "../../lib/music/lyrics";
-import { resolveMetadata, type TrackMetadata } from "../../lib/music/metadata";
+import { resolveMetadata, isSameTrack, type TrackMetadata } from "../../lib/music/metadata";
 import { SpotifySync } from "../../lib/music/sync";
 import { NowPlayingSong } from "../../@types/now-playing-song.type";
 import {
@@ -56,6 +56,7 @@ export interface MusicPlayerState {
   queueIndex: number;
   accentColor: AccentPalette;
   syncMode: "listening-along" | "manual";
+  isQueueOpen: boolean;
 }
 
 export interface MusicPlayerActions {
@@ -72,6 +73,9 @@ export interface MusicPlayerActions {
   setQueue: (tracks: TrackMetadata[], startIndex?: number) => void;
   dismiss: () => void;
   resetToListeningAlong: () => void;
+  toggleQueue: () => void;
+  setQueueOpen: (open: boolean) => void;
+  playFromQueue: (index: number) => Promise<void>;
 }
 
 const defaultState: MusicPlayerState = {
@@ -95,6 +99,7 @@ const defaultState: MusicPlayerState = {
   queueIndex: -1,
   accentColor: FALLBACK,
   syncMode: "listening-along",
+  isQueueOpen: false,
 };
 
 const MusicPlayerContext = createContext<
@@ -260,6 +265,10 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
 
           try {
             const target = currentTrack.videoId || currentTrack.resolvedUrl || "";
+            if (!target) {
+              console.warn("[Audio Player] Ignored error: track not resolved yet.");
+              return;
+            }
             const streamUrl = `/api/stream?id=${encodeURIComponent(target)}`;
             audioPlayer.current?.load(streamUrl, stateRef.current.progress);
             return;
@@ -391,7 +400,14 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
 
       const trackKey = `${data.title}::${data.artist}`;
 
-      if (trackKey === spotifyTrackKey.current) {
+      const lastSpotifyTrack = spotifyTrackKey.current
+        ? {
+            title: spotifyTrackKey.current.split("::")[0],
+            artist: spotifyTrackKey.current.split("::")[1],
+          }
+        : null;
+
+      if (isSameTrack(data, lastSpotifyTrack)) {
         // Same song — onTimeUpdate handles drift correction continuously
         return;
       }
@@ -435,7 +451,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       }
 
       // Don't reload if same track
-      if (key === currentTrackKey.current && seekToMs === undefined) {
+      if (isSameTrack(track, stateRef.current.currentTrack) && seekToMs === undefined) {
         if (!stateRef.current.isPlaying) audioPlayer.current?.play();
         return;
       }
@@ -477,7 +493,10 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       let activeTrack = track;
 
       const resolveTrackOnServer = async (t: TrackMetadata, signal?: AbortSignal) => {
-        const cacheKey = `resolved_track:${t.artist.toLowerCase()}:${t.title.toLowerCase()}`;
+        const normTitle = t.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+        const normArtist = t.artist.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+        const normAlbum = t.album ? t.album.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
+        const cacheKey = `resolved_track:${normArtist}:${normTitle}${normAlbum ? `:${normAlbum}` : ""}`;
         const cached = cacheGet<any>(cacheKey);
         if (cached) return cached;
 
@@ -668,6 +687,19 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       spotifyTrackKey.current = null;
       if (spotifySync.current) {
         spotifySync.current.forceRefresh();
+      }
+    },
+    toggleQueue() {
+      set({ isQueueOpen: !stateRef.current.isQueueOpen });
+    },
+    setQueueOpen(open: boolean) {
+      set({ isQueueOpen: open });
+    },
+    async playFromQueue(index: number) {
+      const { queue } = stateRef.current;
+      if (index >= 0 && index < queue.length) {
+        set({ queueIndex: index });
+        await actions.playSong(queue[index]);
       }
     },
   };

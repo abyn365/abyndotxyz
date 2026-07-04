@@ -8,3 +8,5 @@ export { useMusicPlayer, MusicPlayerProvider } from "./MusicPlayerContext";
 export { default as MusicTrackCard } from "./MusicTrackCard";
 export { default as MusicTrackSkeleton } from "./MusicTrackSkeleton";
 export { default as MusicVisualizer } from "./MusicVisualizer";
+export { default as MusicQueuePanel } from "./MusicQueuePanel";
+

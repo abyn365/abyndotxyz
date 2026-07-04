@@ -49,3 +49,20 @@ export function formatDuration(seconds: number): string {
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
+
+export function isSameTrack(
+  t1: { title?: string; artist?: string } | null | undefined,
+  t2: { title?: string; artist?: string } | null | undefined
+): boolean {
+  if (!t1 || !t2) return false;
+
+  const normalize = (s?: string) =>
+    (s ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .trim();
+
+  return normalize(t1.title) === normalize(t2.title) && normalize(t1.artist) === normalize(t2.artist);
+}
