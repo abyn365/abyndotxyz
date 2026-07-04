@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getNowPlaying, getQueue, getAccessToken, SpotifyRefreshTokenExpiredError } from "../../lib/spotify";
 import { NowPlayingSong, UpcomingQueueItem } from "../../@types/now-playing-song.type";
+import { kv } from "../../lib/kv";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<NowPlayingSong | { error: string }>) {
   if (req.method !== 'GET') {
@@ -35,7 +36,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const songUrl = song.item.external_urls?.spotify || "";
 
     const artistId = song.item.artists?.[0]?.id;
+    const trackId = song.item.id;
     
+    let canvasUrl = "";
+    if (trackId) {
+      try {
+        const cacheKey = `spotify_canvas:${trackId}`;
+        const cachedCanvas = await kv.get<string>(cacheKey);
+        
+        if (cachedCanvas !== null) {
+          canvasUrl = cachedCanvas;
+        } else {
+          const apiKey = process.env.PAXSENIX_API_KEY as string;
+          const canvasRes = await fetch(`https://api.paxsenix.org/spotify/canvas?id=${trackId}`, {
+            headers: {
+              "Authorization": `Bearer ${apiKey}`,
+              "Content-Type": "application/json"
+            },
+            cache: "no-store"
+          });
+          if (canvasRes.ok) {
+            const canvasData = await canvasRes.json();
+            if (canvasData?.ok && canvasData?.data?.canvasesList?.length > 0) {
+              canvasUrl = canvasData.data.canvasesList[0].canvasUrl || "";
+              await kv.set(cacheKey, canvasUrl, { ex: 7 * 24 * 60 * 60 }); // Cache 7 days
+            } else {
+              await kv.set(cacheKey, "", { ex: 24 * 60 * 60 }); // Cache empty for 24h
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch Spotify canvas:", err);
+      }
+    }
     let artistGenres: string[] = [];
     let isArtistGenre = false;
 
@@ -122,6 +155,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       progressMs: song.progress_ms || 0,
       durationMs: song.item.duration_ms || 0,
       upcomingQueue,
+      canvasUrl,
     });
 
   } catch (error) {

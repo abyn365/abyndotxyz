@@ -316,6 +316,7 @@ export default function MusicPlayerBar() {
             >
               <MusicArtwork
                 src={currentTrack.cover}
+                canvasUrl={currentTrack.canvasUrl}
                 alt={currentTrack.title}
                 className="h-full w-full object-cover"
               />
@@ -436,6 +437,7 @@ export default function MusicPlayerBar() {
                 >
                   <MusicArtwork
                     src={currentTrack.cover}
+                    canvasUrl={currentTrack.canvasUrl}
                     alt={currentTrack.title}
                     className="h-full w-full object-cover"
                   />
@@ -547,7 +549,7 @@ export default function MusicPlayerBar() {
               </motion.button>
 
               <button
-                onClick={next}
+                onClick={() => next()}
                 disabled={!hasNext}
                 className="rounded-full p-2 transition-all duration-150 hover:bg-[var(--bg-secondary)] disabled:opacity-25 active:scale-95"
                 aria-label="Next"

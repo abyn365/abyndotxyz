@@ -268,3 +268,39 @@ curl 'https://your-domain.com/api/resolve-track?title=Tuition&artist=Don+Toliver
 - Rejects cover versions, live versions, instrumentals, or sped up/slowed/reverb variations unless explicitly requested in the query title.
 - Caches resolved results on the server for 24 hours to reduce latency.
 
+## `GET /api/idonthavespotify`
+
+A fallback endpoint that uses the Paxsenix API to resolve alternative streaming links (such as YouTube Music, Apple Music, Deezer, etc.) for a given Spotify track URL.
+
+```sh
+curl 'https://your-domain.com/api/idonthavespotify?url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F263z39DmKOaUZfKXzin5bR'
+```
+
+### Query Parameters
+
+| Parameter | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `url`     | String | Yes    | The full Spotify track URL to resolve. |
+
+### Required environment/configuration:
+
+- `PAXSENIX_API_KEY`: The API key for `api.paxsenix.org`.
+
+### Example Response
+
+The endpoint returns the raw response from the Paxsenix API.
+
+```json
+{
+  "creator": "@PaxSenix",
+  "ok": true,
+  ...
+}
+```
+
+### Notes
+
+- Method: `GET` only.
+- Relies on the external `api.paxsenix.org` service.
+- If the `url` parameter is missing or invalid, returns `400`.
+- Returns `500` if the upstream fetch fails.

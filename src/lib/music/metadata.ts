@@ -10,6 +10,7 @@ export interface TrackMetadata {
   cover?: string;
   duration?: number; // seconds
   songUrl?: string;   // Spotify/Last.fm URL for linking
+  canvasUrl?: string; // Spotify canvas video URL
   videoId?: string;   // YouTube video ID (once resolved)
   playcount?: number;
   rank?: number;

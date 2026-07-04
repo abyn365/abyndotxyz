@@ -57,6 +57,7 @@ export interface MusicPlayerState {
   accentColor: AccentPalette;
   syncMode: "listening-along" | "manual";
   isQueueOpen: boolean;
+  endedLocally?: boolean;
 }
 
 export interface MusicPlayerActions {
@@ -100,6 +101,7 @@ const defaultState: MusicPlayerState = {
   accentColor: FALLBACK,
   syncMode: "listening-along",
   isQueueOpen: false,
+  endedLocally: false,
 };
 
 const MusicPlayerContext = createContext<
@@ -273,8 +275,10 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
           set({ isPlaying: false, isLoading: false });
         } else if (audioState === "ended") {
           // Auto-advance queue
-          const { queue, queueIndex } = stateRef.current;
-          if (queueIndex < queue.length - 1) {
+          const { queue, queueIndex, syncMode } = stateRef.current;
+          if (syncMode === "listening-along") {
+            set({ isPlaying: false, endedLocally: true });
+          } else if (queueIndex < queue.length - 1) {
             actions.next(true);
           } else {
             set({ isPlaying: false });
@@ -499,8 +503,17 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
           audioPlayer.current?.pause();
           set({ isPlaying: false });
         } else if (data.isPlaying && !stateRef.current.isPlaying) {
-          audioPlayer.current?.play();
-          set({ isPlaying: true });
+          const isAtEnd = stateRef.current.endedLocally || audioPlayer.current?.getState() === "ended";
+          const spotifyProgress = data.progressMs ?? 0;
+          const isUserSeekedBack = lastSpotifySync.current && (spotifyProgress < lastSpotifySync.current.progressMs - 5000);
+
+          if (!isAtEnd || isUserSeekedBack) {
+            audioPlayer.current?.play();
+            set({ isPlaying: true, endedLocally: false });
+            if (isUserSeekedBack) {
+              audioPlayer.current?.seek(spotifyProgress / 1000);
+            }
+          }
         }
         return;
       }
@@ -523,6 +536,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
         album: data.album,
         cover: data.albumImageUrl,
         songUrl: data.songUrl,
+        canvasUrl: data.canvasUrl,
       };
 
       // Add a slight latency buffer for initial track load
@@ -590,6 +604,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
         lyricsState: "loading",
         isMinimized: false,
         isPlaying: shouldPlay,
+        endedLocally: false,
       });
 
       setLoadingDebounced(true);

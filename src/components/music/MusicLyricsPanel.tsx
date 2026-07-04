@@ -174,8 +174,21 @@ export default function MusicLyricsPanel() {
             height: "100dvh",
           }}
         >
-          {/* Ambient blurred album art backdrop */}
-          {currentTrack.cover && (
+          {/* Ambient cinematic backdrop (video canvas or album art) */}
+          {currentTrack.canvasUrl ? (
+            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+              <video
+                src={currentTrack.canvasUrl}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="h-full w-full object-cover opacity-30 dark:opacity-20 scale-[1.06] filter blur-[24px] saturate-[1.4] transition-opacity duration-1000"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)] opacity-90" />
+              <div className="absolute inset-0 bg-black/30 dark:bg-black/60" />
+            </div>
+          ) : currentTrack.cover ? (
             <div
               className="pointer-events-none absolute inset-0 z-0 opacity-15 dark:opacity-10"
               style={{
@@ -186,7 +199,7 @@ export default function MusicLyricsPanel() {
                 transform: "scale(1.1)",
               }}
             />
-          )}
+          ) : null}
 
           {/* ── MOBILE / COMPACT SCREEN HEADER (Hidden on LG) ── */}
           <header className="relative z-10 flex h-16 shrink-0 items-center justify-between px-4 border-b lg:hidden" style={{ borderColor: "var(--card-border)" }}>
@@ -264,6 +277,7 @@ export default function MusicLyricsPanel() {
               >
                 <MusicArtwork
                   src={currentTrack.cover}
+                  canvasUrl={currentTrack.canvasUrl}
                   alt={currentTrack.title}
                   className="h-full w-full object-cover"
                 />
@@ -345,7 +359,7 @@ export default function MusicLyricsPanel() {
                 </button>
 
                 <button
-                  onClick={next}
+                  onClick={() => next()}
                   className="rounded-full border p-2.5 transition-all hover:bg-[var(--bg-secondary)] active:scale-95"
                   style={{ borderColor: "var(--card-border)" }}
                   aria-label="Next track"
@@ -652,7 +666,7 @@ export default function MusicLyricsPanel() {
                   </button>
 
                   <button
-                    onClick={next}
+                    onClick={() => next()}
                     className="rounded-full border p-2.5 transition-all hover:bg-[var(--bg-secondary)] active:scale-95"
                     style={{ borderColor: "var(--card-border)" }}
                     aria-label="Next track"

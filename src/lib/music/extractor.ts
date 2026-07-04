@@ -1,5 +1,19 @@
 import { kv } from "../kv";
 
+const PAXSENIX_KEY = process.env.PAXSENIX_API_KEY as string;
+
+async function fetchPaxsenix(url: string, signal?: AbortSignal) {
+  const res = await fetch(url, {
+    headers: {
+      "Authorization": `Bearer ${PAXSENIX_KEY}`,
+      "Content-Type": "application/json"
+    },
+    signal
+  });
+  if (!res.ok) throw new Error(`Paxsenix API error: ${res.status}`);
+  return res.json();
+}
+
 export interface ExtractedTrack {
   id: string;
   title: string;
@@ -101,11 +115,31 @@ export async function searchTrack(query: string, signal?: AbortSignal): Promise<
       console.error("[Extractor] Failed to get from SQLite KV:", err);
     }
 
-    const stdout = await runYtDlp(
-      ["--dump-json", "--no-playlist", "-f", "ba", `ytsearch1:${query}`],
-      signal
-    );
-    const track = parseYtDlpJson(stdout);
+    let track: ExtractedTrack;
+    try {
+      const paxRes = await fetchPaxsenix(`https://api.paxsenix.org/yt/search?q=${encodeURIComponent(query)}`, signal);
+      if (paxRes?.ok && paxRes?.results?.length > 0) {
+        const top = paxRes.results[0];
+        track = {
+          id: top.videoId,
+          title: top.title,
+          artist: top.channelName || "Unknown Artist",
+          duration: top.duration ? top.duration.split(':').reduce((acc: number, time: string) => (60 * acc) + +time, 0) : 0,
+          artworkUrl: top.thumbnails?.[top.thumbnails.length - 1]?.url,
+          provider: "youtube",
+          expiresAt: Date.now() + 4 * 60 * 60 * 1000 // 4 hours arbitrary cache
+        };
+      } else {
+        throw new Error("No results from Paxsenix");
+      }
+    } catch (err) {
+      console.warn("[Extractor] Paxsenix search failed, falling back to yt-dlp:", err);
+      const stdout = await runYtDlp(
+        ["--dump-json", "--no-playlist", "-f", "ba", `ytsearch1:${query}`],
+        signal
+      );
+      track = parseYtDlpJson(stdout);
+    }
     
     if (track.expiresAt) {
       trackCache.set(cacheKey, track);
@@ -161,12 +195,31 @@ export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal, 
     }
 
     const target = isUrl ? urlOrId : `https://www.youtube.com/watch?v=${urlOrId}`;
-    const stdout = await runYtDlp(
-      ["--dump-json", "--no-playlist", "-f", "ba", target],
-      signal
-    );
-
-    const track = parseYtDlpJson(stdout);
+    
+    let track: ExtractedTrack;
+    try {
+      const paxRes = await fetchPaxsenix(`https://api.paxsenix.org/yt/ytaudio?url=${encodeURIComponent(target)}`, signal);
+      if (paxRes?.ok && (paxRes?.directLink || paxRes?.downloads)) {
+        track = {
+          id: paxRes.videoId || urlOrId,
+          title: paxRes.title || "Unknown Title",
+          artist: "Unknown Artist", // Paxsenix ytaudio might not return artist
+          duration: 0,
+          streamUrl: paxRes.directLink || paxRes.downloads,
+          provider: "youtube",
+          expiresAt: Date.now() + 2 * 60 * 60 * 1000,
+        };
+      } else {
+        throw new Error("Paxsenix ytaudio failed");
+      }
+    } catch (err) {
+      console.warn("[Extractor] Paxsenix ytaudio failed, falling back to yt-dlp:", err);
+      const stdout = await runYtDlp(
+        ["--dump-json", "--no-playlist", "-f", "ba", target],
+        signal
+      );
+      track = parseYtDlpJson(stdout);
+    }
 
     if (track.expiresAt) {
       trackCache.set(cacheKey, track);

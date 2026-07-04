@@ -3,6 +3,7 @@ import { useState } from "react";
 
 type Props = {
   src?: string;
+  canvasUrl?: string;
   alt: string;
   className?: string;
   fallbackClassName?: string;
@@ -11,6 +12,7 @@ type Props = {
 
 export default function MusicArtwork({
   src,
+  canvasUrl,
   alt,
   className,
   fallbackClassName,
@@ -31,6 +33,20 @@ export default function MusicArtwork({
           style={{ color: "var(--text-primary)" }}
         />
       </div>
+    );
+  }
+
+  if (canvasUrl && !errored) {
+    return (
+      <video
+        src={canvasUrl}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className={className}
+        onError={() => setErrored(true)}
+      />
     );
   }
 

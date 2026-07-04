@@ -20,5 +20,6 @@ export interface NowPlayingSong {
   progressMs?: number;
   durationMs?: number;
   upcomingQueue?: UpcomingQueueItem[];
+  canvasUrl?: string;
   error?: string;
 }
