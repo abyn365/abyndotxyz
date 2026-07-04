@@ -1,0 +1,70 @@
+name: CI/CD Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: '1.3.14'
+
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint Code
+        run: bun run lint
+
+      - name: Typecheck TypeScript
+        run: bun x tsc --noEmit
+
+      - name: Run Tests
+        run: bun test
+
+      - name: Build Next.js Production App
+        run: bun run build
+
+      - name: Package Standalone Artifacts
+        run: |
+          mkdir -p dist
+          # Copy standalone server files
+          cp -r .next/standalone/* dist/
+          # Copy static and public assets which Next.js standalone expects
+          mkdir -p dist/.next/static
+          cp -r .next/static/* dist/.next/static/
+          mkdir -p dist/public
+          cp -r public/* dist/public/
+          # Copy deployment scripts and configs to the root of the artifact
+          cp -r deploy/* dist/
+
+      - name: Create Production Zip
+        run: |
+          cd dist
+          zip -r ../abyndotxyz-build.zip .
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: abyndotxyz-production-build
+          path: abyndotxyz-build.zip
+          retention-days: 7

@@ -1,0 +1,28 @@
+[Unit]
+Description=abyn.xyz Next.js Portfolio Server (Bun)
+After=network.target
+
+[Service]
+Type=simple
+# Ensure you copy/link the bun binary so it is available globally (e.g. /usr/local/bin/bun)
+# Or update the PATH environment variable below to include your user's ~/.bun/bin path.
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/abyndotxyz
+ExecStart=/bin/bash /var/www/abyndotxyz/start.sh
+
+# Restart configurations
+Restart=always
+RestartSec=5
+
+# Logging configurations
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=abyndotxyz
+
+[Install]
+WantedBy=multi-user.target

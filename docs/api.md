@@ -225,3 +225,46 @@ Hovering the city name shows a tooltip with the country and last location update
 | `405`  | Unsupported HTTP method.                                                          |
 | `502`  | The location could not be geocoded or saved, or the weather API returned no data. |
 | `500`  | Weather fetch failed and no stale cache is available.                             |
+
+## `GET /api/resolve-track`
+
+Resolves the best playback audio source for a given music track by searching YouTube Music, YouTube, and SoundCloud in parallel and ranking candidate results using intelligent metadata similarity scoring.
+
+```sh
+curl 'https://your-domain.com/api/resolve-track?title=Tuition&artist=Don+Toliver&duration=180'
+```
+
+### Query Parameters
+
+| Parameter | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `title` | String | Yes | The title of the song. |
+| `artist` | String | Yes | The artist name(s). |
+| `album` | String | No | The album name. |
+| `duration`| Number | No | The expected duration of the track in seconds. |
+| `isrc` | String | No | The International Standard Recording Code (ISRC) for precise matching. |
+| `explicit`| String | No | `"true"` or `"1"` if the track is explicit. |
+| `year` | Number | No | The release year. |
+
+### Example Response
+
+```json
+{
+  "provider": "youtube-music",
+  "id": "E3-tmG0SU7k",
+  "url": "https://www.youtube.com/watch?v=E3-tmG0SU7k",
+  "title": "Tuition",
+  "artist": "Don Toliver",
+  "duration": 180,
+  "artworkUrl": "https://img.youtube.com/vi/E3-tmG0SU7k/hqdefault.jpg",
+  "score": 100
+}
+```
+
+### Notes
+
+- Method: `GET` only.
+- Executes searches against YouTube Music, standard YouTube, and SoundCloud concurrently.
+- Rejects cover versions, live versions, instrumentals, or sped up/slowed/reverb variations unless explicitly requested in the query title.
+- Caches resolved results on the server for 24 hours to reduce latency.
+
