@@ -11,7 +11,6 @@ jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
-    # Required to upload assets to GitHub Releases
     permissions:
       contents: write
 
@@ -50,15 +49,17 @@ jobs:
       - name: Package Standalone Artifacts
         run: |
           mkdir -p dist
-          # Copy standalone server files
-          cp -r .next/standalone/* dist/
-          # Copy static and public assets which Next.js standalone expects
-          mkdir -p dist/.next/static
-          cp -r .next/static/* dist/.next/static/
-          mkdir -p dist/public
-          cp -r public/* dist/public/
-          # Copy deployment scripts and configs to the root of the artifact
-          cp -r deploy/* dist/
+
+          # 1. Copy ALL standalone files (including the hidden .next folder)
+          cp -r .next/standalone/. dist/
+
+          # 2. Safely create and copy frontend assets (_next/static and public)
+          mkdir -p dist/public dist/.next/static
+          cp -r public/. dist/public/
+          cp -r .next/static/. dist/.next/static/
+
+          # 3. Copy deployment scripts if the folder exists
+          if [ -d "deploy" ]; then cp -r deploy/. dist/; fi
 
       - name: Create Production Zip
         run: |
@@ -72,7 +73,6 @@ jobs:
           path: abyndotxyz-build.zip
           retention-days: 7
 
-      # Automatically creates or updates the "latest" release with the new zip
       - name: Deploy to GitHub Release
         if: github.event_name != 'pull_request'
         uses: ncipollo/release-action@v1
