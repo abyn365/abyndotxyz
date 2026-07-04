@@ -135,9 +135,10 @@ export default function MusicLyricsPanel() {
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 30, stiffness: 220 }}
-          className="fixed inset-0 z-[60] flex flex-col overflow-hidden h-screen w-screen"
+          className="fixed inset-0 z-[60] flex flex-col overflow-hidden w-screen"
           style={{
             background: "var(--bg-primary)",
+            height: "100dvh",
           }}
         >
           {/* Ambient blurred album art backdrop */}
@@ -602,8 +603,9 @@ export default function MusicLyricsPanel() {
                     onClick={isPlaying ? pause : resume}
                     className="flex h-13 w-13 items-center justify-center rounded-full transition-all hover:scale-105 active:scale-95 text-white shadow-lg shrink-0"
                     style={{
-                      background: `linear-gradient(135deg, ${accent}, ${accentColor.secondary})`,
-                      boxShadow: isPlaying ? `0 4px 18px -2px ${accentGlow}` : "none",
+                      background: "rgba(255, 255, 255, 0.06)",
+                      border: "1px solid rgba(255, 255, 255, 0.15)",
+                      boxShadow: `0 0 20px -2px ${accentGlow}`,
                     }}
                     aria-label={isPlaying ? "Pause" : "Play"}
                   >

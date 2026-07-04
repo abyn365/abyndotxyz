@@ -329,6 +329,10 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
 
     // Keyboard shortcuts
     const handleKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey) {
+        return;
+      }
+
       const target = e.target as HTMLElement;
       if (
         target?.tagName === "INPUT" ||
