@@ -389,11 +389,18 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
     const sync = new SpotifySync(async (data: NowPlayingSong) => {
       set({ spotifyData: data });
 
-      // Preload next items in the Spotify queue
+      // Preload next items in the Spotify queue sequentially to avoid VPS CPU spikes
       if (data.upcomingQueue && Array.isArray(data.upcomingQueue)) {
-        data.upcomingQueue.forEach((t) => {
-          preloadSearch(t.title, t.artist, t.album, t.durationMs ? t.durationMs / 1000 : undefined).catch(() => {});
-        });
+        const nextThree = data.upcomingQueue.slice(0, 3);
+        (async () => {
+          for (const t of nextThree) {
+            try {
+              await preloadSearch(t.title, t.artist, t.album, t.durationMs ? t.durationMs / 1000 : undefined);
+            } catch (err) {
+              // Ignore individual preload failures and continue
+            }
+          }
+        })();
       }
 
       // Update sync references

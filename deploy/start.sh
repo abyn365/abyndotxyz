@@ -5,7 +5,8 @@ set -euo pipefail
 # Configuration
 DEPLOY_DIR="/var/www/abyndotxyz"
 PORT="${PORT:-3000}"
-HOST="${HOST:-0.0.0.0}"
+HOST="${HOST:-127.0.0.1}"
+export HOSTNAME="${HOSTNAME:-127.0.0.1}"
 
 echo "Starting portfolio server..."
 cd "$DEPLOY_DIR"
