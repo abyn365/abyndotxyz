@@ -79,17 +79,21 @@ echo "Creating backup of current active deployment..."
 rm -rf "$BACKUP_DIR"
 mkdir -p "$BACKUP_DIR"
 
-# Move all current production server files (except env, bin, backup/staging folders themselves)
-shopt -s extglob
+# Enable both extglob and dotglob so the backup safely captures the old .next folder too
+shopt -s extglob dotglob
 for item in !(.env|bin|stage_new|backup_old); do
   if [ -e "$item" ]; then
     mv "$item" "$BACKUP_DIR/"
   fi
 done
+shopt -u dotglob # Temporarily reset dotglob behavior
 
 # 4. Atomically swap staging to production
 echo "Activating new production build..."
+shopt -s dotglob # Enable dotglob to catch the hidden .next folder inside staging
 mv "$STAGE_DIR"/* "$DEPLOY_DIR/"
+shopt -u dotglob # Turn it off safely
+
 rm -rf "$STAGE_DIR"
 
 # 5. Clean up downloaded archive if retrieved via URL
