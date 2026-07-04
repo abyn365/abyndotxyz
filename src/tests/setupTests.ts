@@ -19,7 +19,6 @@ expect.extend(matchers);
 
 // 2. Augment Bun's typings so the TypeScript compiler (tsc) recognizes the matchers
 declare module "bun:test" {
-  interface Matchers<T = unknown>
-    extends TestingLibraryMatchers<typeof expect.stringContaining, T> {}
-  interface AsymmetricMatchers extends TestingLibraryMatchers {}
+  interface Matchers<T = unknown> extends TestingLibraryMatchers<any, any> {}
+  interface AsymmetricMatchers extends TestingLibraryMatchers<any, any> {}
 }
