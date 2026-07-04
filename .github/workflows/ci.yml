@@ -3,14 +3,17 @@ name: CI/CD Pipeline
 on:
   workflow_dispatch:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
+    # Required to upload assets to GitHub Releases
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
@@ -19,7 +22,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
-          bun-version: '1.3.14'
+          bun-version: "1.3.14"
 
       - name: Cache Dependencies
         uses: actions/cache@v4
@@ -68,3 +71,16 @@ jobs:
           name: abyndotxyz-production-build
           path: abyndotxyz-build.zip
           retention-days: 7
+
+      # Automatically creates or updates the "latest" release with the new zip
+      - name: Deploy to GitHub Release
+        if: github.event_name != 'pull_request'
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "abyndotxyz-build.zip"
+          tag: "latest"
+          name: "Latest Production Build"
+          body: "Automated production build from commit ${{ github.sha }}."
+          allowUpdates: true
+          removeArtifacts: true
+          token: ${{ secrets.GITHUB_TOKEN }}
