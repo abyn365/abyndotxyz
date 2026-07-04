@@ -9,12 +9,18 @@ export interface AudioPlayerCallbacks {
 
 export class MusicAudioPlayer {
   private static instance: MusicAudioPlayer | null = null;
-  private audio: HTMLAudioElement | null = null;
+  private activeAudio: HTMLAudioElement | null = null;
+  private standbyAudio: HTMLAudioElement | null = null;
   private callbacks: AudioPlayerCallbacks = {};
   private currentState: AudioPlayerState = "unstarted";
+  
   private audioContext: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
-  private source: MediaElementAudioSourceNode | null = null;
+  private activeSource: MediaElementAudioSourceNode | null = null;
+  private standbySource: MediaElementAudioSourceNode | null = null;
+
+  private currentVolume: number = 0.8;
+  private isMutedState: boolean = false;
 
   static getInstance(): MusicAudioPlayer {
     if (!MusicAudioPlayer.instance) {
@@ -23,89 +29,103 @@ export class MusicAudioPlayer {
     return MusicAudioPlayer.instance;
   }
 
+  private attachListeners(audio: HTMLAudioElement, isStandby: boolean) {
+    audio.addEventListener("play", () => {
+      if (audio !== this.activeAudio) return;
+      this.currentState = "playing";
+      this.callbacks.onStateChange?.("playing");
+    });
+
+    audio.addEventListener("playing", () => {
+      if (audio !== this.activeAudio) return;
+      this.currentState = "playing";
+      this.callbacks.onStateChange?.("playing");
+    });
+
+    audio.addEventListener("pause", () => {
+      if (audio !== this.activeAudio) return;
+      this.currentState = "paused";
+      this.callbacks.onStateChange?.("paused");
+    });
+
+    audio.addEventListener("waiting", () => {
+      if (audio !== this.activeAudio) return;
+      this.currentState = "buffering";
+      this.callbacks.onStateChange?.("buffering");
+    });
+
+    audio.addEventListener("ended", () => {
+      if (audio !== this.activeAudio) return;
+      this.currentState = "ended";
+      this.callbacks.onStateChange?.("ended");
+    });
+
+    audio.addEventListener("timeupdate", () => {
+      if (audio !== this.activeAudio) return;
+      this.callbacks.onTimeUpdate?.(audio.currentTime, audio.duration || 0);
+    });
+
+    audio.addEventListener("durationchange", () => {
+      if (audio !== this.activeAudio) return;
+      this.callbacks.onTimeUpdate?.(audio.currentTime, audio.duration || 0);
+    });
+
+    audio.addEventListener("error", () => {
+      if (audio !== this.activeAudio) return;
+      if (!audio.src || audio.src === "" || audio.src === window.location.href || this.currentState === "unstarted") return;
+      if (audio.error?.message?.includes("Empty src attribute")) return;
+
+      console.error("[MusicAudioPlayer] Audio error:", audio.error);
+      this.callbacks.onError?.(audio.error?.code || 4);
+    });
+  }
+
   init(callbacks: AudioPlayerCallbacks = {}) {
     this.callbacks = callbacks;
     if (typeof window === "undefined") return;
 
-    if (!this.audio) {
-      this.audio = new Audio();
+    if (!this.activeAudio) {
+      this.activeAudio = new Audio();
+      this.activeAudio.crossOrigin = "anonymous";
+      this.attachListeners(this.activeAudio, false);
       
-      this.audio.addEventListener("play", () => {
-        this.currentState = "playing";
-        this.callbacks.onStateChange?.("playing");
-      });
-
-      this.audio.addEventListener("playing", () => {
-        this.currentState = "playing";
-        this.callbacks.onStateChange?.("playing");
-      });
-
-      this.audio.addEventListener("pause", () => {
-        this.currentState = "paused";
-        this.callbacks.onStateChange?.("paused");
-      });
-
-      this.audio.addEventListener("waiting", () => {
-        this.currentState = "buffering";
-        this.callbacks.onStateChange?.("buffering");
-      });
-
-      this.audio.addEventListener("ended", () => {
-        this.currentState = "ended";
-        this.callbacks.onStateChange?.("ended");
-      });
-
-      this.audio.addEventListener("timeupdate", () => {
-        if (this.audio) {
-          this.callbacks.onTimeUpdate?.(this.audio.currentTime, this.audio.duration || 0);
-        }
-      });
-
-      this.audio.addEventListener("durationchange", () => {
-        if (this.audio) {
-          this.callbacks.onTimeUpdate?.(this.audio.currentTime, this.audio.duration || 0);
-        }
-      });
-
-      this.audio.addEventListener("error", () => {
-        // Ignore errors if the source was cleared intentionally (empty src) or player is stopped
-        if (
-          !this.audio ||
-          !this.audio.src ||
-          this.audio.src === "" ||
-          this.audio.src === window.location.href ||
-          this.currentState === "unstarted"
-        ) {
-          return;
-        }
-
-        // Also ignore if the error message indicates an empty src attribute
-        if (this.audio.error?.message?.includes("Empty src attribute")) {
-          return;
-        }
-
-        console.error("[MusicAudioPlayer] Audio error:", this.audio?.error);
-        // Map any media error to standard code
-        this.callbacks.onError?.(this.audio?.error?.code || 4);
-      });
+      this.standbyAudio = new Audio();
+      this.standbyAudio.crossOrigin = "anonymous";
+      this.attachListeners(this.standbyAudio, true);
     }
 
-    // Trigger ready immediately since HTML5 Audio initializes synchronously
     setTimeout(() => {
       this.callbacks.onReady?.();
     }, 0);
   }
 
   load(url: string, seekTo?: number, shouldPlay = true) {
-    if (!this.audio) return;
+    if (!this.activeAudio) return;
     try {
-      this.audio.src = url;
-      this.audio.load();
-      if (seekTo !== undefined && seekTo > 0) {
-        this.audio.currentTime = seekTo;
+      if (this.standbyAudio && this.standbyAudio.src.endsWith(url)) {
+        this.playPreloaded();
+        if (seekTo !== undefined && seekTo > 0) {
+          this.activeAudio.currentTime = seekTo;
+        }
+        if (!shouldPlay) {
+          this.activeAudio.pause();
+          this.currentState = "paused";
+          this.callbacks.onStateChange?.("paused");
+        }
+        return;
       }
+
+      this.activeAudio.src = url;
+      this.activeAudio.load();
+      this.activeAudio.volume = this.currentVolume;
+      this.activeAudio.muted = this.isMutedState;
+
+      if (seekTo !== undefined && seekTo > 0) {
+        this.activeAudio.currentTime = seekTo;
+      }
+      
       if (shouldPlay) {
-        this.audio.play().catch((err) => {
+        this.activeAudio.play().catch((err) => {
           console.warn("[MusicAudioPlayer] Playback deferred or interrupted:", err);
         });
       } else {
@@ -117,51 +137,89 @@ export class MusicAudioPlayer {
     }
   }
 
+  preload(url: string) {
+    if (!this.standbyAudio) return;
+    try {
+      if (this.standbyAudio.src.endsWith(url)) return; // Already preloaded
+      this.standbyAudio.src = url;
+      this.standbyAudio.load();
+      this.standbyAudio.volume = this.currentVolume;
+      this.standbyAudio.muted = this.isMutedState;
+    } catch (err) {
+      console.error("[MusicAudioPlayer] Failed to preload source:", err);
+    }
+  }
+
+  playPreloaded() {
+    if (!this.activeAudio || !this.standbyAudio) return;
+    
+    // Stop active
+    this.activeAudio.pause();
+    this.activeAudio.removeAttribute("src");
+    this.activeAudio.load();
+    
+    // Swap pointers
+    const tempAudio = this.activeAudio;
+    this.activeAudio = this.standbyAudio;
+    this.standbyAudio = tempAudio;
+    
+    // Swap sources if analyzer is active
+    if (this.audioContext && this.analyser) {
+       // Both sources should already be connected to analyzer if initialized
+    }
+    
+    // Play new active
+    this.activeAudio.volume = this.currentVolume;
+    this.activeAudio.muted = this.isMutedState;
+    this.activeAudio.play().catch(console.error);
+  }
+
   play() {
     if (this.audioContext && this.audioContext.state === "suspended") {
       this.audioContext.resume().catch(() => {});
     }
-    this.audio?.play().catch(() => {});
+    this.activeAudio?.play().catch(() => {});
   }
 
   pause() {
-    this.audio?.pause();
+    this.activeAudio?.pause();
   }
 
   seek(seconds: number) {
-    if (this.audio) {
-      this.audio.currentTime = seconds;
+    if (this.activeAudio) {
+      this.activeAudio.currentTime = seconds;
     }
   }
 
   getTime(): number {
-    return this.audio?.currentTime ?? 0;
+    return this.activeAudio?.currentTime ?? 0;
   }
 
   getDuration(): number {
-    return this.audio?.duration ?? 0;
+    return this.activeAudio?.duration ?? 0;
   }
 
   setVolume(v: number) {
-    if (this.audio) {
-      this.audio.volume = Math.max(0, Math.min(1, v));
-    }
+    const clamped = Math.max(0, Math.min(1, v));
+    this.currentVolume = clamped;
+    if (this.activeAudio) this.activeAudio.volume = clamped;
+    if (this.standbyAudio) this.standbyAudio.volume = clamped;
   }
 
   mute() {
-    if (this.audio) {
-      this.audio.muted = true;
-    }
+    this.isMutedState = true;
+    if (this.activeAudio) this.activeAudio.muted = true;
+    if (this.standbyAudio) this.standbyAudio.muted = true;
   }
 
   unmute() {
-    if (this.audio) {
-      this.audio.muted = false;
-    }
+    this.isMutedState = false;
+    if (this.activeAudio) this.activeAudio.muted = false;
+    if (this.standbyAudio) this.standbyAudio.muted = false;
   }
 
   isMuted(): boolean {
-    return this.audio?.muted ?? false;
+    return this.isMutedState;
   }
 
   getState(): AudioPlayerState {
@@ -170,18 +228,22 @@ export class MusicAudioPlayer {
 
   getAnalyser(): AnalyserNode | null {
     if (typeof window === "undefined") return null;
-    if (!this.audio) return null;
+    if (!this.activeAudio || !this.standbyAudio) return null;
 
     if (!this.audioContext) {
       try {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         this.audioContext = new AudioContextClass();
         this.analyser = this.audioContext.createAnalyser();
-        this.analyser.fftSize = 64; // 32 frequency bins
+        this.analyser.fftSize = 64;
         this.analyser.smoothingTimeConstant = 0.8;
 
-        this.source = this.audioContext.createMediaElementSource(this.audio);
-        this.source.connect(this.analyser);
+        // Connect both elements to the same analyser
+        this.activeSource = this.audioContext.createMediaElementSource(this.activeAudio);
+        this.standbySource = this.audioContext.createMediaElementSource(this.standbyAudio);
+        
+        this.activeSource.connect(this.analyser);
+        this.standbySource.connect(this.analyser);
         this.analyser.connect(this.audioContext.destination);
       } catch (err) {
         console.warn("[MusicAudioPlayer] Failed to initialize Web Audio API:", err);
@@ -197,11 +259,15 @@ export class MusicAudioPlayer {
   }
 
   stop() {
-    if (this.audio) {
-      this.audio.pause();
-      // Properly clear/reset media element resources in standard HTML5 browser environment
-      this.audio.removeAttribute("src");
-      this.audio.load();
+    if (this.activeAudio) {
+      this.activeAudio.pause();
+      this.activeAudio.removeAttribute("src");
+      this.activeAudio.load();
+    }
+    if (this.standbyAudio) {
+      this.standbyAudio.pause();
+      this.standbyAudio.removeAttribute("src");
+      this.standbyAudio.load();
     }
     this.currentState = "unstarted";
   }
@@ -216,9 +282,11 @@ export class MusicAudioPlayer {
       this.audioContext.close().catch(() => {});
       this.audioContext = null;
     }
-    this.source = null;
+    this.activeSource = null;
+    this.standbySource = null;
     this.analyser = null;
-    this.audio = null;
+    this.activeAudio = null;
+    this.standbyAudio = null;
     MusicAudioPlayer.instance = null;
   }
 }

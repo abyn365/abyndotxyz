@@ -38,7 +38,6 @@ export default function MusicLyricsPanel() {
     activeLyricIndex,
     hasTimestamps,
     isPlaying,
-    progress,
     duration,
     volume,
     isMuted,
@@ -80,6 +79,41 @@ export default function MusicLyricsPanel() {
     }, 3500); // hide after 3.5 seconds of inactivity
   }, []);
 
+  // Smooth 60fps progress update for UI scrubbers without React overhead
+  const [localProgress, setLocalProgress] = useState(0);
+  const [localProgressText, setLocalProgressText] = useState("0:00");
+  const desktopFillRef = useRef<HTMLDivElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let frameId: number;
+    const player = import("../../lib/music/audio-player").then(m => m.MusicAudioPlayer.getInstance());
+    
+    const updateLoop = async () => {
+      const p = await player;
+      const currentTime = p.getTime();
+      
+      const pct = duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0;
+      
+      if (desktopFillRef.current) desktopFillRef.current.style.width = `${pct}%`;
+      if (mobileInputRef.current) {
+        mobileInputRef.current.value = currentTime.toString();
+        mobileInputRef.current.style.background = `linear-gradient(to right, ${accentColor.primary} 0%, ${accentColor.primary} ${pct}%, var(--card-border) ${pct}%, var(--card-border) 100%)`;
+      }
+      
+      const newText = formatDuration(currentTime);
+      if (newText !== localProgressText) {
+        setLocalProgressText(newText);
+        setLocalProgress(currentTime);
+      }
+      
+      frameId = requestAnimationFrame(updateLoop);
+    };
+    
+    frameId = requestAnimationFrame(updateLoop);
+    return () => cancelAnimationFrame(frameId);
+  }, [duration, localProgressText, accentColor.primary]);
+
   useEffect(() => {
     return () => {
       if (volumeTimerRef.current) clearTimeout(volumeTimerRef.current);
@@ -116,7 +150,6 @@ export default function MusicLyricsPanel() {
   const accent = accentColor.primary;
   const accentGlow = accentColor.glow;
 
-  const pct = duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
   const volPct = isMuted ? 0 : volume * 100;
 
   // Speaker icon indicator
@@ -261,16 +294,17 @@ export default function MusicLyricsPanel() {
                        seek(ratio * duration);
                      }}>
                   <div 
+                    ref={desktopFillRef}
                     className="absolute inset-y-0 left-0 rounded-full"
                     style={{
-                      width: `${pct}%`,
+                      width: `0%`,
                       background: `linear-gradient(90deg, ${accent}, ${accentColor.secondary})`
                     }}
                   />
                 </div>
                 
                 <div className="flex items-center justify-between font-mono text-[9px] text-[var(--text-secondary)]">
-                  <span>{formatDuration(progress)}</span>
+                  <span>{localProgressText}</span>
                   <span>{formatDuration(duration)}</span>
                 </div>
               </div>
@@ -512,19 +546,20 @@ export default function MusicLyricsPanel() {
               {/* Progress Scrubber (Touch Friendly Input Range) */}
               <div className="w-full flex flex-col gap-1.5">
                 <input
+                  ref={mobileInputRef}
                   type="range"
                   min={0}
                   max={duration || 100}
-                  value={progress}
+                  defaultValue={localProgress}
                   onChange={(e) => seek(Number(e.target.value))}
                   className="w-full h-1.5 bg-[var(--card-border)] rounded-full appearance-none cursor-pointer outline-none accent-transparent"
                   style={{
-                    background: `linear-gradient(to right, ${accent} 0%, ${accent} ${pct}%, var(--card-border) ${pct}%, var(--card-border) 100%)`,
+                    background: `linear-gradient(to right, ${accent} 0%, ${accent} 0%, var(--card-border) 0%, var(--card-border) 100%)`,
                   }}
                 />
 
                 <div className="flex items-center justify-between font-mono text-[10px] text-[var(--text-secondary)] font-medium">
-                  <span>{formatDuration(progress)}</span>
+                  <span>{localProgressText}</span>
                   <span>{formatDuration(duration)}</span>
                 </div>
               </div>

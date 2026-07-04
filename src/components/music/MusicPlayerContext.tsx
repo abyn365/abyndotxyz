@@ -202,14 +202,27 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
     if (queueIndex >= 0 && queueIndex < queue.length - 1) {
       const nextTrack = queue[queueIndex + 1];
       if (nextTrack) {
-        // Resolve on server in background to warm the cache
-        const params = new URLSearchParams({
-          title: nextTrack.title,
-          artist: nextTrack.artist,
-        });
-        if (nextTrack.album) params.append("album", nextTrack.album);
-        if (nextTrack.duration) params.append("duration", nextTrack.duration.toString());
-        fetch(`/api/resolve-track?${params.toString()}`).catch(() => {});
+        try {
+          const params = new URLSearchParams({
+            title: nextTrack.title,
+            artist: nextTrack.artist,
+          });
+          if (nextTrack.album) params.append("album", nextTrack.album);
+          if (nextTrack.duration) params.append("duration", nextTrack.duration.toString());
+          const res = await fetch(`/api/resolve-track?${params.toString()}`);
+          if (res.ok) {
+            const resolved = await res.json();
+            const normTitle = nextTrack.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+            const normArtist = nextTrack.artist.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+            const normAlbum = nextTrack.album ? nextTrack.album.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
+            const cacheKey = `resolved_track:${normArtist}:${normTitle}${normAlbum ? `:${normAlbum}` : ""}`;
+            cacheSet(cacheKey, resolved, 24 * 60 * 60 * 1000, true);
+
+            const target = resolved.provider === "soundcloud" ? resolved.id : resolved.id;
+            const streamUrl = `/api/stream?id=${encodeURIComponent(target)}`;
+            audioPlayer.current?.preload(streamUrl);
+          }
+        } catch {}
 
         fetchLyrics(nextTrack.artist, nextTrack.title).catch(() => {});
         extractAccentColors(nextTrack.cover).catch(() => {});
@@ -298,11 +311,27 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       onTimeUpdate: (currentTime, duration) => {
         const currentMs = currentTime * 1000;
         const newActiveLyric = getActiveLyricIndex(stateRef.current.lyrics, currentMs);
-        set({
-          progress: currentTime,
-          duration: duration || stateRef.current.duration,
-          activeLyricIndex: newActiveLyric,
-        });
+        const newDuration = duration || stateRef.current.duration;
+        
+        let stateChanged = false;
+        const updates: Partial<MusicPlayerState> = {};
+        
+        if (newActiveLyric !== stateRef.current.activeLyricIndex) {
+          updates.activeLyricIndex = newActiveLyric;
+          stateChanged = true;
+        }
+        
+        if (newDuration !== stateRef.current.duration) {
+          updates.duration = newDuration;
+          stateChanged = true;
+        }
+
+        // We no longer update 'progress' 4 times a second to prevent global re-renders.
+        // Components that need smooth progress (like ProgressBar) should use requestAnimationFrame
+        // and MusicAudioPlayer.getInstance().getTime() directly.
+        if (stateChanged) {
+          set(updates);
+        }
 
         // ── Continuous Spotify Drift Correction ──
         if (
@@ -538,9 +567,16 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       // Track request timestamp to offset search latency later
       playSongStartedAt.current = Date.now();
 
-      // Immediately stop previous audio and mute the channels to block sound leak
-      audioPlayer.current?.stop();
-      audioPlayer.current?.mute();
+      const normTitle = track.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+      const normArtist = track.artist.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+      const normAlbum = track.album ? track.album.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
+      const cacheKey = `resolved_track:${normArtist}:${normTitle}${normAlbum ? `:${normAlbum}` : ""}`;
+      const isCached = !!cacheGet<any>(cacheKey);
+
+      // Immediately pause previous audio if it's not preloaded/cached so user feels the interaction
+      if (!isCached) {
+        audioPlayer.current?.pause();
+      }
 
       // Update state atomically
       set({

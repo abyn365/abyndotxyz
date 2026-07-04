@@ -21,7 +21,7 @@ import {
   Loader2,
   ListMusic,
 } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMusicPlayer } from "./MusicPlayerContext";
 import MusicVisualizer from "./MusicVisualizer";
 import MusicArtwork from "./MusicArtwork";
@@ -31,16 +31,47 @@ import { formatDuration } from "../../lib/music/metadata";
 // Progress Bar
 // ---------------------------------------------------------------------------
 function ProgressBar() {
-  const { progress, duration, seek, accentColor, isPlaying } = useMusicPlayer();
+  const { duration, seek, accentColor, isPlaying } = useMusicPlayer();
   const [isDragging, setIsDragging] = useState(false);
   const [hoverPct, setHoverPct] = useState<number | null>(null);
   const [hoverTime, setHoverTime] = useState<string | null>(null);
+  
+  // Use local state for the time text
+  const [localProgressText, setLocalProgressText] = useState("0:00");
+  
   const barRef = useRef<HTMLDivElement>(null);
-
-  const pct = duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
+  const fillRef = useRef<HTMLDivElement>(null);
+  const thumbRef = useRef<HTMLDivElement>(null);
 
   const accent = accentColor.primary;
   const accentSecondary = accentColor.secondary;
+
+  // Smooth 60fps visual update
+  useEffect(() => {
+    let frameId: number;
+    const player = import("../../lib/music/audio-player").then(m => m.MusicAudioPlayer.getInstance());
+    
+    const updateLoop = async () => {
+      const p = await player;
+      if (!isDragging) {
+        const currentTime = p.getTime();
+        const pct = duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0;
+        
+        if (fillRef.current) fillRef.current.style.width = `${pct}%`;
+        if (thumbRef.current) thumbRef.current.style.left = `${pct}%`;
+        
+        // Update text efficiently
+        const newText = formatDuration(currentTime);
+        if (newText !== localProgressText) {
+          setLocalProgressText(newText);
+        }
+      }
+      frameId = requestAnimationFrame(updateLoop);
+    };
+    
+    frameId = requestAnimationFrame(updateLoop);
+    return () => cancelAnimationFrame(frameId);
+  }, [duration, isDragging, localProgressText]);
 
   const getPositionFromEvent = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
@@ -67,11 +98,10 @@ function ProgressBar() {
   return (
     <div className="relative flex items-center gap-3 w-full group/progress">
       <span className="font-mono text-[10px] tabular-nums text-[var(--text-secondary)] shrink-0 w-8 text-right">
-        {formatDuration(progress)}
+        {localProgressText}
       </span>
 
       <div className="relative flex-1 flex items-center h-4 cursor-pointer">
-        {/* Hover time tooltip */}
         {hoverPct !== null && hoverTime && (
           <div
             className="absolute -top-7 pointer-events-none z-10 px-2 py-0.5 rounded-md text-[10px] font-mono text-white/90 shadow-lg"
@@ -109,16 +139,15 @@ function ProgressBar() {
           onMouseUp={() => setIsDragging(false)}
           onClick={handleSeek}
         >
-          {/* Filled track */}
           <div
+            ref={fillRef}
             className="absolute inset-y-0 left-0 rounded-full transition-none"
             style={{
-              width: `${pct}%`,
+              width: "0%",
               background: `linear-gradient(90deg, ${accent}, ${accentSecondary})`,
             }}
           />
 
-          {/* Hover preview */}
           {hoverPct !== null && (
             <div
               className="absolute inset-y-0 left-0 rounded-full opacity-20"
@@ -129,11 +158,11 @@ function ProgressBar() {
             />
           )}
 
-          {/* Thumb */}
           <div
+            ref={thumbRef}
             className="absolute top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity duration-150"
             style={{
-              left: `${pct}%`,
+              left: "0%",
               transform: "translate(-50%, -50%)",
               background: "white",
               boxShadow: `0 0 0 2.5px ${accent}80, 0 2px 6px rgba(0,0,0,0.35)`,

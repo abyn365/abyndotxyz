@@ -5,6 +5,7 @@ set -euo pipefail
 DEPLOY_DIR="/var/www/abyndotxyz"
 STAGE_DIR="$DEPLOY_DIR/stage_new"
 BACKUP_DIR="$DEPLOY_DIR/backup_old"
+DEFAULT_RELEASE_URL="https://github.com/abyn365/abyndotxyz/releases/download/latest/abyndotxyz-build.zip"
 
 show_help() {
   echo "Usage: $0 [options]"
@@ -12,6 +13,9 @@ show_help() {
   echo "  -u, --url <url>      URL to download the production build zip from"
   echo "  -f, --file <path>    Local path to the production build zip"
   echo "  -h, --help           Show this message"
+  echo ""
+  echo "Note: If neither -u nor -f is provided, it defaults to the latest GitHub release:"
+  echo "      $DEFAULT_RELEASE_URL"
 }
 
 ZIP_URL=""
@@ -40,10 +44,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Fallback to default GitHub release URL if no custom URL or local file path is provided
 if [ -z "$ZIP_URL" ] && [ -z "$ZIP_PATH" ]; then
-  echo "Error: Must specify either --url or --file option." >&2
-  show_help
-  exit 1
+  echo "No build package specified. Defaulting to the latest GitHub release..."
+  ZIP_URL="$DEFAULT_RELEASE_URL"
 fi
 
 echo "=== Starting Graceful Production Update ==="

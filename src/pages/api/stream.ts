@@ -61,10 +61,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     for (const header of forwardHeaders) {
       const val = response.headers.get(header);
-      if (val) {
+      if (val && header !== "cache-control") {
         res.setHeader(header, val);
       }
     }
+
+    // Add aggressive caching header to allow browser to cache preloaded streams
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
 
     // Pipe the body chunks
     if (response.body) {
