@@ -99,18 +99,20 @@ export function getLastFmImage(
   images: LastFmImage[],
   preferredSize: "extralarge" | "large" | "medium" | "small" = "extralarge"
 ): string {
-  // Prioritize any image containing ".gif"
-  const gifMatch = images.find((image) => image["#text"]?.toLowerCase().includes(".gif"));
-  const gifUrl = gifMatch?.["#text"] ?? "";
-  if (isUsableCoverImage(gifUrl)) return gifUrl;
-
   const sizeOrder = ["extralarge", "large", "medium", "small"] as const;
+  
+  // First pass: try to find a GIF at the preferred size or smaller
   const startIndex = sizeOrder.indexOf(preferredSize);
+  for (let i = startIndex; i < sizeOrder.length; i++) {
+    const match = images.find((image) => image.size === sizeOrder[i] && image["#text"]?.toLowerCase().includes(".gif"));
+    const url = match?.["#text"] ?? "";
+    if (isUsableCoverImage(url)) return url;
+  }
 
+  // Second pass: fallback to any image at the preferred size or smaller
   for (let i = startIndex; i < sizeOrder.length; i++) {
     const match = images.find((image) => image.size === sizeOrder[i]);
     const url = match?.["#text"] ?? "";
-
     if (isUsableCoverImage(url)) return url;
   }
 

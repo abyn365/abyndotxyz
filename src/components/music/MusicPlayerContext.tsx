@@ -68,7 +68,7 @@ export interface MusicPlayerActions {
   toggleMute: () => void;
   toggleLyrics: () => void;
   setMinimized: (v: boolean) => void;
-  next: () => void;
+  next: (isAutoAdvance?: boolean) => void;
   prev: () => void;
   setQueue: (tracks: TrackMetadata[], startIndex?: number) => void;
   dismiss: () => void;
@@ -275,7 +275,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
           // Auto-advance queue
           const { queue, queueIndex } = stateRef.current;
           if (queueIndex < queue.length - 1) {
-            actions.next();
+            actions.next(true);
           } else {
             set({ isPlaying: false });
           }
@@ -743,13 +743,15 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       set({ isMinimized: v });
     },
 
-    next() {
-      set({ syncMode: "manual" });
-      const { queue, queueIndex } = stateRef.current;
+    next(isAutoAdvance?: boolean) {
+      if (!isAutoAdvance) {
+        set({ syncMode: "manual" });
+      }
+      const { queue, queueIndex, syncMode } = stateRef.current;
       const nextIdx = queueIndex + 1;
       if (nextIdx < queue.length) {
         set({ queueIndex: nextIdx });
-        actions.playSong(queue[nextIdx]);
+        actions.playSong(queue[nextIdx], undefined, isAutoAdvance && syncMode === "listening-along");
       }
     },
 

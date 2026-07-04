@@ -9,6 +9,7 @@ export class SpotifySync {
   private lastProgressMs = 0;
   private callback: SpotifySyncCallback;
   private pollIntervalMs: number;
+  private nextTickTimeout: ReturnType<typeof setTimeout> | null = null;
   private isActive = false;
 
   constructor(callback: SpotifySyncCallback, pollIntervalMs = 5000) {
@@ -16,10 +17,6 @@ export class SpotifySync {
     this.pollIntervalMs = pollIntervalMs;
   }
 
-  /**
-   * Compute the estimated current Spotify playback position,
-   * accounting for time elapsed since the last fetch.
-   */
   getEstimatedProgressMs(data: NowPlayingSong): number {
     if (!data.isPlaying) return data.progressMs ?? 0;
     const elapsed = Date.now() - this.lastFetchTime;
@@ -40,45 +37,58 @@ export class SpotifySync {
   }
 
   private async tick() {
+    if (!this.isActive) return;
+
     const data = await this.fetchNowPlaying();
-    if (!data) return;
+    if (data) {
+      this.lastFetchTime = Date.now();
 
-    this.lastFetchTime = Date.now();
+      if (data.isPlaying) {
+        this.lastProgressMs = data.progressMs ?? 0;
+      }
 
-    if (data.isPlaying) {
-      this.lastProgressMs = data.progressMs ?? 0;
+      const trackId = `${data.title ?? ""}::${data.artist ?? ""}`;
+      if (trackId !== this.lastTrackId) {
+        this.lastTrackId = trackId;
+      }
+
+      this.callback({ ...data });
     }
 
-    const trackId = `${data.title ?? ""}::${data.artist ?? ""}`;
-    if (trackId !== this.lastTrackId) {
-      this.lastTrackId = trackId;
+    if (!this.isActive) return;
+
+    // Schedule next tick based on track duration to eliminate sync delay
+    let delay = this.pollIntervalMs;
+    if (data && data.isPlaying && data.durationMs && data.progressMs) {
+      const remainingMs = data.durationMs - data.progressMs;
+      // If the song is ending within the normal poll interval, schedule exactly when it ends (+500ms buffer)
+      if (remainingMs > 0 && remainingMs < this.pollIntervalMs + 2000) {
+        delay = Math.max(1000, remainingMs + 500); // Wait until it finishes, but at least 1s
+      } else if (remainingMs <= 0) {
+        delay = 1000;
+      }
     }
 
-    this.callback({
-      ...data,
-      // Attach computed estimate for callers that want it
-    });
+    if (this.nextTickTimeout) clearTimeout(this.nextTickTimeout);
+    this.nextTickTimeout = setTimeout(() => this.tick(), delay);
   }
 
   start() {
     if (this.isActive) return;
     this.isActive = true;
-
-    // Immediate first fetch
     this.tick();
-
-    this.intervalId = setInterval(() => this.tick(), this.pollIntervalMs);
   }
 
   stop() {
     this.isActive = false;
-    if (this.intervalId !== null) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
+    if (this.nextTickTimeout !== null) {
+      clearTimeout(this.nextTickTimeout);
+      this.nextTickTimeout = null;
     }
   }
 
   forceRefresh() {
+    if (this.nextTickTimeout) clearTimeout(this.nextTickTimeout);
     this.tick();
   }
 }
