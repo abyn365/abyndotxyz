@@ -60,7 +60,7 @@ export interface MusicPlayerState {
 }
 
 export interface MusicPlayerActions {
-  playSong: (track: TrackMetadata, seekToMs?: number, isSyncOrigin?: boolean) => Promise<void>;
+  playSong: (track: TrackMetadata, seekToMs?: number, isSyncOrigin?: boolean, shouldPlay?: boolean) => Promise<void>;
   pause: () => void;
   resume: () => void;
   seek: (seconds: number) => void;
@@ -112,11 +112,25 @@ export function useMusicPlayer() {
   return ctx;
 }
 
-const preloadSearch = async (title: string, artist: string, duration?: number) => {
+const preloadSearch = async (title: string, artist: string, album?: string, duration?: number) => {
   try {
+    const normTitle = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+    const normArtist = artist.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+    const normAlbum = album ? album.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
+    const cacheKey = `resolved_track:${normArtist}:${normTitle}${normAlbum ? `:${normAlbum}` : ""}`;
+    
+    // Check client-side cache
+    if (cacheGet(cacheKey)) return;
+
     const params = new URLSearchParams({ title, artist });
+    if (album) params.append("album", album);
     if (duration) params.append("duration", duration.toString());
-    await fetch(`/api/resolve-track?${params.toString()}`);
+    
+    const res = await fetch(`/api/resolve-track?${params.toString()}`);
+    if (res.ok) {
+      const resolved = await res.json();
+      cacheSet(cacheKey, resolved, 24 * 60 * 60 * 1000, true);
+    }
   } catch {
     // Ignore preload failures
   }
@@ -242,7 +256,8 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
             }
           }
         } else if (audioState === "paused") {
-          set({ isPlaying: false });
+          setLoadingDebounced(false);
+          set({ isPlaying: false, isLoading: false });
         } else if (audioState === "ended") {
           // Auto-advance queue
           const { queue, queueIndex } = stateRef.current;
@@ -373,7 +388,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       // Preload next items in the Spotify queue
       if (data.upcomingQueue && Array.isArray(data.upcomingQueue)) {
         data.upcomingQueue.forEach((t) => {
-          preloadSearch(t.title, t.artist).catch(() => {});
+          preloadSearch(t.title, t.artist, t.album, t.durationMs ? t.durationMs / 1000 : undefined).catch(() => {});
         });
       }
 
@@ -385,16 +400,45 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
         };
       }
 
-      if (stateRef.current.syncMode === "manual") {
-        return;
+      // Keep local queue and queueIndex in sync with Spotify's queue when in listening-along mode
+      if (stateRef.current.syncMode === "listening-along" && data.upcomingQueue && Array.isArray(data.upcomingQueue)) {
+        const spotifyQueue: TrackMetadata[] = data.upcomingQueue.map((item) => ({
+          title: item.title,
+          artist: item.artist,
+          album: item.album,
+          cover: item.cover,
+          songUrl: item.songUrl,
+          duration: item.durationMs ? item.durationMs / 1000 : undefined,
+        }));
+
+        const currentQueue = stateRef.current.queue;
+        const currentTrack = stateRef.current.currentTrack;
+
+        let newQueue: TrackMetadata[] = [];
+        let newQueueIndex = -1;
+
+        if (currentTrack) {
+          newQueue = [currentTrack, ...spotifyQueue];
+          newQueueIndex = 0;
+        } else {
+          newQueue = spotifyQueue;
+          newQueueIndex = -1;
+        }
+
+        const isQueueSame = (q1: TrackMetadata[], q2: TrackMetadata[]) => {
+          if (q1.length !== q2.length) return false;
+          for (let i = 0; i < q1.length; i++) {
+            if (q1[i].title !== q2[i].title || q1[i].artist !== q2[i].artist) return false;
+          }
+          return true;
+        };
+
+        if (!isQueueSame(currentQueue, newQueue) || stateRef.current.queueIndex !== newQueueIndex) {
+          set({ queue: newQueue, queueIndex: newQueueIndex });
+        }
       }
 
-      if (!data.isPlaying) {
-        // Paused on Spotify: mirror pause locally while remaining in listening-along mode
-        if (stateRef.current.isPlaying) {
-          audioPlayer.current?.pause();
-          set({ isPlaying: false });
-        }
+      if (stateRef.current.syncMode === "manual") {
         return;
       }
 
@@ -407,15 +451,31 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
           }
         : null;
 
-      if (isSameTrack(data, lastSpotifyTrack)) {
-        // Same song — onTimeUpdate handles drift correction continuously
+      const isSame = isSameTrack(data, lastSpotifyTrack);
+
+      if (isSame) {
+        // Same song — check if playing state changed
+        if (!data.isPlaying && stateRef.current.isPlaying) {
+          audioPlayer.current?.pause();
+          set({ isPlaying: false });
+        } else if (data.isPlaying && !stateRef.current.isPlaying) {
+          audioPlayer.current?.play();
+          set({ isPlaying: true });
+        }
         return;
       }
 
-      // New Spotify track detected
+      // New Spotify track detected or first track loaded
       spotifyTrackKey.current = trackKey;
 
-      if (!data.title || !data.artist) return;
+      if (!data.title || !data.artist) {
+        // Spotify is inactive or stopped (no track info)
+        if (stateRef.current.isPlaying) {
+          audioPlayer.current?.pause();
+          set({ isPlaying: false });
+        }
+        return;
+      }
 
       const track: TrackMetadata = {
         title: data.title,
@@ -427,9 +487,9 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
 
       // Add a slight latency buffer for initial track load
       const latencyCompensation = Date.now() - lastSpotifySync.current!.timestamp;
-      const initialSeekMs = (data.progressMs ?? 0) + latencyCompensation;
+      const initialSeekMs = (data.progressMs ?? 0) + (data.isPlaying ? latencyCompensation : 0);
 
-      await actions.playSong(track, initialSeekMs, true);
+      await actions.playSong(track, initialSeekMs, true, data.isPlaying);
     });
 
     sync.start();
@@ -443,7 +503,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
   // Actions
   // ---------------------------------------------------------------------------
   const actions: MusicPlayerActions = {
-    async playSong(track: TrackMetadata, seekToMs?: number, isSyncOrigin = false) {
+    async playSong(track: TrackMetadata, seekToMs?: number, isSyncOrigin = false, shouldPlay = true) {
       const key = `${track.title}::${track.artist}`;
 
       if (!isSyncOrigin) {
@@ -452,7 +512,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
 
       // Don't reload if same track
       if (isSameTrack(track, stateRef.current.currentTrack) && seekToMs === undefined) {
-        if (!stateRef.current.isPlaying) audioPlayer.current?.play();
+        if (shouldPlay && !stateRef.current.isPlaying) audioPlayer.current?.play();
         return;
       }
 
@@ -482,15 +542,13 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
         plainLyrics: undefined,
         lyricsState: "loading",
         isMinimized: false,
-        isPlaying: false,
+        isPlaying: shouldPlay,
       });
 
       setLoadingDebounced(true);
 
       // Async, non-blocking theme calculation
       extractAndApplyAccent(track.cover).catch(() => {});
-
-      let activeTrack = track;
 
       const resolveTrackOnServer = async (t: TrackMetadata, signal?: AbortSignal) => {
         const normTitle = t.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
@@ -515,55 +573,53 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
         return resolved;
       };
 
-      // Search and retrieve lyrics
-      const [resolveResult, lyricsResult] = await Promise.allSettled([
-        resolveTrackOnServer(track, abort.signal),
-        fetchLyrics(track.artist, track.title, abort.signal),
-      ]);
+      // Start resolve and lyrics fetching concurrently, but do not block playback on lyrics!
+      fetchLyrics(track.artist, track.title, abort.signal)
+        .then((lyrics) => {
+          if (abort.signal.aborted) return;
+          let lyricsState: MusicPlayerState["lyricsState"] = "empty";
+          if (lyrics.lines.length > 0) {
+            lyricsState = "loaded";
+          } else if (lyrics.plainLyrics && lyrics.plainLyrics.trim() !== "") {
+            lyricsState = "loaded";
+          } else if (lyrics.error) {
+            lyricsState = "error";
+          }
 
-      if (abort.signal.aborted) return;
+          const latestTrack = stateRef.current.currentTrack || track;
+          const enriched = resolveMetadata(latestTrack, lyrics.metadata);
+          set({
+            currentTrack: enriched,
+            lyrics: lyrics.lines,
+            hasTimestamps: lyrics.hasTimestamps,
+            plainLyrics: lyrics.plainLyrics,
+            lyricsState,
+            activeLyricIndex: -1,
+          });
 
-      if (lyricsResult.status === "fulfilled") {
-        const lyrics = lyricsResult.value;
-        const enriched = resolveMetadata(track, lyrics.metadata);
-        activeTrack = enriched;
-        
-        let lyricsState: MusicPlayerState["lyricsState"] = "empty";
-        if (lyrics.lines.length > 0) {
-          lyricsState = "loaded";
-        } else if (lyrics.plainLyrics && lyrics.plainLyrics.trim() !== "") {
-          lyricsState = "loaded";
-        } else if (lyrics.error) {
-          lyricsState = "error";
-        }
-
-        set({
-          currentTrack: enriched,
-          lyrics: lyrics.lines,
-          hasTimestamps: lyrics.hasTimestamps,
-          plainLyrics: lyrics.plainLyrics,
-          lyricsState,
-          activeLyricIndex: -1,
+          if (enriched.cover && enriched.cover !== track.cover) {
+            extractAndApplyAccent(enriched.cover).catch(() => {});
+          }
+        })
+        .catch((err) => {
+          if (abort.signal.aborted) return;
+          console.error("[Lyrics Load Error]", err);
+          set({ lyricsState: "error" });
         });
-        if (enriched.cover && enriched.cover !== track.cover) {
-          extractAndApplyAccent(enriched.cover).catch(() => {});
-        }
-      } else {
-        set({
-          lyricsState: "error",
-        });
-      }
 
-      if (resolveResult.status === "fulfilled" && resolveResult.value) {
-        const resolved = resolveResult.value;
+      try {
+        const resolved = await resolveTrackOnServer(track, abort.signal);
+        if (abort.signal.aborted) return;
+
         const { provider, id, duration: lengthSeconds } = resolved;
         
         // Offset the search/load delay
         const elapsedMs = Date.now() - playSongStartedAt.current;
         const seekTo = seekToMs !== undefined ? (seekToMs + elapsedMs) / 1000 : undefined;
 
+        const latestTrack = stateRef.current.currentTrack || track;
         const enrichedTrack = {
-          ...activeTrack,
+          ...latestTrack,
           provider,
           resolvedUrl: provider === "soundcloud" ? id : undefined,
           videoId: provider !== "soundcloud" ? id : undefined,
@@ -576,11 +632,13 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
         
         const target = id;
         const streamUrl = `/api/stream?id=${encodeURIComponent(target)}`;
-        audioPlayer.current?.load(streamUrl, seekTo);
+        audioPlayer.current?.load(streamUrl, seekTo, shouldPlay);
 
         // Preload next track in queue
         preloadNextTrack().catch(() => {});
-      } else {
+      } catch (err) {
+        if (abort.signal.aborted) return;
+        console.error("[Track Resolve Error]", err);
         setLoadingDebounced(false);
         set({
           isLoading: false,

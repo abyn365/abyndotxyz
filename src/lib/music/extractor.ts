@@ -1,3 +1,5 @@
+import { kv } from "../kv";
+
 export interface ExtractedTrack {
   id: string;
   title: string;
@@ -87,9 +89,22 @@ function parseYtDlpJson(jsonStr: string): ExtractedTrack {
  */
 export async function searchTrack(query: string, signal?: AbortSignal): Promise<ExtractedTrack> {
   const cacheKey = `search:${query.toLowerCase()}`;
+  
+  // Check in-memory cache
   const cached = trackCache.get(cacheKey);
   if (cached && cached.expiresAt && Date.now() < cached.expiresAt) {
     return cached;
+  }
+
+  // Check SQLite KV cache
+  try {
+    const cachedKv = await kv.get<ExtractedTrack>(cacheKey);
+    if (cachedKv && cachedKv.expiresAt && Date.now() < cachedKv.expiresAt) {
+      trackCache.set(cacheKey, cachedKv);
+      return cachedKv;
+    }
+  } catch (err) {
+    console.error("[Extractor] Failed to get from SQLite KV:", err);
   }
 
   // Search and extract the best audio format
@@ -103,8 +118,17 @@ export async function searchTrack(query: string, signal?: AbortSignal): Promise<
   // Cache the result
   if (track.expiresAt) {
     trackCache.set(cacheKey, track);
-    // Also cache by its ID to warm the resolve cache
     trackCache.set(`id:${track.id}`, track);
+
+    // Persist search results in KV for 30 days. Strip streamUrl to avoid caching expired URLs.
+    const ttlSeconds = 30 * 24 * 60 * 60; // 30 days
+    const searchResult = { ...track, streamUrl: undefined, expiresAt: Date.now() + ttlSeconds * 1000 };
+    try {
+      await kv.set(cacheKey, searchResult, { ex: ttlSeconds });
+      await kv.set(`id:${track.id}`, searchResult, { ex: ttlSeconds });
+    } catch (err) {
+      console.error("[Extractor] Failed to save search mapping to SQLite KV:", err);
+    }
   }
 
   return track;
@@ -119,15 +143,33 @@ export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal, 
   const cacheKey = isUrl ? `url:${urlOrId}` : `id:${urlOrId}`;
   
   if (!forceRefresh) {
+    // Check in-memory
     const cached = trackCache.get(cacheKey);
     if (cached && cached.streamUrl && cached.expiresAt && Date.now() < cached.expiresAt) {
       return cached;
     }
+
+    // Check SQLite KV
+    try {
+      const cachedKv = await kv.get<ExtractedTrack>(cacheKey);
+      if (cachedKv && cachedKv.streamUrl && cachedKv.expiresAt && Date.now() < cachedKv.expiresAt) {
+        trackCache.set(cacheKey, cachedKv);
+        return cachedKv;
+      }
+    } catch (err) {
+      console.error("[Extractor] Failed to get stream from SQLite KV:", err);
+    }
   } else {
     trackCache.delete(cacheKey);
+    try {
+      await kv.del(cacheKey);
+    } catch {}
     if (!isUrl) {
       const target = `https://www.youtube.com/watch?v=${urlOrId}`;
       trackCache.delete(`url:${target}`);
+      try {
+        await kv.del(`url:${target}`);
+      } catch {}
     }
   }
 
@@ -141,10 +183,27 @@ export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal, 
 
   if (track.expiresAt) {
     trackCache.set(cacheKey, track);
+    
+    // Save to SQLite KV with TTL matching the URL expiration!
+    const ttlSeconds = Math.max(Math.floor((track.expiresAt - Date.now()) / 1000), 60);
+    try {
+      await kv.set(cacheKey, track, { ex: ttlSeconds });
+    } catch (err) {
+      console.error("[Extractor] Failed to save stream to SQLite KV:", err);
+    }
+
     if (!isUrl) {
-      trackCache.set(`url:${target}`, track);
+      const urlKey = `url:${target}`;
+      trackCache.set(urlKey, track);
+      try {
+        await kv.set(urlKey, track, { ex: ttlSeconds });
+      } catch {}
     } else {
-      trackCache.set(`id:${track.id}`, track);
+      const idKey = `id:${track.id}`;
+      trackCache.set(idKey, track);
+      try {
+        await kv.set(idKey, track, { ex: ttlSeconds });
+      } catch {}
     }
   }
 

@@ -96,6 +96,14 @@ shopt -u dotglob # Turn it off safely
 
 rm -rf "$STAGE_DIR"
 
+# Ensure deployment scripts are automatically made executable
+echo "Ensuring execution permissions on deployment scripts..."
+for script in start.sh update.sh install.sh; do
+  if [ -f "$DEPLOY_DIR/$script" ]; then
+    chmod +x "$DEPLOY_DIR/$script"
+  fi
+done
+
 # 5. Clean up downloaded archive if retrieved via URL
 if [ -n "$ZIP_URL" ]; then
   rm -f "$ZIP_PATH"

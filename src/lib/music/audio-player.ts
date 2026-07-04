@@ -96,7 +96,7 @@ export class MusicAudioPlayer {
     }, 0);
   }
 
-  load(url: string, seekTo?: number) {
+  load(url: string, seekTo?: number, shouldPlay = true) {
     if (!this.audio) return;
     try {
       this.audio.src = url;
@@ -104,9 +104,14 @@ export class MusicAudioPlayer {
       if (seekTo !== undefined && seekTo > 0) {
         this.audio.currentTime = seekTo;
       }
-      this.audio.play().catch((err) => {
-        console.warn("[MusicAudioPlayer] Playback deferred or interrupted:", err);
-      });
+      if (shouldPlay) {
+        this.audio.play().catch((err) => {
+          console.warn("[MusicAudioPlayer] Playback deferred or interrupted:", err);
+        });
+      } else {
+        this.currentState = "paused";
+        this.callbacks.onStateChange?.("paused");
+      }
     } catch (err) {
       console.error("[MusicAudioPlayer] Failed to load source:", err);
     }

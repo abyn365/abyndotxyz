@@ -88,9 +88,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       try {
         const queueData = await queueResponse.json();
         if (queueData && Array.isArray(queueData.queue)) {
-          upcomingQueue = queueData.queue.slice(0, 3).map((track: any) => ({
+          upcomingQueue = queueData.queue.slice(0, 20).map((track: any) => ({
             title: track.name,
             artist: track.artists?.map((a: any) => a.name).join(", ") || "",
+            album: track.album?.name || "",
+            cover: track.album?.images?.[0]?.url || "",
+            songUrl: track.external_urls?.spotify || "",
             durationMs: track.duration_ms || 0,
           }));
         }

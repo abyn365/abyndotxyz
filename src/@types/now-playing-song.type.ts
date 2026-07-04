@@ -1,6 +1,9 @@
 export interface UpcomingQueueItem {
   title: string;
   artist: string;
+  album?: string;
+  cover?: string;
+  songUrl?: string;
   durationMs: number;
 }
 
