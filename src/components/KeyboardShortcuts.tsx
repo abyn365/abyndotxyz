@@ -10,9 +10,9 @@ const CATEGORIES = [
     icon: Navigation,
     items: [
       { key: "Alt + H", description: "Go to home page" },
-      { key: "Alt + P", description: "Go to projects list" },
       { key: "Alt + M", description: "Go to music page" },
       { key: "Alt + U", description: "Go to uses page" },
+      { key: "Alt + B", description: "Go to blog page" },
       { key: "Alt + G", description: "Open GitHub profile" },
     ],
   },
@@ -70,12 +70,16 @@ export default function KeyboardShortcuts() {
 
           case "g":
             e.preventDefault();
-            window.open("https://github.com/abyn365", "_blank", "noopener,noreferrer");
+            window.open(
+              "https://github.com/abyn365",
+              "_blank",
+              "noopener,noreferrer"
+            );
             break;
 
-          case "p":
+          case "b":
             e.preventDefault();
-            router.push("/projects");
+            router.push("/blog");
             break;
 
           case "m":
@@ -117,7 +121,7 @@ export default function KeyboardShortcuts() {
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden p-4">
           {/* Backdrop Blur Overlay */}
           <motion.div
             key="backdrop"
@@ -135,7 +139,7 @@ export default function KeyboardShortcuts() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="relative z-50 w-full max-w-lg rounded-2xl border p-6 shadow-2xl select-none max-h-[85vh] flex flex-col"
+            className="relative z-50 flex max-h-[85vh] w-full max-w-lg select-none flex-col rounded-2xl border p-6 shadow-2xl"
             style={{
               background: "var(--card-bg)",
               borderColor: "var(--card-border)",
@@ -143,19 +147,22 @@ export default function KeyboardShortcuts() {
             }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b shrink-0" style={{ borderColor: "var(--card-border)" }}>
+            <div
+              className="flex shrink-0 items-center justify-between border-b pb-4"
+              style={{ borderColor: "var(--card-border)" }}
+            >
               <div>
                 <h3 className="font-display text-base font-bold text-[var(--text-primary)]">
                   Keyboard Shortcuts
                 </h3>
-                <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5 uppercase tracking-wider">
+                <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
                   Press /? anywhere to close
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-lg border p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                className="rounded-lg border p-1.5 text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
                 style={{ borderColor: "var(--card-border)" }}
                 aria-label="Close keyboard shortcuts dialog"
               >
@@ -164,26 +171,32 @@ export default function KeyboardShortcuts() {
             </div>
 
             {/* Scrollable Categories Content */}
-            <div className="flex-1 overflow-y-auto py-4 space-y-6 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+            <div
+              className="scrollbar-none flex-1 space-y-6 overflow-y-auto py-4"
+              style={{ scrollbarWidth: "none" }}
+            >
               {CATEGORIES.map((category) => {
                 const Icon = category.icon;
                 return (
                   <div key={category.title} className="space-y-2.5">
-                    <h4 className="flex items-center gap-2 font-display text-xs font-bold text-[var(--text-primary)] opacity-80 uppercase tracking-widest">
+                    <h4 className="flex items-center gap-2 font-display text-xs font-bold uppercase tracking-widest text-[var(--text-primary)] opacity-80">
                       <Icon className="h-3.5 w-3.5" />
                       {category.title}
                     </h4>
-                    <div className="divide-y divide-[var(--card-border)] rounded-xl border overflow-hidden" style={{ borderColor: "var(--card-border)" }}>
+                    <div
+                      className="divide-y divide-[var(--card-border)] overflow-hidden rounded-xl border"
+                      style={{ borderColor: "var(--card-border)" }}
+                    >
                       {category.items.map((item) => (
                         <div
                           key={item.key}
-                          className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-[var(--bg-secondary)] transition-colors"
+                          className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-[var(--bg-secondary)]"
                         >
-                          <span className="text-xs text-[var(--text-secondary)] font-medium">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
                             {item.description}
                           </span>
                           <kbd
-                            className="shrink-0 rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold text-[var(--text-primary)] shadow-sm bg-white/5"
+                            className="shrink-0 rounded-md border bg-white/5 px-2 py-0.5 font-mono text-[10px] font-bold text-[var(--text-primary)] shadow-sm"
                             style={{
                               borderColor: "var(--card-border)",
                               background: "var(--bg-secondary)",

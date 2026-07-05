@@ -120,10 +120,10 @@ const CONNECTION_ICONS: Record<string, any> = {
 };
 
 const CONNECTION_URLS: Record<string, (name: string) => string> = {
-  github: (name) => `https://github.com/${name}`,
-  spotify: (name) => `https://open.spotify.com/user/${name}`,
-  roblox: (name) => `https://www.roblox.com/users/${name}/profile`,
-  tiktok: (name) => `https://www.tiktok.com/@${name}`,
+  github: () => `/github`,
+  spotify: () => `/spotify`,
+  roblox: () => `/roblox`,
+  tiktok: () => `/tiktok`,
   domain: (name) => `https://${name}`,
 };
 
@@ -250,7 +250,7 @@ export default function Home() {
   // Initialize Turnstile widget for visitor auth
   useEffect(() => {
     let checkInterval: NodeJS.Timeout;
-    
+
     const initVisitorWidget = () => {
       const win = window as any;
       if (win.turnstile && visitorTurnstileContainerRef.current) {
@@ -442,14 +442,14 @@ export default function Home() {
         setVisitorUsername("");
         setVisitorPassword("");
         setVisitorTurnstileToken("");
-        
+
         // Fetch new csrf token (since session ID changed)
         const statusRes = await fetch("/api/visitor/auth/status");
         const statusData = await statusRes.json();
         if (statusData.success && statusData.csrfToken) {
           setVisitorToken(statusData.csrfToken);
         }
-        
+
         // Refresh messages
         const listRes = await fetch("/api/guestbook");
         const listData = await listRes.json();
@@ -492,14 +492,14 @@ export default function Home() {
         setVisitor(null);
         setVisitorSuccess("Logged out successfully.");
         setVisitorError("");
-        
+
         // Fetch new anonymous token
         const statusRes = await fetch("/api/visitor/auth/status");
         const statusData = await statusRes.json();
         if (statusData.success && statusData.csrfToken) {
           setVisitorToken(statusData.csrfToken);
         }
-        
+
         // Refresh messages
         const listRes = await fetch("/api/guestbook");
         const listData = await listRes.json();
@@ -756,8 +756,6 @@ export default function Home() {
                     <a
                       key={acc.id}
                       href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="flex items-center justify-between rounded-lg border border-white/5 bg-[#111214]/40 px-3 py-2 transition-colors hover:bg-white/5 text-xs h-[38px]"
                     >
                       <div className="flex items-center gap-2 min-w-0">
@@ -780,13 +778,12 @@ export default function Home() {
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between rounded-lg border border-white/5 bg-[#111214]/40 px-3 py-2 transition-colors hover:bg-white/5 text-xs h-[38px]"
+                      className="flex items-center rounded-lg border border-white/5 bg-[#111214]/40 px-3 py-2 transition-colors hover:bg-white/5 text-xs h-[38px]"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <Icon className="h-4 w-4 text-neutral-400 shrink-0" />
                         <span className="truncate text-neutral-300 font-mono">{s.name}</span>
                       </div>
-                      <span className="text-[10px] text-neutral-500 font-mono uppercase">{s.label}</span>
                     </a>
                   );
                 })}

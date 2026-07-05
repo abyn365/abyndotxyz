@@ -70,6 +70,11 @@ module.exports = {
         permanent: true,
       },
       {
+        source: "/roblox",
+        destination: "https://www.roblox.com/users/1942444477/profile",
+        permanent: true,
+      },
+      {
         source: "/tiktok",
         destination: "https://www.tiktok.com/@abyb.1",
         permanent: true,
