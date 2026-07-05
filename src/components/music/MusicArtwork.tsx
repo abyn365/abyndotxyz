@@ -1,5 +1,5 @@
 import { Music2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Props = {
   src?: string;
@@ -20,6 +20,11 @@ export default function MusicArtwork({
 }: Props) {
   const [errored, setErrored] = useState(false);
 
+  // Reset errored state when track cover or canvas URL changes
+  useEffect(() => {
+    setErrored(false);
+  }, [src, canvasUrl]);
+
   if (!src || errored) {
     return (
       <div
@@ -39,6 +44,7 @@ export default function MusicArtwork({
   if (canvasUrl && !errored) {
     return (
       <video
+        key={canvasUrl}
         src={canvasUrl}
         autoPlay
         loop
@@ -52,6 +58,7 @@ export default function MusicArtwork({
 
   return (
     <img
+      key={src}
       src={src}
       alt={alt}
       loading="lazy"

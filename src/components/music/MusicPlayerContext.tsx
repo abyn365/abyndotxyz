@@ -278,6 +278,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
           const { queue, queueIndex, syncMode } = stateRef.current;
           if (syncMode === "listening-along") {
             set({ isPlaying: false, endedLocally: true });
+            spotifySync.current?.forceRefresh();
           } else if (queueIndex < queue.length - 1) {
             actions.next(true);
           } else {

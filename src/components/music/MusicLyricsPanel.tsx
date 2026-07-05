@@ -184,6 +184,7 @@ export default function MusicLyricsPanel() {
           {currentTrack.canvasUrl ? (
             <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
               <video
+                key={currentTrack.canvasUrl}
                 src={currentTrack.canvasUrl}
                 autoPlay
                 loop
