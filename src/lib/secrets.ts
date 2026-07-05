@@ -16,8 +16,8 @@ export async function getSecret(
   // 2. Fall back to the OS keychain for local development tools (Windows / macOS)
   try {
     if (typeof Bun !== "undefined" && Bun.secrets) {
-      // Using Bun's positional string API syntax: (service, name)
-      const val = await Bun.secrets.get(service, key);
+      // Pass a single configuration object to satisfy the TypeScript compiler
+      const val = await Bun.secrets.get({ service, name: key });
       if (val) {
         return val;
       }
@@ -41,8 +41,8 @@ export async function setSecret(
 
   try {
     if (typeof Bun !== "undefined" && Bun.secrets) {
-      // Using Bun's positional string API syntax: (service, name, value)
-      await Bun.secrets.set(service, key, value);
+      // Pass a single configuration object to satisfy the TypeScript compiler
+      await Bun.secrets.set({ service, name: key, value });
       return true;
     }
   } catch (e) {
