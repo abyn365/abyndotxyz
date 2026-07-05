@@ -15,6 +15,7 @@ jobs:
       NEXT_PUBLIC_UMAMI_WEBSITE_ID: "2fbf2274-56e7-4333-981f-5568b599b3f7"
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: "0x4AAAAAADv9KsIrMSbSARa-"
       NEXT_PUBLIC_DISCORD_ID: "877018055815868426"
+      NEXT_PUBLIC_S3_PUBLIC_DOMAIN: "https://s3.abyn.xyz"
     runs-on: ubuntu-latest
     permissions:
       contents: write
