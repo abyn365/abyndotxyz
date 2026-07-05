@@ -361,6 +361,21 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       },
     });
 
+    // Unlocking AudioContext and Playback on first user gesture
+    const unlock = () => {
+      player.resumeContext();
+      if (stateRef.current.isPlaying) {
+        player.play();
+      }
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("touchstart", unlock);
+    };
+
+    window.addEventListener("click", unlock);
+    window.addEventListener("keydown", unlock);
+    window.addEventListener("touchstart", unlock);
+
     // Keyboard shortcuts
     const handleKey = (e: KeyboardEvent) => {
       if (e.altKey || e.ctrlKey || e.metaKey) {
@@ -410,6 +425,9 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
 
     return () => {
       window.removeEventListener("keydown", handleKey);
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("touchstart", unlock);
       player.stop();
       if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
     };

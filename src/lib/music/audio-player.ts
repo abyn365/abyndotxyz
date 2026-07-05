@@ -181,6 +181,15 @@ export class MusicAudioPlayer {
     this.activeAudio?.play().catch(() => {});
   }
 
+  resumeContext() {
+    if (!this.audioContext) {
+      this.getAnalyser();
+    }
+    if (this.audioContext && this.audioContext.state === "suspended") {
+      this.audioContext.resume().catch(() => {});
+    }
+  }
+
   pause() {
     this.activeAudio?.pause();
   }
