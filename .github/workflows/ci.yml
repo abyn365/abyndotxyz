@@ -10,6 +10,9 @@ on:
 jobs:
   build:
     name: Build & Test
+    env:
+      NEXT_PUBLIC_UMAMI_SCRIPT_URL: "https://umami.abyn.xyz/script.js"
+      NEXT_PUBLIC_UMAMI_WEBSITE_ID: "2fbf2274-56e7-4333-981f-5568b599b3f7"
     runs-on: ubuntu-latest
     permissions:
       contents: write
