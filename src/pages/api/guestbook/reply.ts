@@ -97,6 +97,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await kv.set("guestbook", current);
 
+    // Send Discord Webhook notification
+    try {
+      const { sendDiscordWebhook } = await import("../../../lib/discord");
+      await sendDiscordWebhook({
+        title: "✉️ New Guestbook Reply",
+        color: 15844367, // #F1C40F
+        description: cleanMessage,
+        fields: [
+          { name: "Author", value: session.username, inline: true },
+          { name: "Parent Message ID", value: messageId, inline: true },
+          { name: "Timestamp", value: new Date().toLocaleString(), inline: true }
+        ]
+      });
+    } catch (whErr) {
+      console.error("Failed to send guestbook reply webhook:", whErr);
+    }
+
     return res.status(200).json({ success: true, reply: newReply });
   } catch (error) {
     console.error("Guestbook reply API error:", error);

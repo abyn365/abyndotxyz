@@ -22,7 +22,8 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
-  Shield
+  Shield,
+  X
 } from "lucide-react";
 import { PageFooter } from "../components/PageFooter";
 import { parseMarkdown } from "../lib/markdown";
@@ -90,6 +91,8 @@ export default function AdminDashboard() {
   // Moderation state
   const [blockedUsernames, setBlockedUsernames] = useState<string[]>([]);
   const [blockedWords, setBlockedWords] = useState<string[]>([]);
+  const [blockedUsernameInput, setBlockedUsernameInput] = useState("");
+  const [blockedWordInput, setBlockedWordInput] = useState("");
   const [moderationSaving, setModerationSaving] = useState(false);
   const [moderationError, setModerationError] = useState("");
   const [moderationSuccess, setModerationSuccess] = useState("");
@@ -991,7 +994,7 @@ export default function AdminDashboard() {
                       type="file"
                       multiple
                       required
-                      accept="image/*,video/*,application/pdf"
+                      accept="image/*,image/svg+xml,video/*,application/pdf"
                       onChange={(e) => setUploadFiles(Array.from(e.target.files || []))}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
@@ -1004,7 +1007,7 @@ export default function AdminDashboard() {
                     <p className="text-[10px] text-[var(--text-secondary)] mt-1">
                       {uploadFiles.length > 0
                         ? `Total size: ${(uploadFiles.reduce((acc, f) => acc + f.size, 0) / 1024 / 1024).toFixed(2)} MB`
-                        : "Supports images, videos, and PDFs up to 50MB (bulk allowed)"}
+                        : "Supports images, SVGs, videos, and PDFs up to 50MB (bulk allowed)"}
                     </p>
                   </div>
 
@@ -1097,18 +1100,46 @@ export default function AdminDashboard() {
                         Blocked Usernames / Reserved Terms
                       </label>
                       <p className="text-[10px] text-[var(--text-secondary)]">
-                        Usernames that visitors cannot register, or use as guest names. Put each word/phrase on a new line.
+                        Usernames that visitors cannot register, or use as guest names. Type a term and press Enter or comma.
                       </p>
-                      <textarea
-                        rows={8}
-                        value={blockedUsernames.join("\n")}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setBlockedUsernames(val.split("\n").map(s => s.trim()).filter(s => s.length > 0));
-                        }}
-                        className="w-full flex-1 rounded-xl bg-black/10 border border-[var(--card-border)] px-3 py-2 text-xs font-mono text-[var(--text-primary)] focus:outline-none min-h-[160px]"
-                        placeholder="admin&#10;owner&#10;moderator"
-                      />
+                      <div className="flex flex-wrap gap-1.5 rounded-xl bg-black/10 border border-[var(--card-border)] p-2.5 min-h-[160px] align-content-start focus-within:border-[var(--accent)] transition-colors">
+                        {blockedUsernames.map((username) => (
+                          <div
+                            key={username}
+                            className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/20 text-xs text-[var(--text-primary)] border border-[var(--card-border)]"
+                          >
+                            <span>{username}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setBlockedUsernames(blockedUsernames.filter((u) => u !== username));
+                              }}
+                              className="text-[var(--text-secondary)] hover:text-red-400 transition-colors cursor-pointer"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                        <input
+                          type="text"
+                          value={blockedUsernameInput}
+                          onChange={(e) => setBlockedUsernameInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === ",") {
+                              e.preventDefault();
+                              const trimmed = blockedUsernameInput.trim().toLowerCase();
+                              if (trimmed && !blockedUsernames.includes(trimmed)) {
+                                setBlockedUsernames([...blockedUsernames, trimmed]);
+                              }
+                              setBlockedUsernameInput("");
+                            } else if (e.key === "Backspace" && !blockedUsernameInput && blockedUsernames.length > 0) {
+                                setBlockedUsernames(blockedUsernames.slice(0, -1));
+                            }
+                          }}
+                          className="flex-1 min-w-[100px] bg-transparent border-none outline-none text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] py-0.5"
+                          placeholder={blockedUsernames.length === 0 ? "Type username and press Enter..." : ""}
+                        />
+                      </div>
                     </div>
 
                     {/* Blocked Words */}
@@ -1117,18 +1148,46 @@ export default function AdminDashboard() {
                         Blocked Words / Prohibited Content
                       </label>
                       <p className="text-[10px] text-[var(--text-secondary)]">
-                        Submissions (guestbook entries, replies, comments) containing these words will be blocked. Put each term on a new line.
+                        Submissions (guestbook entries, replies, comments) containing these words will be blocked. Type a term and press Enter or comma.
                       </p>
-                      <textarea
-                        rows={8}
-                        value={blockedWords.join("\n")}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setBlockedWords(val.split("\n").map(s => s.trim()).filter(s => s.length > 0));
-                        }}
-                        className="w-full flex-1 rounded-xl bg-black/10 border border-[var(--card-border)] px-3 py-2 text-xs font-mono text-[var(--text-primary)] focus:outline-none min-h-[160px]"
-                        placeholder="blocked_word_1&#10;blocked_word_2"
-                      />
+                      <div className="flex flex-wrap gap-1.5 rounded-xl bg-black/10 border border-[var(--card-border)] p-2.5 min-h-[160px] align-content-start focus-within:border-[var(--accent)] transition-colors">
+                        {blockedWords.map((word) => (
+                          <div
+                            key={word}
+                            className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/20 text-xs text-[var(--text-primary)] border border-[var(--card-border)]"
+                          >
+                            <span>{word}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setBlockedWords(blockedWords.filter((w) => w !== word));
+                              }}
+                              className="text-[var(--text-secondary)] hover:text-red-400 transition-colors cursor-pointer"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                        <input
+                          type="text"
+                          value={blockedWordInput}
+                          onChange={(e) => setBlockedWordInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === ",") {
+                              e.preventDefault();
+                              const trimmed = blockedWordInput.trim().toLowerCase();
+                              if (trimmed && !blockedWords.includes(trimmed)) {
+                                setBlockedWords([...blockedWords, trimmed]);
+                              }
+                              setBlockedWordInput("");
+                            } else if (e.key === "Backspace" && !blockedWordInput && blockedWords.length > 0) {
+                              setBlockedWords(blockedWords.slice(0, -1));
+                            }
+                          }}
+                          className="flex-1 min-w-[100px] bg-transparent border-none outline-none text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] py-0.5"
+                          placeholder={blockedWords.length === 0 ? "Type word and press Enter..." : ""}
+                        />
+                      </div>
                     </div>
 
                   </div>

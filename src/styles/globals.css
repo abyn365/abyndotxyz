@@ -423,4 +423,12 @@ html.has-entered .first-load-overlay {
   outline: none;
 }
 
+/* Override prose styles to render images/SVGs inline like GitHub GFM */
+.prose img, .prose svg {
+  display: inline-block !important;
+  margin: 0.25rem 0.125rem !important;
+  vertical-align: middle;
+}
+
+
 

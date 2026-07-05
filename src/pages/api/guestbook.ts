@@ -147,6 +147,23 @@ export default async function handler(
       }
 
       await kv.set("guestbook", updated);
+
+      // Send Discord Webhook notification
+      try {
+        const { sendDiscordWebhook } = await import("../../lib/discord");
+        await sendDiscordWebhook({
+          title: "📖 New Guestbook Entry",
+          color: 16187519, // #F7007F
+          description: cleanMessage,
+          fields: [
+            { name: "Name", value: cleanName, inline: true },
+            { name: "Timestamp", value: new Date().toLocaleString(), inline: true }
+          ]
+        });
+      } catch (whErr) {
+        console.error("Failed to send guestbook webhook:", whErr);
+      }
+
       return res.status(200).json({ success: true, entry: newEntry });
     } catch (dbErr) {
       console.error("Guestbook POST DB error:", dbErr);

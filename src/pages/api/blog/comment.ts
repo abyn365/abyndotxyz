@@ -67,6 +67,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Add comment
       const comment = await addComment(slug, visitorSession.username, cleanContent);
+
+      // Send Discord Webhook notification
+      try {
+        const { sendDiscordWebhook } = await import("../../../lib/discord");
+        const siteUrl = process.env.SITE_URL || "https://abyn.xyz";
+        await sendDiscordWebhook({
+          title: "💬 New Blog Comment",
+          color: 63347, // #00F773
+          description: cleanContent,
+          fields: [
+            { name: "Post Slug", value: slug, inline: true },
+            { name: "Author", value: visitorSession.username, inline: true },
+            { name: "Post URL", value: `${siteUrl}/blog/${slug}`, inline: false }
+          ]
+        });
+      } catch (whErr) {
+        console.error("Failed to send comment webhook:", whErr);
+      }
+
       return res.status(200).json({ success: true, comment });
     } catch (error) {
       console.error(`Error adding comment on post "${slug}":`, error);

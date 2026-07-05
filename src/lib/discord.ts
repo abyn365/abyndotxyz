@@ -133,3 +133,56 @@ export const transformPresence = (presence: LanyardPresence): StatusData => {
       : null,
   };
 };
+
+export interface DiscordEmbedField {
+  name: string;
+  value: string;
+  inline?: boolean;
+}
+
+export interface DiscordEmbed {
+  title?: string;
+  description?: string;
+  url?: string;
+  color?: number;
+  fields?: DiscordEmbedField[];
+  timestamp?: string;
+  footer?: {
+    text: string;
+    icon_url?: string;
+  };
+}
+
+export async function sendDiscordWebhook(embed: DiscordEmbed): Promise<void> {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (!webhookUrl) {
+    return; // Skip silently if no webhook URL is configured
+  }
+
+  try {
+    const payload = {
+      username: "abyn.xyz",
+      avatar_url: "https://abyn.xyz/favicon.ico",
+      embeds: [
+        {
+          ...embed,
+          timestamp: embed.timestamp || new Date().toISOString(),
+        },
+      ],
+    };
+
+    const res = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      console.error(`Discord webhook status error: ${res.status} ${res.statusText}`);
+    }
+  } catch (error) {
+    console.error("Failed to send Discord webhook:", error);
+  }
+}

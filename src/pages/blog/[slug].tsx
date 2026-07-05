@@ -4,7 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
-import { Calendar, Clock, ArrowLeft, Heart, MessageSquare, Trash2 } from "lucide-react";
+import { Calendar, Clock, ArrowLeft, Heart, MessageSquare, Trash2, Copy, Check } from "lucide-react";
 import { PageFooter } from "../../components/PageFooter";
 import { parseMarkdown } from "../../lib/markdown";
 
@@ -58,6 +58,45 @@ export default function BlogPostPage() {
 
   // Admin status check (for deleting any comment)
   const [isAdmin, setIsAdmin] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const headers = post ? getHeaders(post.content) : [];
+  const [activeId, setActiveId] = useState<string>("");
+
+  useEffect(() => {
+    if (headers.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-80px 0px -65% 0px" }
+    );
+
+    headers.forEach((h) => {
+      const el = document.getElementById(h.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [headers]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash) {
+      setActiveId(window.location.hash.substring(1));
+    }
+  }, [post]);
+
+  const handleCopyPage = () => {
+    if (!post) return;
+    navigator.clipboard.writeText(post.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Fetch visitor auth status & admin status
   useEffect(() => {
@@ -353,7 +392,12 @@ export default function BlogPostPage() {
       </Head>
 
       <main className="relative min-h-screen pb-16">
-        <div className="mx-auto max-w-3xl px-4 pt-8 sm:px-6 lg:px-8">
+        <div className={`mx-auto px-4 pt-8 sm:px-6 lg:px-8 ${
+          headers.length > 0
+            ? "max-w-5xl lg:grid lg:grid-cols-12 lg:gap-8"
+            : "max-w-3xl"
+        }`}>
+          <div className={headers.length > 0 ? "lg:col-span-9" : ""}>
           {/* Back button */}
           <Link href="/blog" className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-8 transition-colors">
             <ArrowLeft className="h-3.5 w-3.5" /> Back to blog
@@ -380,6 +424,20 @@ export default function BlogPostPage() {
                   Draft
                 </span>
               )}
+              <button
+                onClick={handleCopyPage}
+                className="flex items-center gap-1 hover:text-[var(--text-primary)] transition-colors cursor-pointer border border-white/5 rounded-lg px-2.5 py-1 bg-black/10 text-[9px] font-bold uppercase tracking-wider ml-auto"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3 w-3 text-green-400" /> Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3 w-3" /> Copy page
+                  </>
+                )}
+              </button>
             </div>
             
             <h1 className="font-display text-3xl font-black tracking-tight text-[var(--text-primary)] sm:text-4xl leading-tight">
@@ -604,6 +662,47 @@ export default function BlogPostPage() {
               )}
             </div>
           </section>
+          </div>
+
+          {/* Sidebar Column (Desktop only) */}
+          {headers.length > 0 && (
+            <div className="hidden lg:block lg:col-span-3">
+              <aside className="sticky top-24 self-start space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                  On this page
+                </h3>
+                <nav className="relative pl-4 border-l border-[var(--card-border)] space-y-2">
+                  {headers.map((header) => {
+                    const isActive = header.id === activeId;
+                    const indent =
+                      header.level === 3 ? "pl-3 text-[11px]" :
+                      header.level === 4 ? "pl-6 text-[10px]" :
+                      "text-xs";
+                    return (
+                      <a
+                        key={header.id}
+                        href={`#${header.id}`}
+                        className={`relative block transition-colors leading-relaxed ${indent} ${
+                          isActive
+                            ? "text-[var(--accent)] font-semibold"
+                            : "text-[var(--text-secondary)] hover:text-[var(--accent)]"
+                        }`}
+                      >
+                        {isActive && (
+                          <motion.div
+                            layoutId="active-toc-indicator"
+                            className="absolute left-[-17px] top-0 bottom-0 w-[2px] bg-[var(--accent)]"
+                            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                          />
+                        )}
+                        {header.text}
+                      </a>
+                    );
+                  })}
+                </nav>
+              </aside>
+            </div>
+          )}
         </div>
 
         <div className="mx-auto max-w-3xl px-4 mt-12 sm:px-6 lg:px-8">
@@ -612,4 +711,46 @@ export default function BlogPostPage() {
       </main>
     </>
   );
+}
+
+interface HeaderItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
+function getHeaders(content: string): HeaderItem[] {
+  if (!content) return [];
+  const lines = content.split("\n");
+  const headers: HeaderItem[] = [];
+  let inCodeBlock = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("```")) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+    if (inCodeBlock) continue;
+
+    if (trimmed.startsWith("##") || trimmed.startsWith("###") || trimmed.startsWith("####")) {
+      const match = trimmed.match(/^(#{2,4})\s+(.*)$/);
+      if (match) {
+        const level = match[1].length;
+        let text = match[2].trim();
+        text = text.replace(/\s+#+$/, "");
+        
+        const id = text
+          .toLowerCase()
+          .replace(/<[^>]*>/g, "")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .trim();
+
+        headers.push({ id, text, level });
+      }
+    }
+  }
+  return headers;
 }

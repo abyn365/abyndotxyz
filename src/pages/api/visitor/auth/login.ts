@@ -19,6 +19,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ success: false, error: "Username and password are required" });
   }
 
+  const rawIp = (req.headers["x-forwarded-for"] as string) || (req.headers["x-real-ip"] as string) || req.socket.remoteAddress || "Unknown IP";
+  const ip = rawIp.split(",")[0].trim();
+
   // 1.5 Verify Cloudflare Turnstile Token
   const turnstileSecret = process.env.TURNSTILE_SECRET_KEY || "1x0000000000000000000000000000000AA";
   try {
@@ -43,10 +46,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const cleanUsername = username.trim().toLowerCase();
 
+  const handleLoginFailure = async () => {
+    const failKey = `failed_login_attempts:visitor:${cleanUsername}:${ip}`;
+    const currentAttempts = (await kv.get<number>(failKey)) || 0;
+    const newAttempts = currentAttempts + 1;
+    await kv.set(failKey, newAttempts, { ex: 3600 }); // Expire in 1 hour
+
+    if (newAttempts > 3) {
+      try {
+        const { sendDiscordWebhook } = await import("../../../../lib/discord");
+        await sendDiscordWebhook({
+          title: "⚠️ Security Alert: Failed Visitor Login",
+          color: 16711680, // #FF0000
+          description: `More than 3 failed login attempts detected for visitor account.`,
+          fields: [
+            { name: "Target Username", value: cleanUsername, inline: true },
+            { name: "IP Address", value: ip, inline: true },
+            { name: "Total Failures (1hr)", value: String(newAttempts), inline: true }
+          ]
+        });
+      } catch (whErr) {
+        console.error("Failed to send visitor login failure webhook:", whErr);
+      }
+    }
+  };
+
   try {
     // 2. Retrieve user
     const user = await kv.get<{ username: string; hash: string }>(`visitor:user:${cleanUsername}`);
     if (!user) {
+      await handleLoginFailure();
       return res.status(401).json({ success: false, error: "Invalid username or password" });
     }
 
@@ -59,11 +88,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!isValid) {
+      await handleLoginFailure();
       return res.status(401).json({ success: false, error: "Invalid username or password" });
     }
 
     // 4. Create Session
     await createVisitorSession(res, cleanUsername);
+    await kv.del(`failed_login_attempts:visitor:${cleanUsername}:${ip}`);
     return res.status(200).json({ success: true, user: { username: cleanUsername } });
   } catch (error) {
     console.error("Visitor login error:", error);

@@ -76,6 +76,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 5. Establish Session
     await createVisitorSession(res, cleanUsername);
+
+    // Send Discord Webhook notification
+    try {
+      const { sendDiscordWebhook } = await import("../../../../lib/discord");
+      await sendDiscordWebhook({
+        title: "👤 New User Registered",
+        color: 3242182, // #3178C6
+        description: `A new visitor account **${cleanUsername}** has successfully registered.`,
+        fields: [
+          { name: "Username", value: cleanUsername, inline: true },
+          { name: "Registered At", value: new Date().toLocaleString(), inline: true }
+        ]
+      });
+    } catch (whErr) {
+      console.error("Failed to send registration webhook:", whErr);
+    }
+
     return res.status(200).json({ success: true, user: { username: cleanUsername } });
   } catch (error) {
     console.error("Visitor registration error:", error);
