@@ -150,6 +150,12 @@ export default function MusicLyricsPanel() {
   const accent = accentColor.primary;
   const accentGlow = accentColor.glow;
 
+  const hasLyricsOrLoading =
+    lyricsState === "loading" ||
+    (lyricsState === "loaded" &&
+      ((hasTimestamps && lyrics && lyrics.length > 0) ||
+        (!hasTimestamps && !!plainLyrics)));
+
   const volPct = isMuted ? 0 : volume * 100;
 
   // Speaker icon indicator
@@ -183,10 +189,18 @@ export default function MusicLyricsPanel() {
                 loop
                 muted
                 playsInline
-                className="h-full w-full object-cover opacity-30 dark:opacity-20 scale-[1.06] filter blur-[24px] saturate-[1.4] transition-opacity duration-1000"
+                className={`h-full w-full object-cover scale-[1.02] transition-all duration-1000 ${
+                  hasLyricsOrLoading
+                    ? "opacity-35 dark:opacity-25 filter blur-[3px] saturate-[1.1]"
+                    : "opacity-[0.85] dark:opacity-[0.7] filter blur-none saturate-[1.3]"
+                }`}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)] opacity-90" />
-              <div className="absolute inset-0 bg-black/30 dark:bg-black/60" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)] opacity-85 transition-opacity duration-1000" />
+              <div className={`absolute inset-0 transition-colors duration-1000 ${
+                hasLyricsOrLoading
+                  ? "bg-black/45 dark:bg-black/65"
+                  : "bg-black/15 dark:bg-black/30"
+              }`} />
             </div>
           ) : currentTrack.cover ? (
             <div
@@ -277,7 +291,6 @@ export default function MusicLyricsPanel() {
               >
                 <MusicArtwork
                   src={currentTrack.cover}
-                  canvasUrl={currentTrack.canvasUrl}
                   alt={currentTrack.title}
                   className="h-full w-full object-cover"
                 />
@@ -527,12 +540,16 @@ export default function MusicLyricsPanel() {
                   </div>
                 ) : (
                   <div className="flex h-full items-center justify-center text-center py-20">
-                    <div>
-                      <Disc3 className="mx-auto mb-4 h-12 w-12 text-[var(--text-secondary)] opacity-35" style={{ color: accent }} />
-                      <p className="text-base font-semibold text-[var(--text-secondary)]">
+                    <div className={`transition-all duration-1000 ${
+                      currentTrack.canvasUrl
+                        ? "bg-black/25 dark:bg-white/5 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-3xl p-8 max-w-sm mx-auto shadow-2xl"
+                        : ""
+                    }`}>
+                      <Disc3 className="mx-auto mb-4 h-12 w-12 text-[var(--text-secondary)] opacity-35 animate-spin-slow" style={{ color: accent }} />
+                      <p className="text-base font-bold text-[var(--text-primary)]">
                         No Lyrics Available
                       </p>
-                      <p className="mt-1.5 text-xs text-[var(--text-secondary)] opacity-50">
+                      <p className="mt-2 text-xs text-[var(--text-secondary)] font-medium max-w-[240px] mx-auto leading-relaxed">
                         This track is instrumental or doesn't have lyrics yet.
                       </p>
                     </div>

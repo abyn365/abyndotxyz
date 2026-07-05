@@ -1,27 +1,424 @@
-## Performance & Architecture Rules
+# AGENTS.md
 
-### React High-Frequency State
-Never store high-frequency changing state (e.g., media playback progress, scroll positions, mouse coordinates) in global React Contexts or high-level parent components. This causes severe re-render cascades. 
-**Required Approach**: Use `requestAnimationFrame` combined with local `useRef` direct DOM manipulations, or tightly scoped local component state, to visualize fast-changing data without blocking the main thread.
+> Developer guidelines and architectural constraints for this project.
+>
+> These rules are mandatory unless explicitly overridden by the repository owner.
 
-### Asynchronous Operation Deduplication
-When implementing expensive backend operations (such as child processes, CLI executions like `yt-dlp`, or heavy API fetches), always implement a concurrency lock/deduplication mechanism.
-**Required Approach**: Maintain an `activePromises` Map (keyed by the resource ID) to ensure that multiple simultaneous requests for the exact same resource return the shared in-flight Promise rather than spawning redundant overlapping processes.
+---
 
-## Codebase Knowledge Base
+# Core Engineering Principles
 
-### Music Streaming & Live Sync Architecture
-- **Sync Engine**: `src/lib/music/sync.ts` is driven by Spotify API polls. It triggers metadata updates that propagate to `src/components/music/MusicPlayerContext.tsx`.
-- **Sync Modes**:
-  - `listening-along`: Keeps the local queue synchronized with the user's Spotify queue. In this mode, the local player strictly follows Spotify. If a track ends locally before Spotify transitions, it stops playing and waits (`endedLocally: true`) rather than auto-advancing. This prevents replaying or going out of sync.
-  - `manual`: User-controlled playback. Tracks auto-advance locally using the local queue.
-- **Audio Player**: `src/lib/music/audio-player.ts` handles the HTML5 Audio interface, buffering, and feeds Web Audio API analyser nodes for the visualizer.
-- **Canvas Integration**: Spotify Canvas URLs (returned via `GET https://api.paxsenix.org/spotify/canvas`) are rendered as looping `<video>` elements in `src/components/music/MusicArtwork.tsx` if available.
-- **Paxsenix & YouTube Fallbacks**: Track streams are resolved in `src/lib/music/extractor.ts`. We prioritize searching via `https://api.paxsenix.org/yt/search` and resolving audio streams via `/yt/ytaudio` using `PAXSENIX_API_KEY`. If the API fails or is unconfigured, we fall back to a local `yt-dlp` process.
-- **I Don't Have Spotify**: `/api/idonthavespotify` is a proxy mapping to `https://api.paxsenix.org/tools/idonthavespotify` to resolve Spotify track URLs on other streaming platforms.
+## Performance First
 
-## Validation & Verification Rules
+Prioritize runtime performance, responsiveness, and low memory usage over convenience.
 
-### Post-Change Verification Rule
-- **Mandatory Build & Tests**: After completing any code changes, always check the change by running a build (`bun run build` or equivalent) or executing the test suite (`bun test` or `npm test`).
-- **Create Tests If Needed**: If there is no existing test coverage for the modified path or feature, write a test script in `src/tests` or a scratch script in the `<appDataDir>\brain\<conversation-id>/scratch/` directory to run and verify correctness. Never assume changes are correct without running them.
+Avoid introducing unnecessary abstractions, providers, wrappers, or dependencies when native platform features or Bun APIs provide equivalent functionality.
+
+Every feature should scale well under heavy usage.
+
+---
+
+## Keep Code Simple
+
+- Prefer readable code over clever code.
+- Keep functions focused on a single responsibility.
+- Remove dead code immediately.
+- Avoid premature abstractions.
+- Minimize dependency count.
+- Prefer native Bun, Web APIs, and browser APIs whenever practical.
+
+---
+
+## Preserve Existing Behavior
+
+Unless explicitly requested:
+
+- Never remove existing features.
+- Never change public APIs.
+- Never silently alter UX.
+- New functionality must remain backwards compatible.
+
+---
+
+# Performance Rules
+
+## React High-Frequency State
+
+High-frequency values include:
+
+- playback position
+- elapsed time
+- progress bars
+- visualizers
+- animations
+- mouse coordinates
+- scroll positions
+- drag operations
+
+Never place these values inside:
+
+- React Context
+- top-level state
+- global stores
+
+Doing so creates unnecessary render cascades.
+
+Instead use:
+
+- `requestAnimationFrame`
+- `useRef`
+- direct DOM updates
+- localized component state
+
+Only commit React state when the UI actually needs reconciliation.
+
+---
+
+## Avoid Re-render Cascades
+
+Before lifting state upward, ask:
+
+> Does another component actually need this?
+
+If not:
+
+Keep the state local.
+
+Memoize expensive components using:
+
+- `React.memo`
+- `useMemo`
+- `useCallback`
+
+only when profiling shows a measurable benefit.
+
+---
+
+## Expensive Backend Operations
+
+Heavy operations include:
+
+- yt-dlp
+- ffmpeg
+- child processes
+- media extraction
+- expensive fetches
+- metadata generation
+
+Never execute duplicate work simultaneously.
+
+Always deduplicate using an in-flight promise map.
+
+Example:
+
+```ts
+const activePromises = new Map<string, Promise<Result>>();
+
+if (activePromises.has(id))
+    return activePromises.get(id)!;
+
+const promise = expensiveOperation(id)
+    .finally(() => activePromises.delete(id));
+
+activePromises.set(id, promise);
+
+return promise;
+```
+
+---
+
+## Cache Aggressively
+
+Cache whenever data is:
+
+- deterministic
+- expensive to compute
+- frequently requested
+
+Examples:
+
+- resolved streams
+- extracted metadata
+- Spotify lookups
+- image URLs
+- lyrics
+- canvas URLs
+
+Always define an appropriate cache TTL.
+
+---
+
+## Network Requests
+
+Batch requests whenever possible.
+
+Avoid waterfalls.
+
+Prefer:
+
+- parallel fetches
+- Promise.all()
+- request deduplication
+- stale-while-revalidate
+
+---
+
+# Architecture
+
+## Music Synchronization
+
+### Sync Engine
+
+```
+Spotify API
+      ↓
+sync.ts
+      ↓
+MusicPlayerContext
+      ↓
+Audio Player
+      ↓
+UI
+```
+
+`src/lib/music/sync.ts`
+
+is the single source of truth for Spotify synchronization.
+
+---
+
+### Sync Modes
+
+#### listening-along
+
+Spotify owns playback.
+
+The local player mirrors Spotify exactly.
+
+If a song finishes locally before Spotify changes tracks:
+
+- stop playback
+- mark `endedLocally = true`
+- wait for Spotify
+
+Never automatically advance.
+
+---
+
+#### manual
+
+User owns playback.
+
+Queue advances locally without Spotify.
+
+---
+
+## Audio Pipeline
+
+```
+Extractor
+      ↓
+Audio Player
+      ↓
+HTML5 Audio
+      ↓
+Web Audio API
+      ↓
+Visualizer
+```
+
+### Audio Player
+
+Responsible for:
+
+- playback
+- buffering
+- seeking
+- analyser nodes
+- playback events
+
+File:
+
+```
+src/lib/music/audio-player.ts
+```
+
+---
+
+## Stream Resolution
+
+Priority order:
+
+1. Paxsenix search
+2. Paxsenix audio endpoint
+3. local yt-dlp fallback
+
+Never reverse this order unless requested.
+
+---
+
+## Canvas
+
+Spotify Canvas videos come from
+
+```
+GET /spotify/canvas
+```
+
+Render using looping `<video>` elements.
+
+Do not convert Canvas videos into GIFs.
+
+---
+
+## Spotify-Free Resolver
+
+```
+/api/idonthavespotify
+```
+
+acts as a proxy to
+
+```
+https://api.paxsenix.org/tools/idonthavespotify
+```
+
+This endpoint converts Spotify URLs into links on other streaming platforms.
+
+---
+
+# Bun Guidelines
+
+Prefer Bun-native APIs whenever available.
+
+Examples:
+
+- Bun.serve()
+- Bun.file()
+- Bun.write()
+- Bun.sql
+- Bun.redis
+- Bun.spawn()
+- Bun.password
+- Bun.sleep()
+
+Avoid introducing Node packages that duplicate Bun functionality.
+
+---
+
+# Error Handling
+
+Never silently swallow errors.
+
+Wrap external operations with:
+
+- descriptive logging
+- retry logic when appropriate
+- graceful fallbacks
+
+User-facing failures should always provide meaningful messages.
+
+---
+
+# Validation
+
+Every completed code change must be verified.
+
+Minimum verification:
+
+- `bun run build`
+
+or
+
+- relevant test suite
+
+If tests do not exist:
+
+- create a focused test
+- or create a scratch verification script
+
+Never assume changes work without executing them.
+
+---
+
+# Project Knowledge Base
+
+## Important Files
+
+### Synchronization
+
+```
+src/lib/music/sync.ts
+```
+
+Spotify polling and synchronization.
+
+---
+
+### Audio Engine
+
+```
+src/lib/music/audio-player.ts
+```
+
+Handles playback and Web Audio.
+
+---
+
+### Stream Resolver
+
+```
+src/lib/music/extractor.ts
+```
+
+Handles Paxsenix and yt-dlp fallback.
+
+---
+
+### Artwork
+
+```
+src/components/music/MusicArtwork.tsx
+```
+
+Displays album art and Canvas videos.
+
+---
+
+### Player Context
+
+```
+src/components/music/MusicPlayerContext.tsx
+```
+
+Coordinates playback state.
+
+Avoid placing rapidly-changing values here.
+
+---
+
+# Coding Style
+
+- Prefer TypeScript strict mode.
+- Avoid `any`.
+- Prefer explicit return types for exported functions.
+- Keep imports sorted.
+- Remove unused imports immediately.
+- Prefer composition over inheritance.
+- Prefer immutable data structures when practical.
+
+---
+
+# Pull Request Checklist
+
+Before considering work complete:
+
+- [ ] Project builds successfully
+- [ ] Tests pass
+- [ ] No duplicate backend work introduced
+- [ ] No unnecessary React re-renders introduced
+- [ ] No new heavy dependencies added
+- [ ] Existing behavior preserved
+- [ ] Error handling included
+- [ ] Logging remains useful
+- [ ] Performance impact considered
