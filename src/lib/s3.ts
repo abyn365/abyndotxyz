@@ -17,6 +17,7 @@ export function isS3Enabled(): boolean {
 let client: S3Client | null = null;
 
 // Lazy initialization of S3Client
+// Lazy initialization of S3Client
 export function getS3Client(): S3Client {
   if (!isS3Enabled()) {
     throw new Error(
@@ -25,12 +26,23 @@ export function getS3Client(): S3Client {
   }
 
   if (!client) {
-    // Following official Bun docs for Cloudflare R2: region is omitted completely
+    // 1. Dynamically transform the endpoint to Virtual Hosted-Style for Cloudflare R2
+    // Converts: https://<account-id>.r2.cloudflarestorage.com
+    // Into:     https://<bucket-name>.<account-id>.r2.cloudflarestorage.com
+    let finalEndpoint = endpoint!;
+    if (
+      endpoint!.includes(".r2.cloudflarestorage.com") &&
+      !endpoint!.includes(`https://${bucketName}.`)
+    ) {
+      finalEndpoint = endpoint!.replace("https://", `https://${bucketName}.`);
+    }
+
+    // 2. Instantiate using the explicit Virtual Hosted template from the Bun docs
     client = new S3Client({
       accessKeyId,
       secretAccessKey,
-      bucket: bucketName,
-      endpoint,
+      endpoint: finalEndpoint,
+      virtualHostedStyle: true,
     });
   }
 
