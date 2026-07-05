@@ -3,7 +3,10 @@
  * with a transparent fallback to environment variables (process.env).
  */
 
-export async function getSecret(key: string, service = "abyndotxyz"): Promise<string | null> {
+export async function getSecret(
+  key: string,
+  service = "abyndotxyz"
+): Promise<string | null> {
   // 1. Try to read from OS keychain using Bun.secrets
   try {
     if (typeof Bun !== "undefined" && Bun.secrets) {
@@ -12,15 +15,19 @@ export async function getSecret(key: string, service = "abyndotxyz"): Promise<st
         return val;
       }
     }
-  } catch (e) {
-    // Gracefully handle situations where keychain is unavailable (headless, Docker, CI)
-    console.warn(`[Secrets] OS keychain read failed for key ${key}:`, e);
+  } catch (e: any) {
+    // Silence expected headless Linux platform errors to keep PM2 logs clean
+    if (
+      e?.code !== "ERR_SECRETS_PLATFORM_ERROR" &&
+      !e?.message?.includes("org.freedesktop.secrets")
+    ) {
+      console.warn(`[Secrets] OS keychain read failed for key ${key}:`, e);
+    }
   }
 
   // 2. Fall back to environment variables
   const envVal = process.env[key];
   if (envVal) {
-    // Try to sync it to the OS keychain so next time we retrieve it from there
     try {
       if (typeof Bun !== "undefined" && Bun.secrets) {
         await Bun.secrets.set({
@@ -28,10 +35,9 @@ export async function getSecret(key: string, service = "abyndotxyz"): Promise<st
           name: key,
           value: envVal,
         });
-        console.info(`[Secrets] Synced key ${key} to OS keychain under service "${service}"`);
       }
     } catch (e) {
-      // Ignore write errors (e.g. read-only, headless, or permissions error)
+      // Quietly swallow write errors on headless environments
     }
     return envVal;
   }
@@ -39,7 +45,11 @@ export async function getSecret(key: string, service = "abyndotxyz"): Promise<st
   return null;
 }
 
-export async function setSecret(key: string, value: string, service = "abyndotxyz"): Promise<boolean> {
+export async function setSecret(
+  key: string,
+  value: string,
+  service = "abyndotxyz"
+): Promise<boolean> {
   try {
     if (typeof Bun !== "undefined" && Bun.secrets) {
       await Bun.secrets.set({

@@ -40,24 +40,20 @@ export function getS3Client(): S3Client {
  * @param contentType Optional mime type
  * @returns The public or presigned URL to access the uploaded file
  */
-export async function uploadFile(
-  path: string,
-  content: Buffer | ArrayBuffer | string | Blob,
-  contentType?: string
-): Promise<string> {
-  const s3 = getS3Client();
-  const fileRef = s3.file(path);
-  
-  // Write content to S3
-  const options = contentType ? { type: contentType } : undefined;
-  
-  // Bun.write supports writing directly to s3.file() reference
-  const { write } = require("bun");
-  await write(fileRef, content, options);
+ export async function uploadFile(
+   path: string,
+   content: Buffer | ArrayBuffer | string | Blob,
+   contentType?: string
+ ): Promise<string> {
+   const s3 = getS3Client();
 
-  // Return presigned URL valid for 30 days
-  return getFileUrl(path, 60 * 60 * 24 * 30);
-}
+   // Use the native S3 client instance write method directly
+   const options = contentType ? { type: contentType } : undefined;
+   await s3.write(path, content, options);
+
+   // Return presigned URL valid for 30 days
+   return getFileUrl(path, 60 * 60 * 24 * 30);
+ }
 
 /**
  * Downloads a file from S3 and returns its string content
@@ -99,7 +95,7 @@ export function getFileUrl(path: string, expiresIn = 60 * 60 * 24): string {
   if (!isS3Enabled()) {
     return "";
   }
-  
+
   // Support custom domain for S3 public access (like https://s3.abyn.xyz)
   const publicDomain = process.env.S3_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN;
   if (publicDomain) {
@@ -107,10 +103,10 @@ export function getFileUrl(path: string, expiresIn = 60 * 60 * 24): string {
     const cleanPath = path.startsWith("/") ? path.slice(1) : path;
     return `${domain}/${cleanPath}`;
   }
-  
+
   const s3 = getS3Client();
   const fileRef = s3.file(path);
-  
+
   // Synchronous presigned URL generation (no network requests)
   return fileRef.presign({
     expiresIn,
