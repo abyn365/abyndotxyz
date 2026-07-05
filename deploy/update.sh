@@ -85,7 +85,7 @@ mkdir -p "$BACKUP_DIR"
 
 # Enable both extglob and dotglob so the backup safely captures the old .next folder too
 shopt -s extglob dotglob
-for item in !(.env|bin|stage_new|backup_old); do
+for item in !(.env|kv.sqlite|bin|stage_new|backup_old); do
   if [ -e "$item" ]; then
     mv "$item" "$BACKUP_DIR/"
   fi

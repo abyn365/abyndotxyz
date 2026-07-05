@@ -6,8 +6,6 @@
 
 import { cacheGet, cacheSet, lyricsCacheKey, LYRICS_TTL } from "./cache";
 
-const LYRICS_API_BASE = "https://wilooper-lyrica.hf.space";
-
 export interface LyricsLine {
   id: string;
   startMs: number;
@@ -32,35 +30,6 @@ export interface LyricsResult {
   error?: string;
 }
 
-interface ApiTimedLyric {
-  id: string;
-  start_time: number;
-  end_time: number;
-  text: string;
-}
-
-interface ApiResponse {
-  data?: {
-    lyrics?: string;
-    timed_lyrics?: ApiTimedLyric[];
-    hasTimestamps?: boolean;
-    instrumental?: boolean;
-    title?: string;
-    artist?: string;
-    album?: string;
-  };
-  metadata?: {
-    album_art?: string;
-    duration?: {
-      ms?: number;
-    };
-    title?: string;
-    artist?: string;
-    album?: string;
-  };
-  status?: string;
-}
-
 export async function fetchLyrics(
   artist: string,
   song: string,
@@ -73,9 +42,6 @@ export async function fetchLyrics(
   const params = new URLSearchParams({
     artist,
     song,
-    timestamps: "true",
-    fast: "true",
-    metadata: "true",
   });
 
   const emptyResult: LyricsResult = {
@@ -86,52 +52,17 @@ export async function fetchLyrics(
   };
 
   try {
-    const res = await fetch(`${LYRICS_API_BASE}/lyrics/?${params}`, {
+    const res = await fetch(`/api/lyrics?${params}`, {
       signal,
       headers: { Accept: "application/json" },
     });
 
     if (!res.ok) {
-      cacheSet(key, emptyResult, 5 * 60 * 1000); // cache failures shorter
-      return emptyResult;
-    }
-
-    const json: ApiResponse = await res.json();
-
-    if (json.status !== "success" || !json.data) {
       cacheSet(key, emptyResult, 5 * 60 * 1000);
       return emptyResult;
     }
 
-    const { data, metadata } = json;
-
-    // Prefer timed lyrics
-    const hasTimed = data.hasTimestamps && Array.isArray(data.timed_lyrics) && data.timed_lyrics.length > 0;
-
-    let lines: LyricsLine[] = [];
-    if (hasTimed && data.timed_lyrics) {
-      lines = data.timed_lyrics
-        .filter((l) => l.text.trim() !== "") // drop blank lines
-        .map((l) => ({
-          id: l.id,
-          startMs: l.start_time,
-          endMs: l.end_time,
-          text: l.text,
-        }));
-    }
-
-    const result: LyricsResult = {
-      lines,
-      hasTimestamps: hasTimed,
-      plainLyrics: data.lyrics,
-      metadata: {
-        title: metadata?.title ?? data.title,
-        artist: metadata?.artist ?? data.artist,
-        album: metadata?.album ?? data.album,
-        albumArt: metadata?.album_art,
-        durationMs: metadata?.duration?.ms,
-      },
-    };
+    const result: LyricsResult = await res.json();
 
     cacheSet(key, result, LYRICS_TTL);
     return result;
