@@ -1,3 +1,4 @@
+import { spawn } from "child_process";
 import { kv } from "../kv";
 
 const PAXSENIX_KEY = process.env.PAXSENIX_API_KEY as string;
@@ -45,21 +46,49 @@ async function runYtDlp(args: string[], signal?: AbortSignal): Promise<string> {
   const extraArgs = extraArgsString ? extraArgsString.split(/\s+/).filter(Boolean) : [];
   const allArgs = [...extraArgs, ...args];
 
-  const child = Bun.spawn([ytDlpPath, ...allArgs], {
-    stdout: "pipe",
-    stderr: "pipe",
-    signal,
-  });
+  if (typeof Bun !== "undefined") {
+    const child = Bun.spawn([ytDlpPath, ...allArgs], {
+      stdout: "pipe",
+      stderr: "pipe",
+      signal,
+    });
 
-  const stdoutText = await new Response(child.stdout).text();
-  const stderrText = await new Response(child.stderr).text();
-  const code = await child.exited;
+    const stdoutText = await new Response(child.stdout).text();
+    const stderrText = await new Response(child.stderr).text();
+    const code = await child.exited;
 
-  if (code !== 0) {
-    throw new Error(`yt-dlp exited with code ${code}: ${stderrText.trim()}`);
+    if (code !== 0) {
+      throw new Error(`yt-dlp exited with code ${code}: ${stderrText.trim()}`);
+    }
+
+    return stdoutText;
+  } else {
+    return new Promise((resolve, reject) => {
+      const child = spawn(ytDlpPath, allArgs, { signal });
+      let stdout = "";
+      let stderr = "";
+
+      child.stdout.on("data", (data) => {
+        stdout += data.toString();
+      });
+
+      child.stderr.on("data", (data) => {
+        stderr += data.toString();
+      });
+
+      child.on("close", (code) => {
+        if (code !== 0) {
+          reject(new Error(`yt-dlp exited with code ${code}: ${stderr.trim()}`));
+        } else {
+          resolve(stdout);
+        }
+      });
+
+      child.on("error", (err) => {
+        reject(err);
+      });
+    });
   }
-
-  return stdoutText;
 }
 
 function parseYtDlpJson(jsonStr: string): ExtractedTrack {

@@ -39,6 +39,18 @@ module.exports = {
       },
       {
         protocol: "https",
+        hostname: "dscdn.dstn.to",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "dcdn.dstn.to",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "cloud.abyn.xyz",
         port: "",
         pathname: "/**",

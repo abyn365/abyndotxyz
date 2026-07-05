@@ -363,3 +363,64 @@ html.has-entered .first-load-overlay {
   animation: float-slower 14s ease-in-out infinite;
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DISCORD PROFILE DESIGN HELPERS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.discord-card-shadow {
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4),
+              0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.discord-accent-status-online {
+  color: #23a55a;
+}
+.discord-bg-status-online {
+  background-color: #23a55a;
+}
+
+.discord-accent-status-idle {
+  color: #f0b232;
+}
+.discord-bg-status-idle {
+  background-color: #f0b232;
+}
+
+.discord-accent-status-dnd {
+  color: #f23f43;
+}
+.discord-bg-status-dnd {
+  background-color: #f23f43;
+}
+
+.discord-accent-status-offline {
+  color: #80848e;
+}
+.discord-bg-status-offline {
+  background-color: #80848e;
+}
+
+.text-stroke-discord {
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.6);
+}
+
+/* Glassmorphism overlays */
+.discord-glass-panel {
+  background-color: rgba(17, 18, 22, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.discord-glass-input {
+  background-color: rgba(30, 31, 36, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.2s ease-in-out;
+}
+
+.discord-glass-input:focus {
+  background-color: rgba(30, 31, 36, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+  outline: none;
+}
+
+

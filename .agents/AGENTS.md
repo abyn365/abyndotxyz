@@ -395,6 +395,30 @@ Coordinates playback state.
 
 Avoid placing rapidly-changing values here.
 
+# Layout & Component Guidelines
+
+## Global Layouts
+
+Never render layout components (like `<Navbar />`) inside individual page routes if they are already wrapped globally in `src/pages/_app.tsx`. Always inspect `_app.tsx` first to identify global layout providers.
+
+---
+
+## Responsive Form Design
+
+When rendering user forms inside column-based grids or narrow containers, layout fields and submit buttons vertically using `flex flex-col` rather than inline `flex` groups to prevent container overflow on narrower viewports.
+
+---
+
+## Bun Type Signatures
+
+If native Bun APIs (e.g., `Bun.CSRF.generate`, `Bun.CSRF.verify`, `Bun.secrets.get`) trigger TypeScript compilation errors due to outdated local `bun-types` packages, use standard options shapes and cast option blocks to `as any`.
+
+---
+
+## Dynamically Added Pages in Turbopack
+
+Creating new route endpoints in `src/pages/api/` or `src/pages/` while `bun run dev` (Turbopack) is active can trigger module resolution failures. Always instruct restarting the development server to rebuild the route list.
+
 ---
 
 # Coding Style

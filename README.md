@@ -39,6 +39,7 @@
 ## Documentation
 
 - [API docs](docs/api.md) for the site's public Next.js API routes.
+- [Blog, S3, & Auth Setup Guide](docs/blog_s3_auth_setup.md) for configuring credentials, S3 buckets, and OS keychain access.
 - [Windows Setup & Testing Guide](docs/windows_testing.md) for local testing instructions.
 - [Production VPS Deployment Guide](deploy/README.md) for Ubuntu/Debian server setup.
 

@@ -573,6 +573,75 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
   }, []);
 
   // ---------------------------------------------------------------------------
+  // Lanyard WebSocket listener for instant track change triggers
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let socket: WebSocket | null = null;
+    let heartbeat: NodeJS.Timeout | null = null;
+    let lastTrackId: string | null = null;
+    let reconnectTimeout: NodeJS.Timeout | null = null;
+
+    const connectLanyard = () => {
+      try {
+        socket = new WebSocket("wss://api.lanyard.rest/socket");
+        socket.addEventListener("message", (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            if (payload.op === 1) {
+              const heartbeatInterval = payload.d?.heartbeat_interval ?? 30000;
+              heartbeat = setInterval(() => {
+                if (socket?.readyState === WebSocket.OPEN) {
+                  socket.send(JSON.stringify({ op: 3 }));
+                }
+              }, heartbeatInterval);
+              socket.send(
+                JSON.stringify({
+                  op: 2,
+                  d: { subscribe_to_id: "877018055815868426" },
+                })
+              );
+              return;
+            }
+            if (
+              payload.op === 0 &&
+              ["INIT_STATE", "PRESENCE_UPDATE"].includes(payload.t)
+            ) {
+              const spotify = payload.d?.spotify;
+              const currentTrackId = spotify?.track_id || null;
+              if (currentTrackId !== lastTrackId) {
+                lastTrackId = currentTrackId;
+                // Instant track change detected! Force sync refresh
+                if (spotifySync.current) {
+                  spotifySync.current.forceRefresh();
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Lanyard sync WS parse error:", e);
+          }
+        });
+
+        socket.addEventListener("close", () => {
+          if (heartbeat) clearInterval(heartbeat);
+          reconnectTimeout = setTimeout(connectLanyard, 5000);
+        });
+      } catch (err) {
+        console.error("Lanyard sync WS error:", err);
+      }
+    };
+
+    connectLanyard();
+
+    return () => {
+      if (heartbeat) clearInterval(heartbeat);
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      socket?.close();
+    };
+  }, []);
+
+  // ---------------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------------
   const actions: MusicPlayerActions = {

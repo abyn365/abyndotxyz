@@ -2,12 +2,13 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
+import { useLanyard } from "../hooks/useLanyard";
 
 const NAV = [
   { label: "Home", href: "/", index: "H" },
-  { label: "Projects", href: "/projects", index: "P" },
   { label: "Music", href: "/music", index: "M" },
   { label: "Uses", href: "/uses", index: "U" },
+  { label: "Blog", href: "/blog", index: "B" },
 ];
 
 const STATUS_DOT: Record<string, string> = {
@@ -26,22 +27,8 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default function Navbar() {
   const router = useRouter();
-  const [discordStatus, setDiscordStatus] = useState("");
-
-  useEffect(() => {
-    const poll = async () => {
-      try {
-        const res = await fetch(
-          "https://api.lanyard.rest/v1/users/877018055815868426"
-        );
-        const { success, data } = await res.json();
-        if (success) setDiscordStatus(data.discord_status ?? "");
-      } catch {}
-    };
-    poll();
-    const id = setInterval(poll, 30_000);
-    return () => clearInterval(id);
-  }, []);
+  const { presence } = useLanyard();
+  const discordStatus = presence?.discord_status ?? "offline";
 
   const dotColor = STATUS_DOT[discordStatus];
 

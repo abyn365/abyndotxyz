@@ -513,17 +513,17 @@ function GitHubGraph() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Matrix Horizontal Scrolling Wrapper Box */}
-        <div className="overflow-x-auto pb-2 lg:col-span-2 select-none w-full">
-          {/* FIXED: Added a nested flex wrapper with internal padding to perfectly center on mobile and avoid overlay clipping anomalies */}
-          <div className="flex justify-center lg:justify-start p-3 w-full">
+        <div className="overflow-x-auto pb-2 lg:col-span-2 select-none w-full scrollbar-thin">
+          {/* FIXED: Start from left on small screens to allow overflow scroll without clipping */}
+          <div className="flex justify-start md:justify-center lg:justify-start p-3 w-full">
             <div 
-              className={`inline-flex gap-[2px] sm:gap-[3px] min-w-max rounded-xl p-2 transition-all duration-300 ${
+              className={`inline-flex gap-[1.5px] sm:gap-[2.5px] min-w-max rounded-xl p-1.5 sm:p-2 transition-all duration-300 ${
                 flashStatus === "red" ? "bg-red-500/10 dark:bg-red-500/20 ring-4 ring-red-500/50 animate-pulse" :
                 flashStatus === "green" ? "bg-emerald-500/10 dark:bg-emerald-500/20 ring-4 ring-emerald-500/50 animate-pulse" : ""
               }`}
             >
               {weeks.map((week, col) => (
-                <div key={col} className="flex flex-col gap-[2px] sm:gap-[3px]">
+                <div key={col} className="flex flex-col gap-[1.5px] sm:gap-[2.5px]">
                   {week.map((day, row) => {
                     const snakeIdx = snake.findIndex((s) => s.x === col && s.y === row);
                     const isSnake = snakeIdx !== -1;
@@ -548,7 +548,7 @@ function GitHubGraph() {
                             prev ? { ...prev, x: e.clientX, y: e.clientY } : null
                           )
                         }
-                        className={`w-[9px] h-[9px] sm:w-[13px] sm:h-[13px] rounded-[1.5px] sm:rounded-[2px] transition-all duration-150 ${
+                        className={`w-[6px] h-[6px] xs:w-[8px] xs:h-[8px] sm:w-[11px] sm:h-[11px] rounded-[1px] sm:rounded-[1.5px] transition-all duration-150 ${
                           isSnake
                             ? isHead
                               ? "bg-zinc-950 dark:bg-zinc-50 scale-125 shadow-md z-10 animate-bounce"

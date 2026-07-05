@@ -345,7 +345,7 @@ export default function MusicLyricsPanel() {
                   style={{ color: isShuffle ? accent : undefined }}
                   aria-label="Toggle shuffle"
                 >
-                  <Shuffle className="h-4.5 w-4.5" />
+                  <Shuffle className="h-4 w-4" />
                 </button>
 
                 <button
@@ -387,7 +387,7 @@ export default function MusicLyricsPanel() {
                   style={{ color: isRepeat ? accent : undefined }}
                   aria-label="Toggle repeat"
                 >
-                  <Repeat className="h-4.5 w-4.5" />
+                  <Repeat className="h-4 w-4" />
                 </button>
 
                 <button
@@ -397,7 +397,7 @@ export default function MusicLyricsPanel() {
                   aria-label="Toggle queue"
                   title="Queue"
                 >
-                  <ListMusic className="h-4.5 w-4.5" />
+                  <ListMusic className="h-4 w-4" />
                 </button>
               </div>
 
@@ -645,7 +645,7 @@ export default function MusicLyricsPanel() {
                     className="rounded-full p-2 transition-all active:scale-95 text-[var(--text-secondary)]"
                     aria-label="Volume"
                   >
-                    <SpeakerIcon className="h-4.5 w-4.5" />
+                    <SpeakerIcon className="h-4 w-4" />
                   </button>
 
                   <button
@@ -654,7 +654,7 @@ export default function MusicLyricsPanel() {
                     style={{ color: isShuffle ? accent : undefined }}
                     aria-label="Shuffle"
                   >
-                    <Shuffle className="h-4.5 w-4.5" />
+                    <Shuffle className="h-4 w-4" />
                   </button>
 
                   <button
@@ -677,9 +677,9 @@ export default function MusicLyricsPanel() {
                     aria-label={isPlaying ? "Pause" : "Play"}
                   >
                     {isPlaying ? (
-                      <Pause className="h-5.5 w-5.5 fill-white text-white" />
+                      <Pause className="h-5 w-5 fill-white text-white" />
                     ) : (
-                      <Play className="h-5.5 w-5.5 fill-white text-white ml-0.5" />
+                      <Play className="h-5 w-5 fill-white text-white ml-0.5" />
                     )}
                   </button>
 
@@ -698,7 +698,7 @@ export default function MusicLyricsPanel() {
                     style={{ color: isRepeat ? accent : undefined }}
                     aria-label="Repeat"
                   >
-                    <Repeat className="h-4.5 w-4.5" />
+                    <Repeat className="h-4 w-4" />
                   </button>
 
                   <button
@@ -707,7 +707,7 @@ export default function MusicLyricsPanel() {
                     style={{ color: isQueueOpen ? accent : undefined }}
                     aria-label="Toggle queue"
                   >
-                    <ListMusic className="h-4.5 w-4.5" />
+                    <ListMusic className="h-4 w-4" />
                   </button>
                 </div>
               </div>
