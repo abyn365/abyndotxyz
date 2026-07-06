@@ -68,7 +68,7 @@ export default function BlogPostPage() {
   const [commentLoading, setCommentLoading] = useState(false);
   const [commentError, setCommentError] = useState("");
 
-  // Admin status check (for deleting any comment)
+  // Admin status check
   const [isAdmin, setIsAdmin] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -110,9 +110,7 @@ export default function BlogPostPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Fetch visitor auth status & admin status
   useEffect(() => {
-    // Visitor status
     fetch("/api/visitor/auth/status")
       .then((res) => res.json())
       .then((data) => {
@@ -123,7 +121,6 @@ export default function BlogPostPage() {
       })
       .catch(() => {});
 
-    // Admin status
     fetch("/api/auth/status")
       .then((res) => res.json())
       .then((data) => {
@@ -134,7 +131,6 @@ export default function BlogPostPage() {
       .catch(() => {});
   }, []);
 
-  // Initialize Turnstile widget for visitor auth
   useEffect(() => {
     let checkInterval: NodeJS.Timeout;
 
@@ -176,7 +172,6 @@ export default function BlogPostPage() {
     };
   }, [showVisitorMenu, visitorTab, visitor]);
 
-  // Fetch blog data
   useEffect(() => {
     if (!slug) return;
 
@@ -201,7 +196,6 @@ export default function BlogPostPage() {
       });
   }, [slug]);
 
-  // Visitor Auth Handlers
   const handleVisitorAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!visitorUsername.trim() || !visitorPassword.trim()) {
@@ -246,7 +240,6 @@ export default function BlogPostPage() {
         setVisitorPassword("");
         setVisitorTurnstileToken("");
 
-        // Refresh token & likes/comments
         const statusRes = await fetch("/api/visitor/auth/status");
         const statusData = await statusRes.json();
         if (statusData.success && statusData.csrfToken) {
@@ -287,7 +280,6 @@ export default function BlogPostPage() {
     }
   };
 
-  // Toggle Like Handler
   const handleLike = async () => {
     if (!visitor) {
       setVisitorError("Please login to like this post!");
@@ -313,7 +305,6 @@ export default function BlogPostPage() {
     }
   };
 
-  // Add Comment Handler
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
@@ -344,7 +335,6 @@ export default function BlogPostPage() {
     }
   };
 
-  // Delete Comment Handler
   const handleDeleteComment = async (commentId: string) => {
     if (!confirm("Are you sure you want to delete this comment?")) return;
 
@@ -408,8 +398,7 @@ export default function BlogPostPage() {
     year: "numeric",
   });
 
-  // Handle direct mapping arrays for relative sizes matching tailwind architecture specifications
-  const proseSizeClasses = ["prose-sm", "prose-base", "prose-lg", "prose-xl"];
+  // Base font scalar sizing configurations
   const customFontSizeRem = ["0.875rem", "1rem", "1.125rem", "1.25rem"];
 
   return (
@@ -418,6 +407,22 @@ export default function BlogPostPage() {
         <title>{post.title} · abyn</title>
         <meta name="description" content={post.description} />
       </Head>
+
+      {/* Scoped style injector overrides Tailwind spec parameters cleanly */}
+      <style>{`
+        .dynamic-prose-container p,
+        .dynamic-prose-container li,
+        .dynamic-prose-container table,
+        .dynamic-prose-container blockquote {
+          font-size: var(--blog-base-size) !important;
+          line-height: 1.75 !important;
+        }
+        .dynamic-prose-container h1 { font-size: calc(var(--blog-base-size) * 2.1) !important; }
+        .dynamic-prose-container h2 { font-size: calc(var(--blog-base-size) * 1.65) !important; }
+        .dynamic-prose-container h3 { font-size: calc(var(--blog-base-size) * 1.35) !important; }
+        .dynamic-prose-container h4 { font-size: calc(var(--blog-base-size) * 1.15) !important; }
+        .dynamic-prose-container code { font-size: calc(var(--blog-base-size) * 0.85) !important; }
+      `}</style>
 
       <main className="relative min-h-screen pb-16">
         <div
@@ -464,7 +469,7 @@ export default function BlogPostPage() {
 
                 {/* Action Control Panel */}
                 <div className="ml-auto flex items-center gap-2">
-                  {/* Dynamic Text Scalar Container */}
+                  {/* Dynamic Text Scalar Slider */}
                   <div className="flex select-none items-center gap-2 rounded-lg border border-white/5 bg-black/15 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider">
                     <span className="text-[10px] text-neutral-500">A</span>
                     <input
@@ -510,10 +515,14 @@ export default function BlogPostPage() {
               </p>
             </header>
 
-            {/* Body Content — Injected scalar mappings to size dynamic children markup safely */}
+            {/* Body Content Box — Binding size variables cleanly to ensure deep overrides function safely */}
             <article
-              className={`prose prose-neutral dark:prose-invert mb-12 max-w-none border-b border-[var(--card-border)] pb-8 ${proseSizeClasses[textSizeIndex]}`}
-              style={{ fontSize: customFontSizeRem[textSizeIndex] }}
+              className="prose prose-neutral dark:prose-invert dynamic-prose-container mb-12 max-w-none border-b border-[var(--card-border)] pb-8"
+              style={
+                {
+                  "--blog-base-size": customFontSizeRem[textSizeIndex],
+                } as React.CSSProperties
+              }
               dangerouslySetInnerHTML={{ __html: parseMarkdown(post.content) }}
             />
 
@@ -609,7 +618,6 @@ export default function BlogPostPage() {
                             className="w-full rounded border border-[var(--card-border)] bg-black/10 px-2 py-1 text-xs text-[var(--text-primary)] focus:outline-none"
                           />
 
-                          {/* Visitor Turnstile Challenge */}
                           <div className="flex justify-center py-1">
                             <div
                               ref={visitorTurnstileContainerRef}
