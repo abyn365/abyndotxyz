@@ -5,7 +5,7 @@ This guide documents the rendering features, interactive options, and supported 
 ---
 
 ## 1. Core Blog Features
-
+- **Readability Text Slider**: A professional typography scalar control located in the article action panel. Readers can slide across four custom font-size increments (Small, Medium, Large, Extra Large) to automatically scale paragraphs, blockquotes, lists, and spacing elements uniformly for optimal screen comfort.
 - **Cover Images**: Automatically displays cover image banners at the top of the post if a `coverImage` URL is provided.
 - **Copy Page**: A "Copy page" button next to the post meta header copies the raw Markdown content of the post to the client's clipboard instantly.
 - **On This Page (Table of Contents)**: Automatically generates a right-hand sticky sidebar listing all `##` (h2), `###` (h3), and `####` (h4) headers. Clicking any list item scrolls the page smoothly to the corresponding section.

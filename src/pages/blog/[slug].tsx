@@ -4,7 +4,16 @@ import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
-import { Calendar, Clock, ArrowLeft, Heart, MessageSquare, Trash2, Copy, Check } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  ArrowLeft,
+  Heart,
+  MessageSquare,
+  Trash2,
+  Copy,
+  Check,
+} from "lucide-react";
 import { PageFooter } from "../../components/PageFooter";
 import { parseMarkdown } from "../../lib/markdown";
 
@@ -35,6 +44,9 @@ export default function BlogPostPage() {
   const [comments, setComments] = useState<BlogComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Typography Scalar state (0 = sm, 1 = base, 2 = lg, 3 = xl)
+  const [textSizeIndex, setTextSizeIndex] = useState<number>(1);
 
   // Visitor Auth states
   const [visitor, setVisitor] = useState<{ username: string } | null>(null);
@@ -125,14 +137,16 @@ export default function BlogPostPage() {
   // Initialize Turnstile widget for visitor auth
   useEffect(() => {
     let checkInterval: NodeJS.Timeout;
-    
+
     const initVisitorWidget = () => {
       const win = window as any;
       if (win.turnstile && visitorTurnstileContainerRef.current) {
         try {
           visitorTurnstileContainerRef.current.innerHTML = "";
           win.turnstile.render(visitorTurnstileContainerRef.current, {
-            sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAADv9KsIrMSbSARa-",
+            sitekey:
+              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
+              "0x4AAAAAADv9KsIrMSbSARa-",
             callback: (token: string) => {
               setVisitorTurnstileToken(token);
             },
@@ -204,7 +218,10 @@ export default function BlogPostPage() {
     setVisitorError("");
     setVisitorSuccess("");
 
-    const endpoint = visitorTab === "login" ? "/api/visitor/auth/login" : "/api/visitor/auth/register";
+    const endpoint =
+      visitorTab === "login"
+        ? "/api/visitor/auth/login"
+        : "/api/visitor/auth/register";
 
     try {
       const res = await fetch(endpoint, {
@@ -216,17 +233,19 @@ export default function BlogPostPage() {
         body: JSON.stringify({
           username: visitorUsername,
           password: visitorPassword,
-          token: visitorTurnstileToken
+          token: visitorTurnstileToken,
         }),
       });
       const data = await res.json();
       if (data.success) {
         setVisitor(data.user);
-        setVisitorSuccess(visitorTab === "login" ? "Logged in!" : "Registered & logged in!");
+        setVisitorSuccess(
+          visitorTab === "login" ? "Logged in!" : "Registered & logged in!"
+        );
         setVisitorUsername("");
         setVisitorPassword("");
         setVisitorTurnstileToken("");
-        
+
         // Refresh token & likes/comments
         const statusRes = await fetch("/api/visitor/auth/status");
         const statusData = await statusRes.json();
@@ -369,8 +388,13 @@ export default function BlogPostPage() {
     return (
       <main className="min-h-screen">
         <div className="mx-auto max-w-3xl px-4 pt-24 text-center">
-          <p className="text-red-400 font-semibold text-sm mb-4">{error || "Article not found."}</p>
-          <Link href="/blog" className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)]">
+          <p className="mb-4 text-sm font-semibold text-red-400">
+            {error || "Article not found."}
+          </p>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)]"
+          >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to blog
           </Link>
         </div>
@@ -384,6 +408,10 @@ export default function BlogPostPage() {
     year: "numeric",
   });
 
+  // Handle direct mapping arrays for relative sizes matching tailwind architecture specifications
+  const proseSizeClasses = ["prose-sm", "prose-base", "prose-lg", "prose-xl"];
+  const customFontSizeRem = ["0.875rem", "1rem", "1.125rem", "1.25rem"];
+
   return (
     <>
       <Head>
@@ -392,307 +420,379 @@ export default function BlogPostPage() {
       </Head>
 
       <main className="relative min-h-screen pb-16">
-        <div className={`mx-auto px-4 pt-8 sm:px-6 lg:px-8 ${
-          headers.length > 0
-            ? "max-w-5xl lg:grid lg:grid-cols-12 lg:gap-8"
-            : "max-w-3xl"
-        }`}>
+        <div
+          className={`mx-auto px-4 pt-8 sm:px-6 lg:px-8 ${
+            headers.length > 0
+              ? "max-w-5xl lg:grid lg:grid-cols-12 lg:gap-8"
+              : "max-w-3xl"
+          }`}
+        >
           <div className={headers.length > 0 ? "lg:col-span-9" : ""}>
-          {/* Back button */}
-          <Link href="/blog" className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-8 transition-colors">
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to blog
-          </Link>
-
-          {/* Cover image */}
-          {post.coverImage && (
-            <div className="w-full h-64 sm:h-80 rounded-2xl overflow-hidden border border-[var(--card-border)] bg-black/10 mb-8">
-              <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
-            </div>
-          )}
-
-          {/* Article Header */}
-          <header className="space-y-4 mb-10">
-            <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" /> {postDate}
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5" /> {getReadingTime(post.content)}
-              </span>
-              {!post.published && (
-                <span className="rounded bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-500 uppercase tracking-wider">
-                  Draft
-                </span>
-              )}
-              <button
-                onClick={handleCopyPage}
-                className="flex items-center gap-1 hover:text-[var(--text-primary)] transition-colors cursor-pointer border border-white/5 rounded-lg px-2.5 py-1 bg-black/10 text-[9px] font-bold uppercase tracking-wider ml-auto"
-              >
-                {copied ? (
-                  <>
-                    <Check className="h-3 w-3 text-green-400" /> Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-3 w-3" /> Copy page
-                  </>
-                )}
-              </button>
-            </div>
-            
-            <h1 className="font-display text-3xl font-black tracking-tight text-[var(--text-primary)] sm:text-4xl leading-tight">
-              {post.title}
-            </h1>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed italic border-l-2 border-[var(--card-border)] pl-4">
-              {post.description}
-            </p>
-          </header>
-
-          {/* Body Content */}
-          <article 
-            className="prose prose-neutral dark:prose-invert max-w-none mb-12 border-b border-[var(--card-border)] pb-8"
-            dangerouslySetInnerHTML={{ __html: parseMarkdown(post.content) }}
-          />
-
-          {/* Interactions (Likes) */}
-          <div className="flex items-center justify-between mb-12">
-            <button
-              onClick={handleLike}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 border transition-all ${
-                isLiked 
-                  ? "bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/15" 
-                  : "border-[var(--card-border)] text-[var(--text-secondary)] hover:text-red-500 hover:border-red-500/30"
-              }`}
+            {/* Back button */}
+            <Link
+              href="/blog"
+              className="mb-8 inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
             >
-              <Heart className={`h-4 w-4 ${isLiked ? "fill-red-500" : ""}`} />
-              <span className="text-xs font-bold">{likes.length} {likes.length === 1 ? "Like" : "Likes"}</span>
-            </button>
+              <ArrowLeft className="h-3.5 w-3.5" /> Back to blog
+            </Link>
 
-            {/* Collapsible Auth Dropdown for Likes/Comments */}
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowVisitorMenu(!showVisitorMenu)}
-                className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-neutral-200 transition-colors border border-white/5 rounded-lg px-2.5 py-1 bg-black/10"
-              >
-                <span>👤 {visitor ? visitor.username : "Login/Register (optional)"}</span>
-                <span>{showVisitorMenu ? "▲" : "▼"}</span>
-              </button>
-
-              {showVisitorMenu && (
-                <div className="absolute right-0 top-8 z-50 w-72 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] p-4 shadow-[var(--card-shadow)]">
-                  {visitor ? (
-                    <div className="space-y-3">
-                      <p className="text-[11px] text-[var(--text-secondary)]">
-                        Signed in as <strong className="text-[var(--text-primary)]">{visitor.username}</strong>
-                      </p>
-                      <button
-                        onClick={handleVisitorLogout}
-                        className="w-full rounded bg-red-950/40 hover:bg-red-950/70 border border-red-900/50 py-1.5 text-[9px] font-bold text-red-300 transition-colors uppercase"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleVisitorAuth} className="space-y-3">
-                      <div className="flex border-b border-[var(--card-border)] pb-1.5 gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setVisitorTab("login")}
-                          className={`text-[9px] font-bold uppercase ${
-                            visitorTab === "login" ? "text-[var(--text-primary)] border-b border-[var(--accent)]" : "text-[var(--text-secondary)]"
-                          }`}
-                        >
-                          Login
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setVisitorTab("register")}
-                          className={`text-[9px] font-bold uppercase ${
-                            visitorTab === "register" ? "text-[var(--text-primary)] border-b border-[var(--accent)]" : "text-[var(--text-secondary)]"
-                          }`}
-                        >
-                          Register
-                        </button>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          required
-                          placeholder="Username"
-                          value={visitorUsername}
-                          onChange={(e) => setVisitorUsername(e.target.value)}
-                          className="w-full rounded bg-black/10 border border-[var(--card-border)] px-2 py-1 text-xs text-[var(--text-primary)] focus:outline-none"
-                        />
-                        <input
-                          type="password"
-                          required
-                          placeholder="Password"
-                          value={visitorPassword}
-                          onChange={(e) => setVisitorPassword(e.target.value)}
-                          className="w-full rounded bg-black/10 border border-[var(--card-border)] px-2 py-1 text-xs text-[var(--text-primary)] focus:outline-none"
-                        />
-
-                        {/* Visitor Turnstile Challenge */}
-                        <div className="flex justify-center py-1">
-                          <div
-                            ref={visitorTurnstileContainerRef}
-                            className="scale-90 origin-center"
-                          />
-                        </div>
-
-                        <Script
-                          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-                          strategy="lazyOnload"
-                        />
-
-                        <button
-                          type="submit"
-                          disabled={authActionLoading}
-                          className="w-full rounded bg-[var(--accent)] hover:opacity-90 py-1.5 text-[9px] font-bold text-[var(--accent-text)] transition-colors uppercase"
-                        >
-                          {authActionLoading ? "..." : visitorTab === "login" ? "Login" : "Sign Up"}
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                  {visitorError && <p className="mt-2 text-[10px] font-semibold text-red-400">{visitorError}</p>}
-                  {visitorSuccess && <p className="mt-2 text-[10px] font-semibold text-green-400">{visitorSuccess}</p>}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Comments Section */}
-          <section className="space-y-6">
-            <div className="border-b border-[var(--card-border)] pb-2 flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-[var(--text-secondary)]" />
-              <h2 className="font-display text-lg font-bold text-[var(--text-primary)]">
-                Comments ({comments.length})
-              </h2>
-            </div>
-
-            {/* Comment Form */}
-            {visitor ? (
-              <form onSubmit={handleAddComment} className="space-y-3">
-                <textarea
-                  required
-                  rows={3}
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder={`Commenting as ${visitor.username}...`}
-                  maxLength={500}
-                  className="w-full rounded-xl bg-black/10 border border-[var(--card-border)] px-3 py-2 text-xs sm:text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] resize-none"
+            {post.coverImage && (
+              <div className="mb-8 h-64 w-full overflow-hidden rounded-2xl border border-[var(--card-border)] bg-black/10 sm:h-80">
+                <img
+                  src={post.coverImage}
+                  alt={post.title}
+                  className="h-full w-full object-cover"
                 />
-                {commentError && <p className="text-xs text-red-400">{commentError}</p>}
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={commentLoading || !newComment.trim()}
-                    className="rounded-lg bg-[var(--accent)] hover:opacity-90 px-4 py-1.5 text-xs font-bold text-[var(--accent-text)] transition-all disabled:opacity-50"
-                  >
-                    {commentLoading ? "Posting..." : "Post Comment"}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="rounded-xl border border-[var(--card-border)] bg-black/10 p-4 text-center text-xs text-[var(--text-secondary)] italic">
-                Please use the account menu above to log in or sign up to leave a comment.
               </div>
             )}
 
-            {/* Comments List */}
-            <div className="space-y-4 pt-2">
-              {comments.length === 0 ? (
-                <p className="text-xs sm:text-sm text-[var(--text-secondary)] italic text-center py-6">
-                  No comments yet. Be the first to join the conversation!
-                </p>
-              ) : (
-                comments.map((comment) => {
-                  const date = new Date(comment.createdAt).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  });
+            {/* Article Header */}
+            <header className="mb-10 space-y-4">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--text-secondary)]">
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" /> {postDate}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />{" "}
+                  {getReadingTime(post.content)}
+                </span>
+                {!post.published && (
+                  <span className="rounded border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500">
+                    Draft
+                  </span>
+                )}
 
-                  const isAuthor = visitor && visitor.username === comment.username;
-                  const canDelete = isAdmin || isAuthor;
+                {/* Action Control Panel */}
+                <div className="ml-auto flex items-center gap-2">
+                  {/* Dynamic Text Scalar Container */}
+                  <div className="flex select-none items-center gap-2 rounded-lg border border-white/5 bg-black/15 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider">
+                    <span className="text-[10px] text-neutral-500">A</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="3"
+                      step="1"
+                      value={textSizeIndex}
+                      onChange={(e) =>
+                        setTextSizeIndex(parseInt(e.target.value, 10))
+                      }
+                      className="h-1 w-16 cursor-pointer appearance-none rounded-lg bg-neutral-700 accent-[var(--accent)] focus:outline-none"
+                      title="Adjust read text sizing font scale"
+                    />
+                    <span className="text-xs font-semibold text-[var(--text-primary)]">
+                      A
+                    </span>
+                  </div>
 
-                  return (
-                    <div
-                      key={comment.id}
-                      className="rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] p-4 space-y-2 flex flex-col justify-between group relative hover:shadow-[var(--card-shadow)] transition-all"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-[var(--text-primary)]">
-                              {comment.username}
-                            </span>
-                            <span className="text-[10px] text-[var(--text-secondary)]">
-                              {date}
-                            </span>
-                            {comment.username === "admin" && (
-                              <span className="rounded bg-red-500/10 border border-red-500/20 px-1 py-0.2 text-[8px] font-bold text-red-500 uppercase tracking-wider">
-                                Admin
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs sm:text-sm text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed">
-                            {comment.content}
-                          </p>
+                  {/* Copy Module Element */}
+                  <button
+                    onClick={handleCopyPage}
+                    className="flex cursor-pointer items-center gap-1 rounded-lg border border-white/5 bg-black/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider transition-colors hover:text-[var(--text-primary)]"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3 w-3 text-green-400" /> Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3" /> Copy page
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <h1 className="font-display text-3xl font-black leading-tight tracking-tight text-[var(--text-primary)] sm:text-4xl">
+                {post.title}
+              </h1>
+              <p className="border-l-2 border-[var(--card-border)] pl-4 text-sm italic leading-relaxed text-[var(--text-secondary)] sm:text-base">
+                {post.description}
+              </p>
+            </header>
+
+            {/* Body Content — Injected scalar mappings to size dynamic children markup safely */}
+            <article
+              className={`prose prose-neutral dark:prose-invert mb-12 max-w-none border-b border-[var(--card-border)] pb-8 ${proseSizeClasses[textSizeIndex]}`}
+              style={{ fontSize: customFontSizeRem[textSizeIndex] }}
+              dangerouslySetInnerHTML={{ __html: parseMarkdown(post.content) }}
+            />
+
+            {/* Interactions (Likes) */}
+            <div className="mb-12 flex items-center justify-between">
+              <button
+                onClick={handleLike}
+                className={`flex items-center gap-2 rounded-full border px-4 py-2 transition-all ${
+                  isLiked
+                    ? "border-red-500/30 bg-red-500/10 text-red-500 hover:bg-red-500/15"
+                    : "border-[var(--card-border)] text-[var(--text-secondary)] hover:border-red-500/30 hover:text-red-500"
+                }`}
+              >
+                <Heart className={`h-4 w-4 ${isLiked ? "fill-red-500" : ""}`} />
+                <span className="text-xs font-bold">
+                  {likes.length} {likes.length === 1 ? "Like" : "Likes"}
+                </span>
+              </button>
+
+              {/* Collapsible Auth Dropdown for Likes/Comments */}
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowVisitorMenu(!showVisitorMenu)}
+                  className="flex items-center gap-1 rounded-lg border border-white/5 bg-black/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400 transition-colors hover:text-neutral-200"
+                >
+                  <span>
+                    👤{" "}
+                    {visitor ? visitor.username : "Login/Register (optional)"}
+                  </span>
+                  <span>{showVisitorMenu ? "▲" : "▼"}</span>
+                </button>
+
+                {showVisitorMenu && (
+                  <div className="absolute right-0 top-8 z-50 w-72 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] p-4 shadow-[var(--card-shadow)]">
+                    {visitor ? (
+                      <div className="space-y-3">
+                        <p className="text-[11px] text-[var(--text-secondary)]">
+                          Signed in as{" "}
+                          <strong className="text-[var(--text-primary)]">
+                            {visitor.username}
+                          </strong>
+                        </p>
+                        <button
+                          onClick={handleVisitorLogout}
+                          className="w-full rounded border border-red-900/50 bg-red-950/40 py-1.5 text-[9px] font-bold uppercase text-red-300 transition-colors hover:bg-red-950/70"
+                        >
+                          Sign out
+                        </button>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleVisitorAuth} className="space-y-3">
+                        <div className="flex gap-3 border-b border-[var(--card-border)] pb-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setVisitorTab("login")}
+                            className={`text-[9px] font-bold uppercase ${
+                              visitorTab === "login"
+                                ? "border-b border-[var(--accent)] text-[var(--text-primary)]"
+                                : "text-[var(--text-secondary)]"
+                            }`}
+                          >
+                            Login
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setVisitorTab("register")}
+                            className={`text-[9px] font-bold uppercase ${
+                              visitorTab === "register"
+                                ? "border-b border-[var(--accent)] text-[var(--text-primary)]"
+                                : "text-[var(--text-secondary)]"
+                            }`}
+                          >
+                            Register
+                          </button>
                         </div>
 
-                        {canDelete && (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            required
+                            placeholder="Username"
+                            value={visitorUsername}
+                            onChange={(e) => setVisitorUsername(e.target.value)}
+                            className="w-full rounded border border-[var(--card-border)] bg-black/10 px-2 py-1 text-xs text-[var(--text-primary)] focus:outline-none"
+                          />
+                          <input
+                            type="password"
+                            required
+                            placeholder="Password"
+                            value={visitorPassword}
+                            onChange={(e) => setVisitorPassword(e.target.value)}
+                            className="w-full rounded border border-[var(--card-border)] bg-black/10 px-2 py-1 text-xs text-[var(--text-primary)] focus:outline-none"
+                          />
+
+                          {/* Visitor Turnstile Challenge */}
+                          <div className="flex justify-center py-1">
+                            <div
+                              ref={visitorTurnstileContainerRef}
+                              className="origin-center scale-90"
+                            />
+                          </div>
+
+                          <Script
+                            src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+                            strategy="lazyOnload"
+                          />
+
                           <button
-                            onClick={() => handleDeleteComment(comment.id)}
-                            className="text-neutral-500 hover:text-red-400 p-1 rounded-full transition-colors shrink-0"
-                            title="Delete comment"
+                            type="submit"
+                            disabled={authActionLoading}
+                            className="w-full rounded bg-[var(--accent)] py-1.5 text-[9px] font-bold uppercase text-[var(--accent-text)] transition-colors hover:opacity-90"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            {authActionLoading
+                              ? "..."
+                              : visitorTab === "login"
+                              ? "Login"
+                              : "Sign Up"}
                           </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+                        </div>
+                      </form>
+                    )}
+                    {visitorError && (
+                      <p className="mt-2 text-[10px] font-semibold text-red-400">
+                        {visitorError}
+                      </p>
+                    )}
+                    {visitorSuccess && (
+                      <p className="mt-2 text-[10px] font-semibold text-green-400">
+                        {visitorSuccess}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </section>
+
+            {/* Comments Section */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-2 border-b border-[var(--card-border)] pb-2">
+                <MessageSquare className="h-4 w-4 text-[var(--text-secondary)]" />
+                <h2 className="font-display text-lg font-bold text-[var(--text-primary)]">
+                  Comments ({comments.length})
+                </h2>
+              </div>
+
+              {/* Comment Form */}
+              {visitor ? (
+                <form onSubmit={handleAddComment} className="space-y-3">
+                  <textarea
+                    required
+                    rows={3}
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder={`Commenting as ${visitor.username}...`}
+                    maxLength={500}
+                    className="w-full resize-none rounded-xl border border-[var(--card-border)] bg-black/10 px-3 py-2 text-xs text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none sm:text-sm"
+                  />
+                  {commentError && (
+                    <p className="text-xs text-red-400">{commentError}</p>
+                  )}
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={commentLoading || !newComment.trim()}
+                      className="rounded-lg bg-[var(--accent)] px-4 py-1.5 text-xs font-bold text-[var(--accent-text)] transition-all hover:opacity-90 disabled:opacity-50"
+                    >
+                      {commentLoading ? "Posting..." : "Post Comment"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="rounded-xl border border-[var(--card-border)] bg-black/10 p-4 text-center text-xs italic text-[var(--text-secondary)]">
+                  Please use the account menu above to log in or sign up to
+                  leave a comment.
+                </div>
+              )}
+
+              {/* Comments List */}
+              <div className="space-y-4 pt-2">
+                {comments.length === 0 ? (
+                  <p className="py-6 text-center text-xs italic text-[var(--text-secondary)] sm:text-sm">
+                    No comments yet. Be the first to join the conversation!
+                  </p>
+                ) : (
+                  comments.map((comment) => {
+                    const date = new Date(comment.createdAt).toLocaleDateString(
+                      undefined,
+                      {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    );
+
+                    const isAuthor =
+                      visitor && visitor.username === comment.username;
+                    const canDelete = isAdmin || isAuthor;
+
+                    return (
+                      <div
+                        key={comment.id}
+                        className="group relative flex flex-col justify-between space-y-2 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] p-4 transition-all hover:shadow-[var(--card-shadow)]"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-[var(--text-primary)]">
+                                {comment.username}
+                              </span>
+                              <span className="text-[10px] text-[var(--text-secondary)]">
+                                {date}
+                              </span>
+                              {comment.username === "admin" && (
+                                <span className="py-0.2 rounded border border-red-500/20 bg-red-500/10 px-1 text-[8px] font-bold uppercase tracking-wider text-red-500">
+                                  Admin
+                                </span>
+                              )}
+                            </div>
+                            <p className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--text-secondary)] sm:text-sm">
+                              {comment.content}
+                            </p>
+                          </div>
+
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDeleteComment(comment.id)}
+                              className="shrink-0 rounded-full p-1 text-neutral-500 transition-colors hover:text-red-400"
+                              title="Delete comment"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </section>
           </div>
 
           {/* Sidebar Column (Desktop only) */}
           {headers.length > 0 && (
-            <div className="hidden lg:block lg:col-span-3">
-              <aside className="sticky top-24 self-start space-y-4">
+            <div className="hidden lg:col-span-3 lg:block">
+              <aside className="sticky top-24 space-y-4 self-start">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
                   On this page
                 </h3>
-                <nav className="relative pl-4 border-l border-[var(--card-border)] space-y-2">
+                <nav className="relative space-y-2 border-l border-[var(--card-border)] pl-4">
                   {headers.map((header) => {
                     const isActive = header.id === activeId;
                     const indent =
-                      header.level === 3 ? "pl-3 text-[11px]" :
-                      header.level === 4 ? "pl-6 text-[10px]" :
-                      "text-xs";
+                      header.level === 3
+                        ? "pl-3 text-[11px]"
+                        : header.level === 4
+                        ? "pl-6 text-[10px]"
+                        : "text-xs";
                     return (
                       <a
                         key={header.id}
                         href={`#${header.id}`}
-                        className={`relative block transition-colors leading-relaxed ${indent} ${
+                        className={`relative block leading-relaxed transition-colors ${indent} ${
                           isActive
-                            ? "text-[var(--accent)] font-semibold"
+                            ? "font-semibold text-[var(--accent)]"
                             : "text-[var(--text-secondary)] hover:text-[var(--accent)]"
                         }`}
                       >
                         {isActive && (
                           <motion.div
                             layoutId="active-toc-indicator"
-                            className="absolute left-[-17px] top-0 bottom-0 w-[2px] bg-[var(--accent)]"
-                            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                            className="absolute bottom-0 left-[-17px] top-0 w-[2px] bg-[var(--accent)]"
+                            transition={{
+                              type: "spring",
+                              stiffness: 350,
+                              damping: 25,
+                            }}
                           />
                         )}
                         {header.text}
@@ -705,7 +805,7 @@ export default function BlogPostPage() {
           )}
         </div>
 
-        <div className="mx-auto max-w-3xl px-4 mt-12 sm:px-6 lg:px-8">
+        <div className="mx-auto mt-12 max-w-3xl px-4 sm:px-6 lg:px-8">
           <PageFooter />
         </div>
       </main>
@@ -733,13 +833,17 @@ function getHeaders(content: string): HeaderItem[] {
     }
     if (inCodeBlock) continue;
 
-    if (trimmed.startsWith("##") || trimmed.startsWith("###") || trimmed.startsWith("####")) {
+    if (
+      trimmed.startsWith("##") ||
+      trimmed.startsWith("###") ||
+      trimmed.startsWith("####")
+    ) {
       const match = trimmed.match(/^(#{2,4})\s+(.*)$/);
       if (match) {
         const level = match[1].length;
         let text = match[2].trim();
         text = text.replace(/\s+#+$/, "");
-        
+
         const id = text
           .toLowerCase()
           .replace(/<[^>]*>/g, "")
