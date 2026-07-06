@@ -4,6 +4,11 @@ export interface LanyardActivity {
   type?: number;
   details?: string;
   state?: string;
+  emoji?: {
+    id?: string;
+    name: string;
+    animated?: boolean;
+  };
   assets?: {
     large_image?: string;
     large_text?: string;
