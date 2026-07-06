@@ -14,14 +14,18 @@ import {
   Code,
   Mail,
 } from "lucide-react";
-import { SiSpotify, SiGithub, SiRoblox, SiTiktok, SiPinterest } from "react-icons/si";
+import {
+  SiSpotify,
+  SiGithub,
+  SiRoblox,
+  SiTiktok,
+  SiPinterest,
+  SiDiscord,
+} from "react-icons/si";
 import { FiInstagram } from "react-icons/fi";
 import { useLanyard } from "../hooks/useLanyard";
 import { useMusicPlayer } from "../components/music/MusicPlayerContext";
-import {
-  DISCORD_ID,
-  transformPresence,
-} from "../lib/discord";
+import { DISCORD_ID, transformPresence } from "../lib/discord";
 import TimeWeather from "../components/TimeWeather";
 import VisitorStats from "../components/Misc/VisitorStats.misc";
 import Projects from "../components/Projects";
@@ -92,7 +96,7 @@ function LiveAge() {
     const id = setInterval(tick, 50);
     return () => clearInterval(id);
   }, []);
-  return <span ref={ref} className="font-mono tabular-nums text-xs" />;
+  return <span ref={ref} className="font-mono text-xs tabular-nums" />;
 }
 
 /* ─── Discord status dots & icons ─────────────────────── */
@@ -128,9 +132,15 @@ const CONNECTION_URLS: Record<string, (name: string) => string> = {
 };
 
 const SOCIAL_LINKS = [
+  { label: "Discord", name: "@abynb", url: "/discord", icon: SiDiscord },
   { label: "Instagram", name: "@abyb.1", url: "/instagram", icon: FiInstagram },
   { label: "Pinterest", name: "@abyn6", url: "/pinterest", icon: SiPinterest },
-  { label: "Email", name: "abyn@abyn.xyz", url: "mailto:abyn@abyn.xyz", icon: Mail },
+  {
+    label: "Email",
+    name: "abyn@abyn.xyz",
+    url: "mailto:abyn@abyn.xyz",
+    icon: Mail,
+  },
 ];
 
 // Activity Timer helper inside status tab
@@ -150,17 +160,70 @@ function ActivityTimer({ start }: { start: number }) {
   const m = Math.floor((elapsed % 3600) / 60);
   const s = elapsed % 60;
 
-  const timeString = h > 0
-    ? `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`
-    : `${m}:${s.toString().padStart(2, "0")}`;
+  const timeString =
+    h > 0
+      ? `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`
+      : `${m}:${s.toString().padStart(2, "0")}`;
 
   return <span>{timeString}</span>;
+}
+
+// Discord Inline Backtick & Plain URL Markdown Formatter
+function parseBio(text: string) {
+  if (!text) return null;
+
+  // Split content matching blocks inside single backticks
+  const tokens = text.split(/(`[^`]+`)/g);
+
+  return tokens.map((token, idx) => {
+    if (token.startsWith("`") && token.endsWith("`")) {
+      const codeText = token.slice(1, -1);
+      return (
+        <span
+          key={idx}
+          className="mx-0.5 inline-flex items-center rounded border border-white/5 bg-neutral-800 px-1.5 py-0.5 font-mono text-[10px] text-neutral-400"
+        >
+          {codeText}
+        </span>
+      );
+    }
+
+    // Isolate absolute URLs within structural text content segments
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const subTokens = token.split(urlRegex);
+
+    return subTokens.map((subToken, subIdx) => {
+      if (subToken.match(urlRegex)) {
+        return (
+          <a
+            key={`${idx}-${subIdx}`}
+            href={subToken}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mx-0.5 inline-flex items-center break-all font-mono text-[11px] text-blue-400 hover:underline"
+          >
+            {subToken}
+          </a>
+        );
+      }
+      return (
+        <span key={`${idx}-${subIdx}`} className="text-neutral-300">
+          {subToken}
+        </span>
+      );
+    });
+  });
 }
 
 export default function Home() {
   const { presence } = useLanyard(DISCORD_ID);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
-  const [activeTab, setActiveTab] = useState<"activity" | "projects" | "guestbook">("activity");
+  const [activeTab, setActiveTab] = useState<
+    "activity" | "projects" | "guestbook"
+  >("activity");
+
+  // Copy state
+  const [usernameCopied, setUsernameCopied] = useState(false);
 
   // Guestbook states
   const [guestbookName, setGuestbookName] = useState("");
@@ -257,7 +320,9 @@ export default function Home() {
         try {
           visitorTurnstileContainerRef.current.innerHTML = "";
           win.turnstile.render(visitorTurnstileContainerRef.current, {
-            sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAADv9KsIrMSbSARa-",
+            sitekey:
+              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
+              "0x4AAAAAADv9KsIrMSbSARa-",
             callback: (token: string) => {
               setVisitorTurnstileToken(token);
             },
@@ -296,7 +361,9 @@ export default function Home() {
       if (win.turnstile && turnstileContainerRef.current) {
         try {
           win.turnstile.render(turnstileContainerRef.current, {
-            sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA",
+            sitekey:
+              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
+              "1x00000000000000000000AA",
             callback: (token: string) => {
               setTurnstileToken(token);
               setErrorMsg("");
@@ -317,6 +384,20 @@ export default function Home() {
       clearInterval(checkInterval);
     };
   }, [activeTab]);
+
+  // Handle Clipboard Copy
+  const handleCopyUsername = () => {
+    const rawUsername = profileData?.user?.username || "abynb";
+    navigator.clipboard
+      .writeText(rawUsername)
+      .then(() => {
+        setUsernameCopied(true);
+        setTimeout(() => setUsernameCopied(false), 2000);
+      })
+      .catch((err) => {
+        console.error("Could not copy username: ", err);
+      });
+  };
 
   // Handle Guestbook Submission
   const handleGuestbookSubmit = async (e: React.FormEvent) => {
@@ -420,7 +501,10 @@ export default function Home() {
     setVisitorError("");
     setVisitorSuccess("");
 
-    const endpoint = visitorTab === "login" ? "/api/visitor/auth/login" : "/api/visitor/auth/register";
+    const endpoint =
+      visitorTab === "login"
+        ? "/api/visitor/auth/login"
+        : "/api/visitor/auth/register";
 
     try {
       const res = await fetch(endpoint, {
@@ -432,13 +516,15 @@ export default function Home() {
         body: JSON.stringify({
           username: visitorUsername,
           password: visitorPassword,
-          token: visitorTurnstileToken
+          token: visitorTurnstileToken,
         }),
       });
       const data = await res.json();
       if (data.success) {
         setVisitor(data.user);
-        setVisitorSuccess(visitorTab === "login" ? "Logged in!" : "Registered & logged in!");
+        setVisitorSuccess(
+          visitorTab === "login" ? "Logged in!" : "Registered & logged in!"
+        );
         setVisitorUsername("");
         setVisitorPassword("");
         setVisitorTurnstileToken("");
@@ -561,23 +647,33 @@ export default function Home() {
   const currentStatus = presence?.discord_status || "offline";
   const statusColorClass = STATUS_COLORS[currentStatus];
 
+  // Custom Discord Banner Status evaluation (Type 4: Custom Status)
+  const customStatus = presence?.activities?.find((act) => act.type === 4);
+
   // Active Device Icon with color matching the status
   const getDeviceIcon = () => {
     if (currentStatus === "offline") return null;
 
     let colorClass = "text-neutral-400";
-    if (currentStatus === "online") colorClass = "text-[#23a55a] fill-[#23a55a]/10";
-    else if (currentStatus === "idle") colorClass = "text-[#f0b232] fill-[#f0b232]/10";
-    else if (currentStatus === "dnd") colorClass = "text-[#f23f43] fill-[#f23f43]/10";
+    if (currentStatus === "online")
+      colorClass = "text-[#23a55a] fill-[#23a55a]/10";
+    else if (currentStatus === "idle")
+      colorClass = "text-[#f0b232] fill-[#f0b232]/10";
+    else if (currentStatus === "dnd")
+      colorClass = "text-[#f23f43] fill-[#f23f43]/10";
 
-    if (presence?.active_on_discord_desktop) return <Monitor className={`h-4 w-4 shrink-0 ${colorClass}`} />;
-    if (presence?.active_on_discord_mobile) return <Smartphone className={`h-4 w-4 shrink-0 ${colorClass}`} />;
-    if (presence?.active_on_discord_web) return <Laptop className={`h-4 w-4 shrink-0 ${colorClass}`} />;
+    if (presence?.active_on_discord_desktop)
+      return <Monitor className={`h-4 w-4 shrink-0 ${colorClass}`} />;
+    if (presence?.active_on_discord_mobile)
+      return <Smartphone className={`h-4 w-4 shrink-0 ${colorClass}`} />;
+    if (presence?.active_on_discord_web)
+      return <Laptop className={`h-4 w-4 shrink-0 ${colorClass}`} />;
     return null;
   };
 
   // Avatar URL
-  const avatarHash = profileData?.user?.avatar || (presence as any)?.discord_user?.avatar;
+  const avatarHash =
+    profileData?.user?.avatar || (presence as any)?.discord_user?.avatar;
   const avatarUrl = avatarHash
     ? `https://cdn.discordapp.com/avatars/${DISCORD_ID}/${avatarHash}.png?size=512`
     : `https://dcdn.dstn.to/avatars/${DISCORD_ID}`;
@@ -612,28 +708,47 @@ export default function Home() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
       {/* Script for CF Turnstile */}
-      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" />
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+        strategy="afterInteractive"
+      />
 
       {/* ── Discord Profile Card ── */}
-      <div className="discord-glass-panel border border-white/5 rounded-xl overflow-hidden shadow-2xl flex flex-col mb-6">
-
+      <div className="discord-glass-panel mb-6 flex flex-col overflow-hidden rounded-xl border border-white/5 shadow-2xl">
         {/* Banner Section */}
-        <div className="relative h-32 w-full bg-cover bg-center shrink-0" style={bannerStyle}>
+        <div
+          className="relative h-32 w-full shrink-0 bg-cover bg-center"
+          style={bannerStyle}
+        >
           {/* Dark tint overlay */}
           <div className="absolute inset-0 bg-black/15" />
 
-          {/* Custom Status Pill Floating on Banner next to Avatar */}
-          <div className="absolute bottom-3 left-28 bg-[#111214]/80 text-[#ededed] text-[10px] px-3 py-1 rounded-full border border-white/5 flex items-center gap-1.5 backdrop-blur-md max-w-[200px] sm:max-w-xs truncate">
-            <span className="truncate">https://abyn.xyz</span>
-          </div>
+          {/* Dynamic Lanyard Custom Status Pill Floating on Banner */}
+          {customStatus && (customStatus.state || customStatus.emoji) && (
+            <div className="absolute bottom-3 left-28 flex max-w-[200px] items-center gap-1.5 truncate rounded-full border border-white/5 bg-[#111214]/80 px-3 py-1 text-[10px] text-[#ededed] backdrop-blur-md sm:max-w-xs">
+              {customStatus.emoji &&
+                (customStatus.emoji.id ? (
+                  <img
+                    src={`https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.png`}
+                    alt={customStatus.emoji.name || "status-emoji"}
+                    className="h-3.5 w-3.5 shrink-0 object-contain"
+                    draggable={false}
+                  />
+                ) : (
+                  <span className="shrink-0">{customStatus.emoji.name}</span>
+                ))}
+              {customStatus.state && (
+                <span className="truncate">{customStatus.state}</span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Card Body */}
-        <div className="px-4 pb-4 pt-0 relative flex flex-col">
-
+        <div className="relative flex flex-col px-4 pb-4 pt-0">
           {/* Avatar placement */}
-          <div className="relative -mt-10 mb-3 w-fit z-10">
-            <div className="relative h-20 w-20 rounded-full border-4 border-[#111216] overflow-hidden bg-neutral-900">
+          <div className="relative z-10 -mt-10 mb-3 w-fit">
+            <div className="relative h-20 w-20 overflow-hidden rounded-full border-4 border-[#111216] bg-neutral-900">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={avatarUrl}
@@ -649,27 +764,26 @@ export default function Home() {
           </div>
 
           {/* User Display Name, Guild Tag, and Device line with Nameplate collectible background */}
-          <div className="relative w-full overflow-hidden rounded-lg bg-[#111214]/60 border border-white/5 px-3 py-2.5 mb-2 flex items-center justify-between min-h-[44px]">
-
+          <div className="relative mb-2 flex min-h-[44px] w-full items-center justify-between overflow-hidden rounded-lg border border-white/5 bg-[#111214]/60 px-3 py-2.5">
             {/* Thinner Nameplate video banner (Fills only this display name box) */}
-            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden">
               <video
                 src="https://cdn.discordapp.com/assets/collectibles/nameplates/gothica/nevermore/asset.webm"
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-full object-cover opacity-45 mix-blend-screen"
+                className="h-full w-full object-cover opacity-45 mix-blend-screen"
               />
             </div>
 
             <div className="relative z-10 flex items-center gap-2">
-              <h1 className="font-display text-lg font-bold tracking-tight text-[#f5f5f5] leading-none">
+              <h1 className="font-display text-lg font-bold leading-none tracking-tight text-[#f5f5f5]">
                 abyn
               </h1>
 
               {/* Guild Tag NBHD */}
-              <div className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-[9px] font-bold bg-neutral-800/90 border border-neutral-700/50 text-[#ededed] leading-none">
+              <div className="inline-flex items-center gap-1 rounded border border-neutral-700/50 bg-neutral-800/90 px-1 py-0.5 text-[9px] font-bold leading-none text-[#ededed]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="https://cdn.discordapp.com/clan-badges/811266344397701162/c8d016eed5c8752316ca38fdd54380c6.png"
@@ -683,15 +797,26 @@ export default function Home() {
             {/* Device Status icon and gold Owner Crown */}
             <div className="relative z-10 flex items-center gap-1.5">
               {getDeviceIcon()}
-              <Crown className="h-4 w-4 text-yellow-500 fill-yellow-500/10 shrink-0" />
+              <Crown className="h-4 w-4 shrink-0 fill-yellow-500/10 text-yellow-500" />
             </div>
-
           </div>
 
           {/* Username & Badges row (Rendered OUTSIDE the Nameplate block to prevent clipping) */}
-          <div className="flex items-center justify-between px-1 mb-4">
-            <div className="flex items-center gap-2 text-xs text-neutral-400 font-mono">
-              <span>@abynb</span>
+          <div className="mb-4 flex items-center justify-between px-1">
+            <div className="flex select-none items-center gap-2 font-mono text-xs">
+              <button
+                onClick={handleCopyUsername}
+                className={`outline-none transition-colors duration-150 focus:outline-none ${
+                  usernameCopied
+                    ? "font-semibold text-green-400"
+                    : "text-neutral-400 hover:text-neutral-200"
+                }`}
+                title="Click to copy username"
+              >
+                {usernameCopied
+                  ? "Copied username!"
+                  : `@${profileData?.user?.username || "abynb"}`}
+              </button>
               {profileData?.user_profile?.pronouns && (
                 <span className="text-[10px] text-neutral-500">
                   · {profileData.user_profile.pronouns}
@@ -703,7 +828,11 @@ export default function Home() {
             {profileData?.badges && profileData.badges.length > 0 && (
               <div className="flex items-center gap-1">
                 {profileData.badges.map((badge) => (
-                  <div key={badge.id} className="relative group shrink-0" title={badge.description}>
+                  <div
+                    key={badge.id}
+                    className="group relative shrink-0"
+                    title={badge.description}
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`https://cdn.discordapp.com/badge-icons/${badge.icon}.png`}
@@ -718,35 +847,29 @@ export default function Home() {
 
           {/* ABOUT ME SECTION */}
           <div className="mb-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2">
+            <h3 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
               About Me
             </h3>
             <div className="rounded-lg border border-white/5 bg-[#111214]/40 p-3 text-xs leading-5 text-neutral-300">
-              {/* Custom Status Link block */}
-              <div className="mt-0.5 mb-2.5 text-xs flex items-center gap-1.5 flex-wrap">
-                <span className="rounded bg-neutral-800 border border-white/5 px-1.5 py-0.5 text-[10px] font-mono text-neutral-400">
-                  around the web
-                </span>
-                <a
-                  href="https://abyn.xyz/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:underline font-mono text-[11px]"
-                >
-                  https://abyn.xyz/
-                </a>
-              </div>
-              <p>Student developer from Indonesia. I build small, considered things for the web — usually involving live data or music.</p>
+              {/* Dynamic Discord Profile Endpoint Bio Component */}
+              {profileData?.user_profile?.bio && (
+                <div className="mb-2.5 mt-0.5 flex flex-wrap items-center gap-1.5 border-b border-white/5 pb-2 text-xs">
+                  {parseBio(profileData.user_profile.bio)}
+                </div>
+              )}
+              <p className="mt-2">
+                Student developer from Indonesia. I build small, considered
+                things for the web — usually involving live data or music.
+              </p>
             </div>
           </div>
 
           {/* CONNECTIONS & SOCIALS SECTION (2 Columns: Left Connections, Right Socials) */}
           <div>
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2">
+            <h3 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
               Connections & Socials
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {/* Column 1: Discord Connection Accounts */}
               <div className="space-y-1.5">
                 {profileData?.connected_accounts?.map((acc) => {
@@ -756,13 +879,15 @@ export default function Home() {
                     <a
                       key={acc.id}
                       href={url}
-                      className="flex items-center justify-between rounded-lg border border-white/5 bg-[#111214]/40 px-3 py-2 transition-colors hover:bg-white/5 text-xs h-[38px]"
+                      className="flex h-[38px] items-center justify-between rounded-lg border border-white/5 bg-[#111214]/40 px-3 py-2 text-xs transition-colors hover:bg-white/5"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Icon className="h-4 w-4 text-neutral-400 shrink-0" />
-                        <span className="truncate text-neutral-300 font-mono">{acc.name}</span>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Icon className="h-4 w-4 shrink-0 text-neutral-400" />
+                        <span className="truncate font-mono text-neutral-300">
+                          {acc.name}
+                        </span>
                       </div>
-                      <CheckCircle2 className="h-3 w-3 text-green-500 shrink-0 opacity-80" />
+                      <CheckCircle2 className="h-3 w-3 shrink-0 text-green-500 opacity-80" />
                     </a>
                   );
                 })}
@@ -778,33 +903,33 @@ export default function Home() {
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center rounded-lg border border-white/5 bg-[#111214]/40 px-3 py-2 transition-colors hover:bg-white/5 text-xs h-[38px]"
+                      className="flex h-[38px] items-center rounded-lg border border-white/5 bg-[#111214]/40 px-3 py-2 text-xs transition-colors hover:bg-white/5"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Icon className="h-4 w-4 text-neutral-400 shrink-0" />
-                        <span className="truncate text-neutral-300 font-mono">{s.name}</span>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Icon className="h-4 w-4 shrink-0 text-neutral-400" />
+                        <span className="truncate font-mono text-neutral-300">
+                          {s.name}
+                        </span>
                       </div>
                     </a>
                   );
                 })}
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
 
       {/* ── Sub-navigation Tabs ── */}
-      <div className="discord-glass-panel border border-white/5 rounded-lg p-1 flex gap-1 mb-4">
+      <div className="discord-glass-panel mb-4 flex gap-1 rounded-lg border border-white/5 p-1">
         {(["activity", "projects", "guestbook"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-md capitalize transition-all duration-150 ${
+            className={`flex-1 rounded-md py-1.5 text-xs font-semibold capitalize transition-all duration-150 ${
               activeTab === tab
                 ? "bg-[var(--accent)] text-[var(--accent-text)]"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-white/5"
+                : "text-neutral-400 hover:bg-white/5 hover:text-neutral-200"
             }`}
           >
             {tab === "activity" ? "Activity status" : tab}
@@ -813,35 +938,46 @@ export default function Home() {
       </div>
 
       {/* ── Tab Content Area ── */}
-      <div className="discord-glass-panel border border-white/5 rounded-xl p-4 min-h-[250px] flex flex-col justify-between">
-
+      <div className="discord-glass-panel flex min-h-[250px] flex-col justify-between rounded-xl border border-white/5 p-4">
         {/* Activity Tab */}
         {activeTab === "activity" && (
           <div className="space-y-4">
-            <div className="border-b border-white/5 pb-1 flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
-                <Activity className="h-3.5 w-3.5 text-neutral-500" /> Current Activity
+            <div className="flex items-center justify-between border-b border-white/5 pb-1">
+              <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
+                <Activity className="h-3.5 w-3.5 text-neutral-500" /> Current
+                Activity
               </h3>
               <VisitorStats />
             </div>
 
             {/* Custom Status & metadata row */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-neutral-400 font-mono">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-xs text-neutral-400">
               <div className="flex items-center gap-1">
                 <span className="relative flex h-2 w-2">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${statusColorClass}`} />
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${statusColorClass}`} />
+                  <span
+                    className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${statusColorClass}`}
+                  />
+                  <span
+                    className={`relative inline-flex h-2 w-2 rounded-full ${statusColorClass}`}
+                  />
                 </span>
-                <span className="uppercase text-[10px]">{STATUS_TEXT[currentStatus]}</span>
+                <span className="text-[10px] uppercase">
+                  {STATUS_TEXT[currentStatus]}
+                </span>
               </div>
-              <div>· Age: <span className="text-neutral-200"><LiveAge /> yrs</span></div>
+              <div>
+                · Age:{" "}
+                <span className="text-neutral-200">
+                  <LiveAge /> yrs
+                </span>
+              </div>
             </div>
 
             {/* Live Discord Activity (Zed / VSC / Games) */}
             {statusInfo?.activity ? (
-              <div className="rounded-lg border border-white/5 bg-[#111214]/40 p-4 flex gap-4 items-center relative overflow-hidden">
+              <div className="relative flex items-center gap-4 overflow-hidden rounded-lg border border-white/5 bg-[#111214]/40 p-4">
                 {statusInfo.activity.image ? (
-                  <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-white/10 shrink-0">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-white/10">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={statusInfo.activity.image}
@@ -860,35 +996,37 @@ export default function Home() {
                     )}
                   </div>
                 ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-[#111214]/60 border border-white/10 shrink-0">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-[#111214]/60">
                     <Code className="h-6 w-6 text-neutral-400" />
                   </div>
                 )}
 
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-sm font-bold text-[#f5f5f5] truncate">
+                  <h4 className="truncate text-sm font-bold text-[#f5f5f5]">
                     {statusInfo.activity.name}
                   </h4>
                   {statusInfo.activity.details && (
-                    <p className="text-xs text-neutral-400 mt-0.5 truncate">
+                    <p className="mt-0.5 truncate text-xs text-neutral-400">
                       {statusInfo.activity.details}
                     </p>
                   )}
                   {statusInfo.activity.state && (
-                    <p className="text-xs text-neutral-400 truncate">
+                    <p className="truncate text-xs text-neutral-400">
                       {statusInfo.activity.state}
                     </p>
                   )}
                   {statusInfo.activity.timestamps?.start && (
-                    <p className="text-[11px] text-green-400 font-mono mt-1 flex items-center gap-1">
+                    <p className="mt-1 flex items-center gap-1 font-mono text-[11px] text-green-400">
                       <span>🎮</span>
-                      <ActivityTimer start={statusInfo.activity.timestamps.start} />
+                      <ActivityTimer
+                        start={statusInfo.activity.timestamps.start}
+                      />
                     </p>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="rounded-lg border border-white/5 bg-[#111214]/20 p-4 text-center text-xs text-neutral-500 italic py-6">
+              <div className="rounded-lg border border-white/5 bg-[#111214]/20 p-4 py-6 text-center text-xs italic text-neutral-500">
                 No active games or coding status right now.
               </div>
             )}
@@ -917,8 +1055,9 @@ export default function Home() {
             {/* Form */}
             <div className="space-y-4">
               <div className="border-b border-white/5 pb-1">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
-                  <MessageSquare className="h-3.5 w-3.5 text-neutral-500" /> Guestbook
+                <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  <MessageSquare className="h-3.5 w-3.5 text-neutral-500" />{" "}
+                  Guestbook
                 </h3>
               </div>
 
@@ -927,10 +1066,13 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setShowVisitorMenu(!showVisitorMenu)}
-                  className="flex w-full items-center justify-between text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-neutral-200 transition-colors"
+                  className="flex w-full items-center justify-between text-[10px] font-bold uppercase tracking-wider text-neutral-400 transition-colors hover:text-neutral-200"
                 >
                   <span className="flex items-center gap-1.5">
-                    👤 {visitor ? `Logged in as: ${visitor.username}` : "Login/Register (optional)"}
+                    👤{" "}
+                    {visitor
+                      ? `Logged in as: ${visitor.username}`
+                      : "Login/Register (optional)"}
                   </span>
                   <span>{showVisitorMenu ? "▲" : "▼"}</span>
                 </button>
@@ -940,26 +1082,30 @@ export default function Home() {
                     {visitor ? (
                       <div className="flex items-center justify-between text-[11px]">
                         <span className="text-neutral-400">
-                          Hi, <strong className="text-[var(--text-primary)]">{visitor.username}</strong>! You can now like entries and blog posts.
+                          Hi,{" "}
+                          <strong className="text-[var(--text-primary)]">
+                            {visitor.username}
+                          </strong>
+                          ! You can now like entries and blog posts.
                         </span>
                         <button
                           type="button"
                           onClick={handleVisitorLogout}
                           disabled={authActionLoading}
-                          className="rounded bg-red-950/40 hover:bg-red-950/70 border border-red-900/50 px-2 py-0.5 text-[9px] font-bold text-red-300 transition-colors"
+                          className="rounded border border-red-900/50 bg-red-950/40 px-2 py-0.5 text-[9px] font-bold text-red-300 transition-colors hover:bg-red-950/70"
                         >
                           LOGOUT
                         </button>
                       </div>
                     ) : (
                       <form onSubmit={handleVisitorAuth} className="space-y-2">
-                        <div className="flex border-b border-white/5 pb-1 gap-3">
+                        <div className="flex gap-3 border-b border-white/5 pb-1">
                           <button
                             type="button"
                             onClick={() => setVisitorTab("login")}
                             className={`text-[9px] font-bold uppercase ${
                               visitorTab === "login"
-                                ? "text-neutral-200 border-b border-[var(--text-primary)]"
+                                ? "border-b border-[var(--text-primary)] text-neutral-200"
                                 : "text-neutral-500"
                             }`}
                           >
@@ -970,7 +1116,7 @@ export default function Home() {
                             onClick={() => setVisitorTab("register")}
                             className={`text-[9px] font-bold uppercase ${
                               visitorTab === "register"
-                                ? "text-neutral-200 border-b border-[var(--text-primary)]"
+                                ? "border-b border-[var(--text-primary)] text-neutral-200"
                                 : "text-neutral-500"
                             }`}
                           >
@@ -985,7 +1131,7 @@ export default function Home() {
                             placeholder="Username"
                             value={visitorUsername}
                             onChange={(e) => setVisitorUsername(e.target.value)}
-                            className="w-full rounded bg-black/20 border border-white/5 px-2.5 py-1.5 text-xs text-[#ededed] focus:outline-none focus:border-white/10"
+                            className="w-full rounded border border-white/5 bg-black/20 px-2.5 py-1.5 text-xs text-[#ededed] focus:border-white/10 focus:outline-none"
                           />
                           <input
                             type="password"
@@ -993,29 +1139,41 @@ export default function Home() {
                             placeholder="Password"
                             value={visitorPassword}
                             onChange={(e) => setVisitorPassword(e.target.value)}
-                            className="w-full rounded bg-black/20 border border-white/5 px-2.5 py-1.5 text-xs text-[#ededed] focus:outline-none focus:border-white/10"
+                            className="w-full rounded border border-white/5 bg-black/20 px-2.5 py-1.5 text-xs text-[#ededed] focus:border-white/10 focus:outline-none"
                           />
 
                           {/* Visitor Turnstile Challenge */}
                           <div className="flex justify-center py-1">
                             <div
                               ref={visitorTurnstileContainerRef}
-                              className="scale-90 origin-center"
+                              className="origin-center scale-90"
                             />
                           </div>
 
                           <button
                             type="submit"
                             disabled={authActionLoading}
-                            className="w-full rounded bg-[var(--accent)] hover:opacity-90 py-1.5 text-[10px] font-bold text-[var(--accent-text)] transition-colors uppercase"
+                            className="w-full rounded bg-[var(--accent)] py-1.5 text-[10px] font-bold uppercase text-[var(--accent-text)] transition-colors hover:opacity-90"
                           >
-                            {authActionLoading ? "..." : visitorTab === "login" ? "LOGIN" : "SIGNUP"}
+                            {authActionLoading
+                              ? "..."
+                              : visitorTab === "login"
+                              ? "LOGIN"
+                              : "SIGNUP"}
                           </button>
                         </div>
                       </form>
                     )}
-                    {visitorError && <p className="text-[10px] font-semibold text-red-400">{visitorError}</p>}
-                    {visitorSuccess && <p className="text-[10px] font-semibold text-green-400">{visitorSuccess}</p>}
+                    {visitorError && (
+                      <p className="text-[10px] font-semibold text-red-400">
+                        {visitorError}
+                      </p>
+                    )}
+                    {visitorSuccess && (
+                      <p className="text-[10px] font-semibold text-green-400">
+                        {visitorSuccess}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -1029,7 +1187,7 @@ export default function Home() {
                   placeholder="your name"
                   maxLength={35}
                   disabled={!!visitor}
-                  className="w-full rounded-lg px-3 py-2 text-xs text-[#ededed] discord-glass-input disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="discord-glass-input w-full rounded-lg px-3 py-2 text-xs text-[#ededed] disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <textarea
                   required
@@ -1038,7 +1196,7 @@ export default function Home() {
                   onChange={(e) => setGuestbookMessage(e.target.value)}
                   placeholder="say something..."
                   maxLength={280}
-                  className="w-full rounded-lg px-3 py-2 text-xs text-[#ededed] discord-glass-input resize-none"
+                  className="discord-glass-input w-full resize-none rounded-lg px-3 py-2 text-xs text-[#ededed]"
                 />
 
                 <div className="flex justify-start">
@@ -1049,13 +1207,21 @@ export default function Home() {
                   />
                 </div>
 
-                {errorMsg && <p className="text-xs font-semibold text-red-400">{errorMsg}</p>}
-                {successMsg && <p className="text-xs font-semibold text-green-400">{successMsg}</p>}
+                {errorMsg && (
+                  <p className="text-xs font-semibold text-red-400">
+                    {errorMsg}
+                  </p>
+                )}
+                {successMsg && (
+                  <p className="text-xs font-semibold text-green-400">
+                    {successMsg}
+                  </p>
+                )}
 
                 <button
                   type="submit"
                   disabled={guestbookLoading}
-                  className="inline-flex w-full items-center justify-center rounded-lg bg-[var(--accent)] hover:opacity-90 px-4 py-2 text-xs font-bold text-[var(--accent-text)] transition-opacity disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-bold text-[var(--accent-text)] transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   {guestbookLoading ? "SENDING..." : "SEND →"}
                 </button>
@@ -1063,44 +1229,50 @@ export default function Home() {
             </div>
 
             {/* Message Feed */}
-            <div className="flex flex-col max-h-[400px] overflow-hidden">
-              <div className="border-b border-white/5 pb-1 mb-2 shrink-0 flex items-center justify-between">
+            <div className="flex max-h-[400px] flex-col overflow-hidden">
+              <div className="mb-2 flex shrink-0 items-center justify-between border-b border-white/5 pb-1">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
                   Recent entries
                 </h3>
-                <span className="text-[10px] font-mono text-neutral-500 bg-white/5 px-2 py-0.5 rounded-full">
+                <span className="rounded-full bg-white/5 px-2 py-0.5 font-mono text-[10px] text-neutral-500">
                   {messages.length} messages
                 </span>
               </div>
 
-              <div className="flex-1 overflow-y-auto space-y-2.5 pr-1.5 scrollbar-thin">
+              <div className="scrollbar-thin flex-1 space-y-2.5 overflow-y-auto pr-1.5">
                 {messages.length === 0 ? (
-                  <p className="text-xs text-neutral-500 italic text-center py-10">
+                  <p className="py-10 text-center text-xs italic text-neutral-500">
                     No messages yet. Be the first!
                   </p>
                 ) : (
                   messages.map((msg) => {
-                    const dateString = new Date(msg.timestamp).toLocaleDateString(undefined, {
+                    const dateString = new Date(
+                      msg.timestamp
+                    ).toLocaleDateString(undefined, {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
                     });
-                    const timeString = new Date(msg.timestamp).toLocaleTimeString(undefined, {
+                    const timeString = new Date(
+                      msg.timestamp
+                    ).toLocaleTimeString(undefined, {
                       hour: "2-digit",
                       minute: "2-digit",
                       hour12: false,
                     });
                     const likesList = msg.likes || [];
-                    const isLiked = visitor ? likesList.includes(visitor.username) : false;
+                    const isLiked = visitor
+                      ? likesList.includes(visitor.username)
+                      : false;
 
                     return (
                       <div
                         key={msg.id}
-                        className="rounded-lg border border-white/5 bg-black/15 p-2.5 flex flex-col justify-between gap-1 group relative transition-colors hover:bg-black/25"
+                        className="group relative flex flex-col justify-between gap-1 rounded-lg border border-white/5 bg-black/15 p-2.5 transition-colors hover:bg-black/25"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
-                            <div className="flex items-center gap-1.5 flex-wrap">
+                            <div className="flex flex-wrap items-center gap-1.5">
                               <span className="text-xs font-bold text-neutral-200">
                                 {msg.name}
                               </span>
@@ -1108,12 +1280,12 @@ export default function Home() {
                                 {dateString} · {timeString}
                               </span>
                             </div>
-                            <p className="text-xs text-neutral-400 mt-1 whitespace-pre-wrap leading-5">
+                            <p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-neutral-400">
                               {msg.message}
                             </p>
                           </div>
 
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex shrink-0 items-center gap-1.5">
                             {/* Reply button */}
                             <button
                               type="button"
@@ -1126,7 +1298,7 @@ export default function Home() {
                                   setReplyText("");
                                 }
                               }}
-                              className="text-[10px] font-bold uppercase text-neutral-500 hover:text-neutral-300 transition-colors px-1"
+                              className="px-1 text-[10px] font-bold uppercase text-neutral-500 transition-colors hover:text-neutral-300"
                               title="Reply to entry"
                             >
                               reply
@@ -1135,43 +1307,62 @@ export default function Home() {
                             <button
                               type="button"
                               onClick={() => toggleLike(msg.id)}
-                              className={`p-0.5 rounded-full transition-colors shrink-0 ${
-                                isLiked ? "text-red-500" : "text-neutral-500 hover:text-red-400"
+                              className={`shrink-0 rounded-full p-0.5 transition-colors ${
+                                isLiked
+                                  ? "text-red-500"
+                                  : "text-neutral-500 hover:text-red-400"
                               }`}
                               title={visitor ? "Like entry" : "Sign in to like"}
                             >
-                              <Heart className={`h-3.5 w-3.5 ${isLiked ? "fill-red-500" : ""}`} />
+                              <Heart
+                                className={`h-3.5 w-3.5 ${
+                                  isLiked ? "fill-red-500" : ""
+                                }`}
+                              />
                             </button>
                           </div>
                         </div>
 
                         {/* Likes List */}
                         {likesList.length > 0 && (
-                          <div className="mt-1 pl-2 border-l border-neutral-600 text-[9px] text-neutral-400 italic flex items-center gap-1 flex-wrap">
-                            ❤️ {likesList.length} {likesList.length === 1 ? "like" : "likes"} ({likesList.join(", ")})
+                          <div className="mt-1 flex flex-wrap items-center gap-1 border-l border-neutral-600 pl-2 text-[9px] italic text-neutral-400">
+                            ❤️ {likesList.length}{" "}
+                            {likesList.length === 1 ? "like" : "likes"} (
+                            {likesList.join(", ")})
                           </div>
                         )}
 
                         {/* Replies List */}
                         {((msg as any).replies || []).length > 0 && (
-                          <div className="mt-2 pl-4 border-l border-white/5 space-y-2">
+                          <div className="mt-2 space-y-2 border-l border-white/5 pl-4">
                             {((msg as any).replies || []).map((reply: any) => {
-                              const rDate = new Date(reply.timestamp).toLocaleDateString(undefined, {
+                              const rDate = new Date(
+                                reply.timestamp
+                              ).toLocaleDateString(undefined, {
                                 month: "short",
                                 day: "numeric",
                               });
                               return (
-                                <div key={reply.id} className="text-[11px] leading-relaxed">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="font-bold text-neutral-300">{reply.username}</span>
-                                    {reply.username === "admin" && (
-                                      <span className="rounded bg-red-500/10 border border-red-500/20 px-1 py-0.2 text-[8px] font-bold text-red-500 uppercase tracking-wider scale-90">
+                                <div
+                                  key={reply.id}
+                                  className="text-[11px] leading-relaxed"
+                                >
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="font-bold text-neutral-300">
+                                      {reply.username}
+                                    </span>
+                                    {reply.username === "abynb" && (
+                                      <span className="py-0.2 scale-90 rounded border border-red-500/20 bg-red-500/10 px-1 text-[8px] font-bold uppercase tracking-wider text-red-500">
                                         Admin
                                       </span>
                                     )}
-                                    <span className="text-[9px] text-neutral-500">{rDate}</span>
+                                    <span className="text-[9px] text-neutral-500">
+                                      {rDate}
+                                    </span>
                                   </div>
-                                  <p className="text-neutral-400 mt-0.5 whitespace-pre-wrap">{reply.message}</p>
+                                  <p className="mt-0.5 whitespace-pre-wrap text-neutral-400">
+                                    {reply.message}
+                                  </p>
                                 </div>
                               );
                             })}
@@ -1182,16 +1373,20 @@ export default function Home() {
                         {replyingToId === msg.id && (
                           <form
                             onSubmit={(e) => handlePostReply(e, msg.id)}
-                            className="mt-2 pt-2 border-t border-white/5 space-y-2"
+                            className="mt-2 space-y-2 border-t border-white/5 pt-2"
                           >
                             <input
                               type="text"
                               required
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
-                              placeholder={visitor ? `Reply as ${visitor.username}...` : "Sign in to reply..."}
+                              placeholder={
+                                visitor
+                                  ? `Reply as ${visitor.username}...`
+                                  : "Sign in to reply..."
+                              }
                               maxLength={200}
-                              className="w-full rounded bg-black/20 border border-white/5 px-2 py-1.5 text-xs text-[#ededed] focus:outline-none focus:border-white/10"
+                              className="w-full rounded border border-white/5 bg-black/20 px-2 py-1.5 text-xs text-[#ededed] focus:border-white/10 focus:outline-none"
                             />
                             <div className="flex justify-end gap-1.5">
                               <button
@@ -1200,14 +1395,14 @@ export default function Home() {
                                   setReplyingToId(null);
                                   setReplyText("");
                                 }}
-                                className="rounded bg-white/5 hover:bg-white/10 px-2 py-1 text-[9px] font-bold text-neutral-400 transition-colors"
+                                className="rounded bg-white/5 px-2 py-1 text-[9px] font-bold text-neutral-400 transition-colors hover:bg-white/10"
                               >
                                 CANCEL
                               </button>
                               <button
                                 type="submit"
                                 disabled={replyLoading || !replyText.trim()}
-                                className="rounded bg-[var(--accent)] hover:opacity-90 px-3 py-1 text-[9px] font-bold text-[var(--accent-text)] transition-colors"
+                                className="rounded bg-[var(--accent)] px-3 py-1 text-[9px] font-bold text-[var(--accent-text)] transition-colors hover:opacity-90"
                               >
                                 {replyLoading ? "..." : "REPLY"}
                               </button>
@@ -1222,7 +1417,6 @@ export default function Home() {
             </div>
           </div>
         )}
-
       </div>
 
       <div className="mt-8">
