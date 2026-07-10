@@ -406,6 +406,18 @@ export default function BlogPostPage() {
       <Head>
         <title>{post.title} · abyn</title>
         <meta name="description" content={post.description} />
+        <meta property="og:title" content={post.title} />
+        <meta property="og:description" content={post.description} />
+        <meta
+          property="og:image"
+          content={
+            post.coverImage
+              ? (post.coverImage.startsWith("http") ? post.coverImage : `https://abyn.xyz${post.coverImage}`)
+              : `https://abyn.xyz/api/og?title=${encodeURIComponent(post.title)}&sub=${encodeURIComponent(post.description)}`
+          }
+        />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary_large_image" />
       </Head>
 
       {/* Scoped style injector overrides Tailwind spec parameters cleanly */}

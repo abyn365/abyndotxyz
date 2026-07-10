@@ -121,8 +121,8 @@ function parseYtDlpJson(jsonStr: string): ExtractedTrack {
   };
 }
 
-export async function searchTrack(query: string, signal?: AbortSignal): Promise<ExtractedTrack> {
-  const cacheKey = `search:${query.toLowerCase()}`;
+export async function searchTrack(query: string, signal?: AbortSignal, quality?: "low" | "high"): Promise<ExtractedTrack> {
+  const cacheKey = `search:${query.toLowerCase()}:${quality || "high"}`;
   
   if (activePromises.has(cacheKey)) {
     return activePromises.get(cacheKey)!;
@@ -163,8 +163,9 @@ export async function searchTrack(query: string, signal?: AbortSignal): Promise<
       }
     } catch (err) {
       console.warn("[Extractor] Paxsenix search failed, falling back to yt-dlp:", err);
+      const format = quality === "low" ? "ba[abr<=128]/ba" : "ba";
       const stdout = await runYtDlp(
-        ["--dump-json", "--no-playlist", "-f", "ba", `ytsearch1:${query}`],
+        ["--dump-json", "--no-playlist", "-f", format, `ytsearch1:${query}`],
         signal
       );
       track = parseYtDlpJson(stdout);
@@ -172,13 +173,13 @@ export async function searchTrack(query: string, signal?: AbortSignal): Promise<
     
     if (track.expiresAt) {
       trackCache.set(cacheKey, track);
-      trackCache.set(`id:${track.id}`, track);
+      trackCache.set(`id:${track.id}:${quality || "high"}`, track);
 
       const ttlSeconds = 30 * 24 * 60 * 60;
       const searchResult = { ...track, streamUrl: undefined, expiresAt: Date.now() + ttlSeconds * 1000 };
       try {
         await kv.set(cacheKey, searchResult, { ex: ttlSeconds });
-        await kv.set(`id:${track.id}`, searchResult, { ex: ttlSeconds });
+        await kv.set(`id:${track.id}:${quality || "high"}`, searchResult, { ex: ttlSeconds });
       } catch (err) {}
     }
     return track;
@@ -192,9 +193,9 @@ export async function searchTrack(query: string, signal?: AbortSignal): Promise<
   }
 }
 
-export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal, forceRefresh = false): Promise<ExtractedTrack> {
+export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal, forceRefresh = false, quality?: "low" | "high"): Promise<ExtractedTrack> {
   const isUrl = urlOrId.startsWith("http://") || urlOrId.startsWith("https://");
-  const cacheKey = isUrl ? `url:${urlOrId}` : `id:${urlOrId}`;
+  const cacheKey = isUrl ? `url:${urlOrId}:${quality || "high"}` : `id:${urlOrId}:${quality || "high"}`;
   
   if (!forceRefresh && activePromises.has(cacheKey)) {
     return activePromises.get(cacheKey)!;
@@ -218,8 +219,8 @@ export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal, 
       try { await kv.del(cacheKey); } catch {}
       if (!isUrl) {
         const target = `https://www.youtube.com/watch?v=${urlOrId}`;
-        trackCache.delete(`url:${target}`);
-        try { await kv.del(`url:${target}`); } catch {}
+        trackCache.delete(`url:${target}:${quality || "high"}`);
+        try { await kv.del(`url:${target}:${quality || "high"}`); } catch {}
       }
     }
 
@@ -227,7 +228,10 @@ export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal, 
     
     let track: ExtractedTrack;
     try {
-      const paxRes = await fetchPaxsenix(`https://api.paxsenix.org/yt/ytaudio?url=${encodeURIComponent(target)}`, signal);
+      const paxUrl = quality === "low"
+        ? `https://api.paxsenix.org/yt/ytaudio?url=${encodeURIComponent(target)}&quality=low`
+        : `https://api.paxsenix.org/yt/ytaudio?url=${encodeURIComponent(target)}`;
+      const paxRes = await fetchPaxsenix(paxUrl, signal);
       if (paxRes?.ok && (paxRes?.directLink || paxRes?.downloads)) {
         track = {
           id: paxRes.videoId || urlOrId,
@@ -243,8 +247,9 @@ export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal, 
       }
     } catch (err) {
       console.warn("[Extractor] Paxsenix ytaudio failed, falling back to yt-dlp:", err);
+      const format = quality === "low" ? "ba[abr<=128]/ba" : "ba";
       const stdout = await runYtDlp(
-        ["--dump-json", "--no-playlist", "-f", "ba", target],
+        ["--dump-json", "--no-playlist", "-f", format, target],
         signal
       );
       track = parseYtDlpJson(stdout);
@@ -257,11 +262,11 @@ export async function resolveTrackStream(urlOrId: string, signal?: AbortSignal, 
       try { await kv.set(cacheKey, track, { ex: ttlSeconds }); } catch {}
 
       if (!isUrl) {
-        const urlKey = `url:${target}`;
+        const urlKey = `url:${target}:${quality || "high"}`;
         trackCache.set(urlKey, track);
         try { await kv.set(urlKey, track, { ex: ttlSeconds }); } catch {}
       } else {
-        const idKey = `id:${track.id}`;
+        const idKey = `id:${track.id}:${quality || "high"}`;
         trackCache.set(idKey, track);
         try { await kv.set(idKey, track, { ex: ttlSeconds }); } catch {}
       }

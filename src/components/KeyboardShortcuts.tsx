@@ -30,7 +30,6 @@ const CATEGORIES = [
     title: "General",
     icon: Settings,
     items: [
-      { key: "Alt + T", description: "Toggle dark/light theme" },
       { key: "/ or ?", description: "Toggle shortcuts overlay" },
       { key: "Esc", description: "Dismiss this overlay" },
     ],
@@ -90,11 +89,6 @@ export default function KeyboardShortcuts() {
           case "u":
             e.preventDefault();
             router.push("/uses");
-            break;
-
-          case "t":
-            e.preventDefault();
-            if (isDesktop) toggleTheme();
             break;
         }
         return;

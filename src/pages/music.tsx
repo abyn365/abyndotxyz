@@ -36,6 +36,38 @@ const formatHour12 = (hour: number) => {
   return `${displayHour}:00 ${ampm}`;
 };
 
+const getDonutSlicePath = (
+  cx: number,
+  cy: number,
+  innerRadius: number,
+  outerRadius: number,
+  startAngleDegrees: number,
+  endAngleDegrees: number
+): string => {
+  const startAngleRad = (startAngleDegrees * Math.PI) / 180;
+  const endAngleRad = (endAngleDegrees * Math.PI) / 180;
+
+  const x1 = cx + outerRadius * Math.cos(startAngleRad);
+  const y1 = cy + outerRadius * Math.sin(startAngleRad);
+  const x2 = cx + outerRadius * Math.cos(endAngleRad);
+  const y2 = cy + outerRadius * Math.sin(endAngleRad);
+
+  const x3 = cx + innerRadius * Math.cos(endAngleRad);
+  const y3 = cy + innerRadius * Math.sin(endAngleRad);
+  const x4 = cx + innerRadius * Math.cos(startAngleRad);
+  const y4 = cy + innerRadius * Math.sin(startAngleRad);
+
+  const largeArcFlag = endAngleDegrees - startAngleDegrees <= 180 ? 0 : 1;
+
+  return [
+    `M ${x1} ${y1}`,
+    `A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+    `L ${x3} ${y3}`,
+    `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${x4} ${y4}`,
+    `Z`,
+  ].join(" ");
+};
+
 
 
 const dayLabels: Record<string, string> = {
@@ -263,15 +295,15 @@ function StatCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay, ease: "easeOut" }}
-      className="flex flex-col justify-between py-3 px-1"
+      className="flex flex-col justify-between p-4 rounded-xl border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] backdrop-blur-md transition-all hover:bg-[rgba(255,255,255,0.02)] active:scale-[0.995]"
       style={{
-        background: "transparent",
+        boxShadow: "var(--card-shadow)",
       }}
     >
       <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)]">
         {label}
       </p>
-      <div>
+      <div className="mt-2">
         <motion.p
           key={value}
           initial={{ opacity: 0, y: 2 }}
@@ -464,7 +496,7 @@ function ListeningClock({
     <ChartCard title="Listening clock" className={className}>
       <Tooltip tooltip={tooltip} />
       <div className="w-full flex flex-col h-full justify-between flex-1">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-4 mb-3 shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-4 mb-4 shrink-0">
           <h2 className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
             24-hour rhythm
           </h2>
@@ -478,87 +510,109 @@ function ListeningClock({
         {!data.some((item) => item.plays) ? (
           <EmptyState message="No listening history for this period." />
         ) : (
-          <div
-            className="relative grid gap-[4px] px-1 rounded-xl flex-1 items-end mb-1 min-h-[140px]"
-            style={{ 
-              gridTemplateColumns: "repeat(24, minmax(0, 1fr))",
-              backgroundImage: "linear-gradient(to top, rgba(255,255,255,0.03) 1px, transparent 1px)",
-              backgroundSize: "100% 20px"
-            }}
-          >
-            {data.map((item) => {
-              const isPeak = item.hour === peakHour;
-              const isHovered = hoveredHour === item.hour;
+          <div className="relative flex-1 flex items-center justify-center min-h-[280px] select-none">
+            <svg
+              viewBox="0 0 200 200"
+              className="w-full max-w-[280px] h-auto overflow-visible"
+            >
+              {/* Concentric Guide Rings */}
+              <circle cx="100" cy="100" r="30" fill="none" stroke="rgba(255, 255, 255, 0.03)" strokeWidth={1} />
+              <circle cx="100" cy="100" r="57.5" fill="none" stroke="rgba(255, 255, 255, 0.03)" strokeWidth={1} strokeDasharray="2,3" />
+              <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255, 255, 255, 0.03)" strokeWidth={1} />
 
-              return (
-                <button
-                  key={item.hour}
-                  type="button"
-                  className="group relative flex h-full items-end justify-center rounded-sm select-none outline-none touch-none"
-                  onPointerEnter={(event) => {
-                    setHoveredHour(item.hour);
-                    setTooltip({
-                      title: formatHour12(item.hour),
-                      lines: [
-                        `${item.plays} plays`,
-                        isPeak ? "Peak listening hour" : "Hourly activity",
-                      ],
-                      x: event.clientX,
-                      y: event.clientY,
-                    });
-                  }}
-                  onPointerMove={(event) => {
-                    setHoveredHour(item.hour);
-                    setTooltip({
-                      title: formatHour12(item.hour),
-                      lines: [
-                        `${item.plays} plays`,
-                        isPeak ? "Peak listening hour" : "Hourly activity",
-                      ],
-                      x: event.clientX,
-                      y: event.clientY,
-                    });
-                  }}
-                  onPointerDown={(event) => {
-                    setHoveredHour(item.hour);
-                    setTooltip({
-                      title: formatHour12(item.hour),
-                      lines: [
-                        `${item.plays} plays`,
-                        isPeak ? "Peak listening hour" : "Hourly activity",
-                      ],
-                      x: event.clientX,
-                      y: event.clientY,
-                    });
-                  }}
-                >
-                  <motion.span
-                    initial={{ height: 0 }}
-                    animate={{ height: `${Math.max(8, (item.plays / max) * 100)}%` }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="w-full rounded-t-[3px] transition-all duration-200"
-                    style={{
-                      background: isPeak
-                        ? "linear-gradient(180deg, #8b5cf6, #6366f1)"
-                        : isHovered
-                        ? "linear-gradient(180deg, #a5b4fc, #6366f1)"
-                        : "linear-gradient(180deg, rgba(99,102,241,0.35), rgba(99,102,241,0.7))",
-                      boxShadow: isPeak ? "0 0 18px rgba(99,102,241,0.45)" : "none",
-                      opacity: hoveredHour !== null && !isHovered ? 0.65 : 1,
+              {/* Hour Labels */}
+              <text x="100" y="14" textAnchor="middle" dominantBaseline="middle" className="fill-[var(--text-secondary)] font-mono text-[8px] font-black tracking-wider opacity-40">00</text>
+              <text x="186" y="100" textAnchor="middle" dominantBaseline="middle" className="fill-[var(--text-secondary)] font-mono text-[8px] font-black tracking-wider opacity-40">06</text>
+              <text x="100" y="186" textAnchor="middle" dominantBaseline="middle" className="fill-[var(--text-secondary)] font-mono text-[8px] font-black tracking-wider opacity-40">12</text>
+              <text x="14" y="100" textAnchor="middle" dominantBaseline="middle" className="fill-[var(--text-secondary)] font-mono text-[8px] font-black tracking-wider opacity-40">18</text>
+
+              {/* Clock Slices */}
+              {data.map((item) => {
+                const isPeak = item.hour === peakHour;
+                const isHovered = hoveredHour === item.hour;
+                const centerAngle = item.hour * 15 - 90;
+                const startAngle = centerAngle - 6;
+                const endAngle = centerAngle + 6;
+
+                // Background slice (full radius)
+                const bgPath = getDonutSlicePath(100, 100, 30, 85, startAngle, endAngle);
+
+                // Active slice (proportional radius)
+                const hasPlays = item.plays > 0;
+                const outerRad = 30 + (item.plays / max) * 55;
+                const activePath = hasPlays ? getDonutSlicePath(100, 100, 30, outerRad, startAngle, endAngle) : null;
+
+                return (
+                  <g
+                    key={item.hour}
+                    className="cursor-pointer group"
+                    onPointerEnter={(event) => {
+                      setHoveredHour(item.hour);
+                      setTooltip({
+                        title: formatHour12(item.hour),
+                        lines: [
+                          `${item.plays} streams`,
+                          isPeak ? "Peak listening hour" : "Hourly activity",
+                        ],
+                        x: event.clientX,
+                        y: event.clientY,
+                      });
                     }}
-                  />
-                </button>
-              );
-            })}
+                    onPointerMove={(event) => {
+                      setHoveredHour(item.hour);
+                      setTooltip({
+                        title: formatHour12(item.hour),
+                        lines: [
+                          `${item.plays} streams`,
+                          isPeak ? "Peak listening hour" : "Hourly activity",
+                        ],
+                        x: event.clientX,
+                        y: event.clientY,
+                      });
+                    }}
+                    onPointerLeave={() => {
+                      setHoveredHour(null);
+                      setTooltip(null);
+                    }}
+                    onPointerDown={(event) => {
+                      setHoveredHour(item.hour);
+                      setTooltip({
+                        title: formatHour12(item.hour),
+                        lines: [
+                          `${item.plays} streams`,
+                          isPeak ? "Peak listening hour" : "Hourly activity",
+                        ],
+                        x: event.clientX,
+                        y: event.clientY,
+                      });
+                    }}
+                  >
+                    {/* Background segment */}
+                    <path
+                      d={bgPath}
+                      fill={isHovered ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.015)"}
+                      className="transition-colors duration-200"
+                    />
+
+                    {/* Active listening segment */}
+                    {activePath && (
+                      <path
+                        d={activePath}
+                        fill={isPeak ? "var(--music-accent)" : isHovered ? "var(--music-accent)" : "var(--music-accent-secondary)"}
+                        fillOpacity={isPeak ? 0.95 : isHovered ? 0.9 : 0.55}
+                        className="transition-all duration-200"
+                      />
+                    )}
+                  </g>
+                );
+              })}
+
+              {/* Decorative center icon */}
+              <circle cx="100" cy="100" r="10" className="fill-[var(--bg-secondary)] stroke-[var(--card-border)]" strokeWidth={1} />
+              <circle cx="100" cy="100" r="3" className="fill-[var(--text-secondary)] opacity-55" />
+            </svg>
           </div>
         )}
-        <div className="mt-3 flex justify-between font-mono text-[9px] text-[var(--text-secondary)] border-t pt-2 font-bold shrink-0 w-full" style={{ borderColor: "var(--card-border)" }}>
-          <span>12 AM</span>
-          <span>6 AM</span>
-          <span>12 PM</span>
-          <span>6 PM</span>
-          <span>11 PM</span>
-        </div>
       </div>
     </ChartCard>
   );
@@ -1077,7 +1131,7 @@ export default function MusicPage() {
                   data={stats.charts.listeningClock}
                   peakHour={stats.insights.peakHour}
                   quietHour={stats.insights.quietHour}
-                  className="flex-auto min-h-[250px]"
+                  className="flex-auto min-h-[340px]"
                 />
                 <ListeningHistory
                   data={stats.charts.listeningHistory}

@@ -114,17 +114,29 @@ export function useMusicPlayer() {
   return ctx;
 }
 
+const getQualityParam = () => {
+  if (typeof navigator !== "undefined" && (navigator as any).connection) {
+    const conn = (navigator as any).connection;
+    const type = conn.effectiveType || "";
+    if (["2g", "3g", "slow-2g", "slow-3g", "slow-4g"].includes(type) || conn.saveData) {
+      return "low";
+    }
+  }
+  return "high";
+};
+
 const preloadSearch = async (title: string, artist: string, album?: string, duration?: number) => {
   try {
     const normTitle = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
     const normArtist = artist.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
     const normAlbum = album ? album.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
-    const cacheKey = `resolved_track:${normArtist}:${normTitle}${normAlbum ? `:${normAlbum}` : ""}`;
+    const quality = getQualityParam();
+    const cacheKey = `resolved_track:${normArtist}:${normTitle}${normAlbum ? `:${normAlbum}` : ""}:${quality}`;
     
     // Check client-side cache
     if (cacheGet(cacheKey)) return;
 
-    const params = new URLSearchParams({ title, artist });
+    const params = new URLSearchParams({ title, artist, quality });
     if (album) params.append("album", album);
     if (duration) params.append("duration", duration.toString());
     
@@ -205,9 +217,11 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       const nextTrack = queue[queueIndex + 1];
       if (nextTrack) {
         try {
+          const quality = getQualityParam();
           const params = new URLSearchParams({
             title: nextTrack.title,
             artist: nextTrack.artist,
+            quality,
           });
           if (nextTrack.album) params.append("album", nextTrack.album);
           if (nextTrack.duration) params.append("duration", nextTrack.duration.toString());
@@ -217,11 +231,11 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
             const normTitle = nextTrack.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
             const normArtist = nextTrack.artist.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
             const normAlbum = nextTrack.album ? nextTrack.album.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
-            const cacheKey = `resolved_track:${normArtist}:${normTitle}${normAlbum ? `:${normAlbum}` : ""}`;
+            const cacheKey = `resolved_track:${normArtist}:${normTitle}${normAlbum ? `:${normAlbum}` : ""}:${quality}`;
             cacheSet(cacheKey, resolved, 24 * 60 * 60 * 1000, true);
 
             const target = resolved.provider === "soundcloud" ? resolved.id : resolved.id;
-            const streamUrl = `/api/stream?id=${encodeURIComponent(target)}`;
+            const streamUrl = `/api/stream?id=${encodeURIComponent(target)}${quality === "low" ? "&quality=low" : ""}`;
             audioPlayer.current?.preload(streamUrl);
           }
         } catch {}
@@ -302,7 +316,8 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
               console.warn("[Audio Player] Ignored error: track not resolved yet.");
               return;
             }
-            const streamUrl = `/api/stream?id=${encodeURIComponent(target)}`;
+            const quality = getQualityParam();
+            const streamUrl = `/api/stream?id=${encodeURIComponent(target)}${quality === "low" ? "&quality=low" : ""}`;
             audioPlayer.current?.load(streamUrl, stateRef.current.progress);
             return;
           } catch (err) {
@@ -704,13 +719,15 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
         const normTitle = t.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
         const normArtist = t.artist.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
         const normAlbum = t.album ? t.album.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim() : "";
-        const cacheKey = `resolved_track:${normArtist}:${normTitle}${normAlbum ? `:${normAlbum}` : ""}`;
+        const quality = getQualityParam();
+        const cacheKey = `resolved_track:${normArtist}:${normTitle}${normAlbum ? `:${normAlbum}` : ""}:${quality}`;
         const cached = cacheGet<any>(cacheKey);
         if (cached) return cached;
 
         const params = new URLSearchParams({
           title: t.title,
           artist: t.artist,
+          quality,
         });
         if (t.album) params.append("album", t.album);
         if (t.duration) params.append("duration", t.duration.toString());
@@ -781,7 +798,8 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
         });
         
         const target = id;
-        const streamUrl = `/api/stream?id=${encodeURIComponent(target)}`;
+        const quality = getQualityParam();
+        const streamUrl = `/api/stream?id=${encodeURIComponent(target)}${quality === "low" ? "&quality=low" : ""}`;
         audioPlayer.current?.load(streamUrl, seekTo, shouldPlay);
 
         // Preload next track in queue

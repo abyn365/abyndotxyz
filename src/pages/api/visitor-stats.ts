@@ -27,20 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("Missing Umami ENV variables");
     }
 
-    const now = new Date();
-    const startAt = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      0, 0, 0, 0
-    ).getTime();
-
-    const endAt = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      23, 59, 59, 999
-    ).getTime();
+    const startAt = new Date(2020, 0, 1).getTime();
+    const endAt = Date.now();
 
     const [activeResponse, statsResponse] = await Promise.all([
       fetchUmami(`${BASE_URL}/api/websites/${WEBSITE_ID}/active`),

@@ -90,7 +90,9 @@ const createWeatherData = (
     city: location.city,
     country: location.country,
     timezone: location.timezone,
-    locationUpdatedAt: location.timestamp,
+    locationUpdatedAt: location.timestamp === "2026-01-01T00:00:00.000Z"
+      ? new Date().toISOString()
+      : location.timestamp,
   };
 };
 

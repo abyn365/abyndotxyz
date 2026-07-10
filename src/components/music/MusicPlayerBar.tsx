@@ -1,16 +1,8 @@
-/**
- * components/music/MusicPlayerBar.tsx
- * Fixed bottom player bar — premium Spotify-style.
- * Features: dynamic accent colors, spinning artwork, crossfade transitions,
- * accent-themed progress bar, glassmorphism, micro-animations.
- */
-
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronUp,
   ChevronDown,
   Mic2,
-  Music2,
   Pause,
   Play,
   SkipBack,
@@ -28,15 +20,13 @@ import MusicArtwork from "./MusicArtwork";
 import { formatDuration } from "../../lib/music/metadata";
 
 // ---------------------------------------------------------------------------
-// Progress Bar
+// Full Progress Bar (Used in Expanded State)
 // ---------------------------------------------------------------------------
 function ProgressBar() {
-  const { duration, seek, accentColor, isPlaying } = useMusicPlayer();
+  const { duration, seek, accentColor } = useMusicPlayer();
   const [isDragging, setIsDragging] = useState(false);
   const [hoverPct, setHoverPct] = useState<number | null>(null);
   const [hoverTime, setHoverTime] = useState<string | null>(null);
-  
-  // Use local state for the time text
   const [localProgressText, setLocalProgressText] = useState("0:00");
   
   const barRef = useRef<HTMLDivElement>(null);
@@ -46,7 +36,6 @@ function ProgressBar() {
   const accent = accentColor.primary;
   const accentSecondary = accentColor.secondary;
 
-  // Smooth 60fps visual update
   useEffect(() => {
     let frameId: number;
     const player = import("../../lib/music/audio-player").then(m => m.MusicAudioPlayer.getInstance());
@@ -60,7 +49,6 @@ function ProgressBar() {
         if (fillRef.current) fillRef.current.style.width = `${pct}%`;
         if (thumbRef.current) thumbRef.current.style.left = `${pct}%`;
         
-        // Update text efficiently
         const newText = formatDuration(currentTime);
         if (newText !== localProgressText) {
           setLocalProgressText(newText);
@@ -96,20 +84,20 @@ function ProgressBar() {
   );
 
   return (
-    <div className="relative flex items-center gap-3 w-full group/progress">
-      <span className="font-mono text-[10px] tabular-nums text-[var(--text-secondary)] shrink-0 w-8 text-right">
+    <div className="relative flex items-center gap-2.5 w-full group/progress">
+      <span className="font-mono text-[9px] tabular-nums text-[var(--text-secondary)] shrink-0 w-7 text-right select-none">
         {localProgressText}
       </span>
 
-      <div className="relative flex-1 flex items-center h-4 cursor-pointer">
+      <div className="relative flex-1 flex items-center h-3 cursor-pointer">
         {hoverPct !== null && hoverTime && (
           <div
-            className="absolute -top-7 pointer-events-none z-10 px-2 py-0.5 rounded-md text-[10px] font-mono text-white/90 shadow-lg"
+            className="absolute -top-7 pointer-events-none z-10 px-1.5 py-0.5 rounded-md text-[9px] font-mono text-white/90 shadow-lg"
             style={{
               left: `${hoverPct}%`,
               transform: "translateX(-50%)",
-              background: "rgba(0,0,0,0.75)",
-              backdropFilter: "blur(8px)",
+              background: "rgba(0,0,0,0.8)",
+              backdropFilter: "blur(6px)",
             }}
           >
             {hoverTime}
@@ -120,8 +108,8 @@ function ProgressBar() {
           ref={barRef}
           className="relative w-full rounded-full transition-all duration-150"
           style={{
-            height: hoverPct !== null || isDragging ? "5px" : "3px",
-            background: "var(--card-border)",
+            height: hoverPct !== null || isDragging ? "4px" : "2px",
+            background: "rgba(255,255,255,0.08)",
           }}
           onMouseMove={(e) => {
             const ratio = getPositionFromEvent(e);
@@ -148,32 +136,58 @@ function ProgressBar() {
             }}
           />
 
-          {hoverPct !== null && (
-            <div
-              className="absolute inset-y-0 left-0 rounded-full opacity-20"
-              style={{
-                width: `${hoverPct}%`,
-                background: `linear-gradient(90deg, ${accent}, ${accentSecondary})`,
-              }}
-            />
-          )}
-
           <div
             ref={thumbRef}
-            className="absolute top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity duration-150"
+            className="absolute top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity duration-150"
             style={{
               left: "0%",
               transform: "translate(-50%, -50%)",
               background: "white",
-              boxShadow: `0 0 0 2.5px ${accent}80, 0 2px 6px rgba(0,0,0,0.35)`,
+              boxShadow: `0 0 0 2px ${accent}80, 0 1px 4px rgba(0,0,0,0.35)`,
             }}
           />
         </div>
       </div>
 
-      <span className="font-mono text-[10px] tabular-nums text-[var(--text-secondary)] shrink-0 w-8">
+      <span className="font-mono text-[9px] tabular-nums text-[var(--text-secondary)] shrink-0 w-7 select-none">
         {formatDuration(duration)}
       </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Compact Progress Line (Used in Minimized State)
+// ---------------------------------------------------------------------------
+function CompactProgressLine() {
+  const { duration, accentColor } = useMusicPlayer();
+  const [progressPct, setProgressPct] = useState(0);
+
+  useEffect(() => {
+    let frameId: number;
+    const player = import("../../lib/music/audio-player").then(m => m.MusicAudioPlayer.getInstance());
+
+    const updateLoop = async () => {
+      const p = await player;
+      const currentTime = p.getTime();
+      const pct = duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0;
+      setProgressPct(pct);
+      frameId = requestAnimationFrame(updateLoop);
+    };
+
+    frameId = requestAnimationFrame(updateLoop);
+    return () => cancelAnimationFrame(frameId);
+  }, [duration]);
+
+  return (
+    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/5 overflow-hidden rounded-b-xl pointer-events-none">
+      <div
+        className="h-full transition-all duration-100 ease-linear"
+        style={{
+          width: `${progressPct}%`,
+          background: `linear-gradient(90deg, ${accentColor.primary}, ${accentColor.secondary})`,
+        }}
+      />
     </div>
   );
 }
@@ -193,7 +207,7 @@ function VolumeControl() {
     >
       <button
         onClick={toggleMute}
-        className="rounded-full p-1.5 transition-all duration-200 hover:bg-[var(--bg-secondary)]"
+        className="rounded-full p-1.5 transition-all duration-200 hover:bg-white/5"
         aria-label={isMuted ? "Unmute" : "Mute"}
       >
         {isMuted || volume === 0 ? (
@@ -214,10 +228,10 @@ function VolumeControl() {
           step={0.02}
           value={isMuted ? 0 : volume}
           onChange={(e) => setVolume(Number(e.target.value))}
-          className="w-[60px] cursor-pointer appearance-none h-1 rounded-full outline-none"
+          className="w-[60px] cursor-pointer appearance-none h-1 rounded-full outline-none bg-white/10"
           aria-label="Volume"
           style={{
-            background: `linear-gradient(to right, ${accentColor.primary} ${(isMuted ? 0 : volume) * 100}%, var(--card-border) ${(isMuted ? 0 : volume) * 100}%)`,
+            background: `linear-gradient(to right, ${accentColor.primary} ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.08) ${(isMuted ? 0 : volume) * 100}%)`,
             accentColor: accentColor.primary,
           }}
         />
@@ -235,13 +249,11 @@ export default function MusicPlayerBar() {
     isPlaying,
     isLoading,
     isLyricsOpen,
-    isMinimized,
     pause,
     resume,
     next,
     prev,
     toggleLyrics,
-    setMinimized,
     dismiss,
     error,
     queue,
@@ -254,6 +266,9 @@ export default function MusicPlayerBar() {
     toggleQueue,
   } = useMusicPlayer();
 
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
   if (!currentTrack) return null;
 
   const trackKey = `${currentTrack.title}::${currentTrack.artist}`;
@@ -261,22 +276,28 @@ export default function MusicPlayerBar() {
   const hasPrev = queueIndex > 0;
   const accent = accentColor.primary;
 
+  const expanded = isExpanded || isHovered;
+
   return (
     <AnimatePresence>
       <motion.div
         key="player-bar"
-        initial={{ y: 120, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 120, opacity: 0 }}
-        transition={{ type: "spring", damping: 28, stiffness: 300 }}
-        className="fixed bottom-0 left-0 right-0 z-50"
+        initial={{ y: 50, opacity: 0, scale: 0.95 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 50, opacity: 0, scale: 0.95 }}
+        transition={{ type: "spring", damping: 25, stiffness: 260 }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="fixed bottom-4 left-0 right-0 mx-auto z-50 overflow-hidden rounded-xl border"
         style={{
-          background: "color-mix(in srgb, var(--card-bg) 88%, transparent)",
-          backdropFilter: "blur(40px)",
-          WebkitBackdropFilter: "blur(40px)",
-          borderTop: `1px solid color-mix(in srgb, ${accent} 20%, var(--card-border))`,
-          boxShadow: `0 -12px 40px rgba(0,0,0,0.25), 0 -1px 0 color-mix(in srgb, ${accent} 15%, transparent)`,
-          transition: "border-top-color 600ms ease, box-shadow 600ms ease",
+          width: "calc(100% - 2rem)",
+          maxWidth: expanded ? "440px" : "320px",
+          background: "rgba(10, 10, 15, 0.85)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderColor: `color-mix(in srgb, ${accent} 25%, rgba(255, 255, 255, 0.08))`,
+          boxShadow: `0 12px 32px rgba(0,0,0,0.45), 0 0 1px color-mix(in srgb, ${accent} 30%, transparent)`,
+          transition: "max-width 300ms cubic-bezier(0.25, 0.8, 0.25, 1), border-color 600ms ease, box-shadow 600ms ease",
         }}
       >
         {/* Subtle accent glow overlay at the top edge */}
@@ -290,356 +311,215 @@ export default function MusicPlayerBar() {
 
         {/* Error banner */}
         {error && (
-          <div className="bg-rose-500/10 border-b border-rose-500/20 px-4 py-1.5 text-center">
-            <p className="text-xs text-rose-400">{error}</p>
+          <div className="bg-rose-500/10 border-b border-rose-500/20 px-3 py-1 text-center">
+            <p className="text-[10px] text-rose-400 truncate">{error}</p>
           </div>
         )}
 
-
-
-        <div className="mx-auto max-w-6xl px-3 sm:px-6">
-          {/* ── MOBILE layout: single row with art, title, play, close ── */}
-          <div className="flex sm:hidden items-center gap-2 py-2.5">
+        <div className="p-3">
+          {/* Main info row (Always visible) */}
+          <div className="flex items-center gap-2.5">
             {/* Cover Art */}
-            <motion.div
-              key={currentTrack.cover || "placeholder"}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: isPlaying ? 1.04 : 0.96 }}
-              transition={{ type: "spring", damping: 15, stiffness: 120 }}
-              className="h-10 w-10 rounded-lg overflow-hidden shadow-md shrink-0"
-              style={{
-                boxShadow: isPlaying
-                  ? "0 6px 16px -4px var(--music-glow)"
-                  : "0 2px 8px rgba(0,0,0,0.15)",
-                transition: "box-shadow 600ms ease",
-              }}
+            <div 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="relative shrink-0 cursor-pointer group/art"
             >
-              <MusicArtwork
-                src={currentTrack.cover}
-                canvasUrl={currentTrack.canvasUrl}
-                alt={currentTrack.title}
-                className="h-full w-full object-cover"
-              />
-            </motion.div>
+              <motion.div
+                animate={{ scale: isPlaying ? 1.02 : 0.98 }}
+                className="h-10 w-10 rounded-lg overflow-hidden shadow-md relative"
+              >
+                <MusicArtwork
+                  src={currentTrack.cover}
+                  canvasUrl={currentTrack.canvasUrl}
+                  alt={currentTrack.title}
+                  className="h-full w-full object-cover"
+                />
+              </motion.div>
+            </div>
 
-            {/* Track info */}
-            <div className="min-w-0 flex-1">
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={currentTrack.title}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.2 }}
-                  className="truncate text-xs font-bold text-[var(--text-primary)] leading-tight"
-                >
-                  {currentTrack.title}
-                </motion.p>
-              </AnimatePresence>
-              <div className="flex items-center gap-2 leading-tight">
-                <p className="truncate text-[10px] text-[var(--text-secondary)]">
+            {/* Track Info */}
+            <div 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="min-w-0 flex-1 cursor-pointer select-none"
+            >
+              <p className="truncate text-xs font-bold text-[var(--text-primary)] leading-snug">
+                {currentTrack.title}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="truncate text-[10px] text-[var(--text-secondary)] leading-none">
                   {currentTrack.artist}
                 </p>
-                <div className="w-8 h-2.5 flex items-center shrink-0 opacity-80">
-                  <MusicVisualizer isPlaying={isPlaying} trackId={trackKey} barCount={6} height={10} />
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile: lyrics + play/pause + close */}
-            <div className="flex items-center gap-0.5 shrink-0">
-              <button
-                onClick={toggleLyrics}
-                className="rounded-full p-2 transition-all duration-200 hover:bg-[var(--bg-secondary)]"
-                style={{ color: isLyricsOpen ? accent : "var(--text-secondary)" }}
-                aria-label="Toggle lyrics"
-              >
-                <Mic2 className="h-3.5 w-3.5" />
-              </button>
-
-              <button
-                onClick={toggleQueue}
-                className="rounded-full p-2 transition-all duration-200 hover:bg-[var(--bg-secondary)]"
-                style={{ color: isQueueOpen ? accent : "var(--text-secondary)" }}
-                aria-label="Toggle queue"
-              >
-                <ListMusic className="h-3.5 w-3.5" />
-              </button>
-
-              <motion.button
-                onClick={isPlaying ? pause : resume}
-                className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-150 active:scale-95"
-                style={{
-                  background: `linear-gradient(135deg, ${accent}, ${accentColor.secondary})`,
-                  boxShadow: isPlaying
-                    ? `0 0 14px ${accentColor.glow}, 0 2px 6px rgba(0,0,0,0.3)`
-                    : "0 2px 6px rgba(0,0,0,0.2)",
-                  transition: "background 600ms ease, box-shadow 600ms ease",
-                }}
-                whileTap={{ scale: 0.94 }}
-                aria-label={isPlaying ? "Pause" : "Play"}
-              >
-                <AnimatePresence mode="wait">
-                  {isLoading ? (
-                    <motion.span key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                      <Loader2 className="h-3.5 w-3.5 text-white animate-spin" />
-                    </motion.span>
-                  ) : isPlaying ? (
-                    <motion.span key="pause" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                      <Pause className="h-3.5 w-3.5 text-white fill-white" />
-                    </motion.span>
-                  ) : (
-                    <motion.span key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                      <Play className="h-3.5 w-3.5 text-white fill-white ml-0.5" />
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-
-              <button
-                onClick={dismiss}
-                className="rounded-full p-2 transition-colors hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
-                aria-label="Close player"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Progress bar (mobile) */}
-          <div className="sm:hidden pb-1.5">
-            <ProgressBar />
-          </div>
-
-          {/* ── DESKTOP layout: three columns ── */}
-          <div className="hidden sm:flex items-center gap-2 py-2.5">
-
-            {/* ── LEFT: Album art + track info ── */}
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              {/* Cover Art */}
-              <div className="relative shrink-0">
-                <motion.div
-                  key={currentTrack.cover || "placeholder"}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{
-                    opacity: 1,
-                    scale: isPlaying ? 1.05 : 0.95,
-                    y: isPlaying ? -2 : 0,
-                  }}
-                  transition={{ type: "spring", damping: 15, stiffness: 120 }}
-                  className="h-12 w-12 rounded-xl overflow-hidden shadow-lg relative"
-                  style={{
-                    boxShadow: isPlaying
-                      ? "0 10px 25px -5px var(--music-glow), 0 8px 10px -6px var(--music-glow)"
-                      : "0 2px 8px rgba(0,0,0,0.15)",
-                    transition: "box-shadow 600ms ease",
-                  }}
-                >
-                  <MusicArtwork
-                    src={currentTrack.cover}
-                    canvasUrl={currentTrack.canvasUrl}
-                    alt={currentTrack.title}
-                    className="h-full w-full object-cover"
-                  />
-                </motion.div>
-              </div>
-
-              {/* Track info */}
-              <div className="min-w-0 flex-1">
-                <AnimatePresence mode="wait">
-                  <motion.p
-                    key={currentTrack.title}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.2 }}
-                    className="truncate text-sm font-bold text-[var(--text-primary)] leading-tight"
-                  >
-                    {currentTrack.title}
-                  </motion.p>
-                </AnimatePresence>
-                <div className="flex items-center gap-2.5 mt-0.5">
-                  <p className="truncate text-xs text-[var(--text-secondary)] leading-tight">
-                    {currentTrack.artist}
-                    {currentTrack.album ? (
-                      <span className="opacity-60"> · {currentTrack.album}</span>
-                    ) : null}
-                  </p>
-                  <div className="w-10 h-3 flex items-center shrink-0 opacity-80">
-                    <MusicVisualizer isPlaying={isPlaying} trackId={trackKey} barCount={8} height={12} />
+                {isPlaying && (
+                  <div className="w-5 h-2 flex items-center shrink-0 opacity-60">
+                    <MusicVisualizer isPlaying={isPlaying} trackId={trackKey} barCount={4} height={8} />
                   </div>
-                </div>
-                {/* Sync Mode indicator badge */}
-                <div className="flex items-center gap-1.5 mt-1">
-                  {syncMode === "listening-along" ? (
-                    <span className="inline-flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-wider text-emerald-400 font-semibold select-none">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      Live Sync
-                    </span>
-                  ) : spotifyData?.isPlaying ? (
-                    <button
-                      onClick={resetToListeningAlong}
-                      className="inline-flex items-center text-[9px] font-mono uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors border border-[var(--card-border)] rounded-full px-2.5 py-0.5 hover:border-emerald-500/30"
-                    >
-                      Sync Live
-                    </button>
-                  ) : null}
-                </div>
+                )}
               </div>
             </div>
 
-            {/* ── CENTER: Playback controls ── */}
-            <div className="flex items-center gap-0.5 shrink-0">
-              <button
-                onClick={prev}
-                disabled={!hasPrev}
-                className="rounded-full p-2 transition-all duration-150 hover:bg-[var(--bg-secondary)] disabled:opacity-25 active:scale-95"
-                aria-label="Previous"
-              >
-                <SkipBack className="h-4 w-4 text-[var(--text-primary)]" />
-              </button>
-
-              {/* Play / Pause — main button with accent glow */}
-              <motion.button
-                onClick={isPlaying ? pause : resume}
-                className="flex h-10 w-10 items-center justify-center rounded-full mx-1 transition-all duration-150 active:scale-95"
-                style={{
-                  background: `linear-gradient(135deg, ${accent}, ${accentColor.secondary})`,
-                  boxShadow: isPlaying
-                    ? `0 0 20px ${accentColor.glow}, 0 2px 8px rgba(0,0,0,0.3)`
-                    : "0 2px 8px rgba(0,0,0,0.2)",
-                  transition: "background 600ms ease, box-shadow 600ms ease",
-                }}
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
-                aria-label={isPlaying ? "Pause" : "Play"}
-              >
-                <AnimatePresence mode="wait">
-                  {isLoading ? (
-                    <motion.span
-                      key="loading"
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.5 }}
-                    >
-                      <Loader2 className="h-4 w-4 text-white animate-spin" />
-                    </motion.span>
-                  ) : isPlaying ? (
-                    <motion.span
-                      key="pause"
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.5 }}
-                      transition={{ duration: 0.12 }}
-                    >
-                      <Pause className="h-4 w-4 text-white fill-white" />
-                    </motion.span>
-                  ) : (
-                    <motion.span
-                      key="play"
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.5 }}
-                      transition={{ duration: 0.12 }}
-                    >
-                      <Play className="h-4 w-4 text-white fill-white ml-0.5" />
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-
-              <button
-                onClick={() => next()}
-                disabled={!hasNext}
-                className="rounded-full p-2 transition-all duration-150 hover:bg-[var(--bg-secondary)] disabled:opacity-25 active:scale-95"
-                aria-label="Next"
-              >
-                <SkipForward className="h-4 w-4 text-[var(--text-primary)]" />
-              </button>
-            </div>
-
-            {/* ── RIGHT: Secondary controls ── */}
-            <div className="flex items-center gap-0.5 shrink-0">
-              <VolumeControl />
-
+            {/* Actions area */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Lyrics button */}
               <button
                 onClick={toggleLyrics}
-                className="rounded-full p-2 transition-all duration-200 hover:bg-[var(--bg-secondary)]"
+                className="rounded-full p-1.5 transition-colors hover:bg-white/5"
                 style={{
                   color: isLyricsOpen ? accent : "var(--text-secondary)",
-                  transition: "color 300ms ease",
                 }}
-                aria-label="Toggle lyrics"
-                title="Lyrics (L)"
+                aria-label="Lyrics"
+                title="Lyrics"
               >
                 <Mic2 className="h-3.5 w-3.5" />
               </button>
 
-              <button
-                onClick={toggleQueue}
-                className="rounded-full p-2 transition-all duration-200 hover:bg-[var(--bg-secondary)]"
-                style={{
-                  color: isQueueOpen ? accent : "var(--text-secondary)",
-                  transition: "color 300ms ease",
-                }}
-                aria-label="Toggle queue"
-                title="Queue"
-              >
-                <ListMusic className="h-3.5 w-3.5" />
-              </button>
-
-              <button
-                onClick={() => setMinimized(!isMinimized)}
-                className="rounded-full p-2 transition-colors hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
-                aria-label={isMinimized ? "Expand player" : "Minimize player"}
-              >
-                {isMinimized ? (
+              {/* Show controls button (if collapsed) */}
+              {!expanded && (
+                <button
+                  onClick={() => setIsExpanded(true)}
+                  className="rounded-full p-1.5 transition-colors hover:bg-white/5 text-[var(--text-secondary)]"
+                  aria-label="Expand"
+                >
                   <ChevronUp className="h-3.5 w-3.5" />
-                ) : (
-                  <ChevronDown className="h-3.5 w-3.5" />
-                )}
-              </button>
+                </button>
+              )}
 
-              <button
-                onClick={dismiss}
-                className="rounded-full p-2 transition-colors hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
-                aria-label="Close player"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              {/* Dismiss close button (if collapsed) */}
+              {!expanded && (
+                <button
+                  onClick={dismiss}
+                  className="rounded-full p-1.5 transition-colors hover:bg-white/5 text-[var(--text-secondary)]"
+                  aria-label="Close"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Progress bar (hidden when minimized) — desktop only */}
+          {/* Expanded controls drawer */}
           <AnimatePresence>
-            {!isMinimized && (
+            {expanded && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
-                className="hidden sm:block pb-2.5"
+                className="overflow-hidden"
               >
-                <ProgressBar />
+                <div className="mt-3 pt-3 border-t border-white/5 space-y-3">
+                  {/* Row 2: Playback Controls + Sync Actions + Volume */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        onClick={prev}
+                        disabled={!hasPrev}
+                        className="rounded-full p-1.5 transition-all duration-150 hover:bg-white/5 disabled:opacity-25 active:scale-95"
+                        aria-label="Previous"
+                      >
+                        <SkipBack className="h-3.5 w-3.5 text-[var(--text-primary)]" />
+                      </button>
+
+                      <motion.button
+                        onClick={isPlaying ? pause : resume}
+                        className="flex h-8 w-8 items-center justify-center rounded-full mx-1 transition-all duration-150 active:scale-95"
+                        style={{
+                          background: `linear-gradient(135deg, ${accent}, ${accentColor.secondary})`,
+                          boxShadow: isPlaying
+                            ? `0 0 10px ${accentColor.glow}, 0 1px 4px rgba(0,0,0,0.3)`
+                            : "0 1px 4px rgba(0,0,0,0.2)",
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        aria-label={isPlaying ? "Pause" : "Play"}
+                      >
+                        <AnimatePresence mode="wait">
+                          {isLoading ? (
+                            <motion.span key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                              <Loader2 className="h-3 w-3 text-white animate-spin" />
+                            </motion.span>
+                          ) : isPlaying ? (
+                            <motion.span key="pause" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                              <Pause className="h-3 w-3 text-white fill-white" />
+                            </motion.span>
+                          ) : (
+                            <motion.span key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                              <Play className="h-3 w-3 text-white fill-white ml-0.5" />
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </motion.button>
+
+                      <button
+                        onClick={() => next()}
+                        disabled={!hasNext}
+                        className="rounded-full p-1.5 transition-all duration-150 hover:bg-white/5 disabled:opacity-25 active:scale-95"
+                        aria-label="Next"
+                      >
+                        <SkipForward className="h-3.5 w-3.5 text-[var(--text-primary)]" />
+                      </button>
+                    </div>
+
+                    {/* Sync badge */}
+                    <div className="flex-1 flex justify-center text-center">
+                      {syncMode === "listening-along" ? (
+                        <span className="inline-flex items-center gap-1 text-[8px] font-mono uppercase tracking-wider text-emerald-400 font-semibold select-none">
+                          <span className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
+                          Live Sync
+                        </span>
+                      ) : spotifyData?.isPlaying ? (
+                        <button
+                          onClick={resetToListeningAlong}
+                          className="inline-flex items-center text-[8px] font-mono uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors border border-white/5 rounded-full px-2 py-0.2 hover:border-emerald-500/30"
+                        >
+                          Sync Live
+                        </button>
+                      ) : null}
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <VolumeControl />
+
+                      <button
+                        onClick={toggleQueue}
+                        className="rounded-full p-1.5 transition-colors hover:bg-white/5"
+                        style={{ color: isQueueOpen ? accent : "var(--text-secondary)" }}
+                        aria-label="Queue"
+                      >
+                        <ListMusic className="h-3.5 w-3.5" />
+                      </button>
+
+                      <button
+                        onClick={() => setIsExpanded(false)}
+                        className="rounded-full p-1.5 transition-colors hover:bg-white/5 text-[var(--text-secondary)]"
+                        aria-label="Minimize"
+                      >
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      </button>
+
+                      <button
+                        onClick={dismiss}
+                        className="rounded-full p-1.5 transition-colors hover:bg-white/5 text-[var(--text-secondary)]"
+                        aria-label="Dismiss"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Row 3: Progress Slider */}
+                  <div className="pt-1">
+                    <ProgressBar />
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Keyboard shortcut hints */}
-        <div className="hidden lg:flex justify-center pb-1.5 gap-6">
-          {[
-            ["Space", "Play/Pause"],
-            ["Shift+←/→", "Seek ±10s"],
-            ["M", "Mute"],
-            ["L", "Lyrics"],
-            ["/?", "Keyboard shortcuts"],
-          ].map(([key, label]) => (
-            <span key={key} className="text-[9px] text-[var(--text-secondary)] opacity-35 font-mono">
-              <kbd className="font-bold">{key}</kbd> {label}
-            </span>
-          ))}
-        </div>
+        {/* Bottom border progress line (Visible when collapsed) */}
+        <AnimatePresence>
+          {!expanded && <CompactProgressLine />}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>
   );

@@ -25,11 +25,15 @@ import {
 import { FiInstagram } from "react-icons/fi";
 import { useLanyard } from "../hooks/useLanyard";
 import { useMusicPlayer } from "../components/music/MusicPlayerContext";
+import { useTheme } from "../components/ThemeProvider";
 import { DISCORD_ID, transformPresence } from "../lib/discord";
 import TimeWeather from "../components/TimeWeather";
 import VisitorStats from "../components/Misc/VisitorStats.misc";
 import Projects from "../components/Projects";
 import { PageFooter } from "../components/PageFooter";
+import ActivityHistory from "../components/Misc/ActivityHistory";
+import GameDetailsModal from "../components/Misc/GameDetailsModal";
+import GuildDetailsModal from "../components/Misc/GuildDetailsModal";
 
 // Guestbook Message Type
 interface GuestbookMessage {
@@ -221,6 +225,25 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<
     "activity" | "projects" | "guestbook"
   >("activity");
+
+  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
+  const [selectedGameName, setSelectedGameName] = useState<string | null>(null);
+  const [selectedGuildId, setSelectedGuildId] = useState<string | null>(null);
+  const { theme } = useTheme();
+
+  // Update activity history when presence changes
+  const serializedActivities = JSON.stringify(presence?.activities || []);
+  useEffect(() => {
+    if (presence?.activities && presence.activities.length > 0) {
+      fetch("/api/discord-activities", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ activities: presence.activities }),
+      }).catch((err) => console.error("Failed to update activity history:", err));
+    }
+  }, [serializedActivities]);
 
   // Copy state
   const [usernameCopied, setUsernameCopied] = useState(false);
@@ -674,14 +697,31 @@ export default function Home() {
   // Avatar URL
   const avatarHash =
     profileData?.user?.avatar || (presence as any)?.discord_user?.avatar;
-  const avatarUrl = avatarHash
+  const isAnimatedAvatar = avatarHash?.startsWith("a_");
+  const avatarUrl = isAnimatedAvatar
+    ? `https://dcdn.dstn.to/avatars/${DISCORD_ID}`
+    : avatarHash
     ? `https://cdn.discordapp.com/avatars/${DISCORD_ID}/${avatarHash}.png?size=512`
     : `https://dcdn.dstn.to/avatars/${DISCORD_ID}`;
 
+  // Avatar Decoration
+  const decoData = (presence as any)?.discord_user?.avatar_decoration_data;
+  const decoUrl = decoData?.asset
+    ? `https://cdn.discordapp.com/avatar-decoration-presets/${decoData.asset}.png`
+    : null;
+
   // Banner Style
-  const bannerStyle = profileData?.user?.banner
+  const bannerHash = profileData?.user?.banner;
+  const isAnimatedBanner = bannerHash?.startsWith("a_");
+  const bannerStyle = isAnimatedBanner
     ? {
-        backgroundImage: `url(https://cdn.discordapp.com/banners/${DISCORD_ID}/${profileData.user.banner}.png?size=1024)`,
+        backgroundImage: `url(https://dcdn.dstn.to/banners/${DISCORD_ID})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }
+    : bannerHash
+    ? {
+        backgroundImage: `url(https://cdn.discordapp.com/banners/${DISCORD_ID}/${bannerHash}.png?size=1024)`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }
@@ -714,7 +754,7 @@ export default function Home() {
       />
 
       {/* ── Discord Profile Card ── */}
-      <div className="discord-glass-panel mb-6 flex flex-col overflow-hidden rounded-xl border border-white/5 shadow-2xl">
+      <div className="discord-glass-panel mb-6 flex flex-col overflow-hidden rounded-xl border border-[var(--discord-card-border)] shadow-2xl">
         {/* Banner Section */}
         <div
           className="relative h-32 w-full shrink-0 bg-cover bg-center"
@@ -725,7 +765,7 @@ export default function Home() {
 
           {/* Dynamic Lanyard Custom Status Pill Floating on Banner */}
           {customStatus && (customStatus.state || customStatus.emoji) && (
-            <div className="absolute bottom-3 left-28 flex max-w-[200px] items-center gap-1.5 truncate rounded-full border border-white/5 bg-[#111214]/80 px-3 py-1 text-[10px] text-[#ededed] backdrop-blur-md sm:max-w-xs">
+            <div className="absolute bottom-3 left-28 flex max-w-[200px] items-center gap-1.5 truncate rounded-full border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)]/80 px-3 py-1 text-[10px] text-[var(--discord-card-text)] backdrop-blur-md sm:max-w-xs">
               {customStatus.emoji &&
                 (customStatus.emoji.id ? (
                   <img
@@ -748,23 +788,36 @@ export default function Home() {
         <div className="relative flex flex-col px-4 pb-4 pt-0">
           {/* Avatar placement */}
           <div className="relative z-10 -mt-10 mb-3 w-fit">
-            <div className="relative h-20 w-20 overflow-hidden rounded-full border-4 border-[#111216] bg-neutral-900">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={avatarUrl}
-                alt="Avatar"
-                className="h-full w-full object-cover"
-                draggable={false}
-              />
+            <div className="relative h-20 w-20 rounded-full border-4 border-[var(--bg-primary)] bg-neutral-900">
+              <div className="h-full w-full overflow-hidden rounded-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  className="h-full w-full object-cover"
+                  draggable={false}
+                />
+              </div>
+              
+              {/* Avatar Decoration Overlay */}
+              {decoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={decoUrl}
+                  alt=""
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[120%] w-[120%] max-w-none pointer-events-none z-20 object-contain"
+                  draggable={false}
+                />
+              )}
             </div>
             {/* Status dot */}
             <span
-              className={`absolute bottom-0 right-0 h-5 w-5 rounded-full border-4 border-[#111216] ${statusColorClass}`}
+              className={`absolute bottom-0 right-0 h-5 w-5 rounded-full border-4 border-[var(--bg-primary)] z-30 ${statusColorClass}`}
             />
           </div>
 
           {/* User Display Name, Guild Tag, and Device line with Nameplate collectible background */}
-          <div className="relative mb-2 flex min-h-[44px] w-full items-center justify-between overflow-hidden rounded-lg border border-white/5 bg-[#111214]/60 px-3 py-2.5">
+          <div className="relative mb-2 flex min-h-[44px] w-full items-center justify-between overflow-hidden rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)]/60 px-3 py-2.5">
             {/* Thinner Nameplate video banner (Fills only this display name box) */}
             <div className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden">
               <video
@@ -773,17 +826,21 @@ export default function Home() {
                 loop
                 muted
                 playsInline
-                className="h-full w-full object-cover opacity-45 mix-blend-screen"
+                className={`h-full w-full object-cover opacity-45 ${theme === "light" ? "mix-blend-multiply" : "mix-blend-screen"}`}
               />
             </div>
 
             <div className="relative z-10 flex items-center gap-2">
-              <h1 className="font-display text-lg font-bold leading-none tracking-tight text-[#f5f5f5]">
+              <h1 className="font-display text-lg font-bold leading-none tracking-tight text-[var(--discord-card-text)]">
                 abyn
               </h1>
 
               {/* Guild Tag NBHD */}
-              <div className="inline-flex items-center gap-1 rounded border border-neutral-700/50 bg-neutral-800/90 px-1 py-0.5 text-[9px] font-bold leading-none text-[#ededed]">
+              <button
+                onClick={() => setSelectedGuildId("811266344397701162")}
+                className="inline-flex items-center gap-1 rounded border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] px-1 py-0.5 text-[9px] font-bold leading-none text-[var(--discord-card-text)] cursor-pointer hover:bg-[var(--discord-card-border)] transition-colors select-none"
+                title="Click to view server details"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="https://cdn.discordapp.com/clan-badges/811266344397701162/c8d016eed5c8752316ca38fdd54380c6.png"
@@ -791,7 +848,7 @@ export default function Home() {
                   className="h-3 w-3 object-contain"
                 />
                 <span>NBHD</span>
-              </div>
+              </button>
             </div>
 
             {/* Device Status icon and gold Owner Crown */}
@@ -847,13 +904,13 @@ export default function Home() {
 
           {/* ABOUT ME SECTION */}
           <div className="mb-4">
-            <h3 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            <h3 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--discord-card-secondary)]">
               About Me
             </h3>
-            <div className="rounded-lg border border-white/5 bg-[#111214]/40 p-3 text-xs leading-5 text-neutral-300">
+            <div className="rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] p-3 text-xs leading-5 text-[var(--discord-card-text)]">
               {/* Dynamic Discord Profile Endpoint Bio Component */}
               {profileData?.user_profile?.bio && (
-                <div className="mb-2.5 mt-0.5 flex flex-wrap items-center gap-1.5 border-b border-white/5 pb-2 text-xs">
+                <div className="mb-2.5 mt-0.5 flex flex-wrap items-center gap-1.5 border-b border-[var(--discord-card-border)] pb-2 text-xs">
                   {parseBio(profileData.user_profile.bio)}
                 </div>
               )}
@@ -866,7 +923,7 @@ export default function Home() {
 
           {/* CONNECTIONS & SOCIALS SECTION (2 Columns: Left Connections, Right Socials) */}
           <div>
-            <h3 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            <h3 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--discord-card-secondary)]">
               Connections & Socials
             </h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -879,11 +936,11 @@ export default function Home() {
                     <a
                       key={acc.id}
                       href={url}
-                      className="flex h-[38px] items-center justify-between rounded-lg border border-white/5 bg-[#111214]/40 px-3 py-2 text-xs transition-colors hover:bg-white/5"
+                      className="flex h-[38px] items-center justify-between rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] px-3 py-2 text-xs transition-colors hover:bg-[var(--discord-card-border)]/40"
                     >
                       <div className="flex min-w-0 items-center gap-2">
-                        <Icon className="h-4 w-4 shrink-0 text-neutral-400" />
-                        <span className="truncate font-mono text-neutral-300">
+                        <Icon className="h-4 w-4 shrink-0 text-[var(--discord-card-secondary)]" />
+                        <span className="truncate font-mono text-[var(--discord-card-text)]">
                           {acc.name}
                         </span>
                       </div>
@@ -903,11 +960,11 @@ export default function Home() {
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex h-[38px] items-center rounded-lg border border-white/5 bg-[#111214]/40 px-3 py-2 text-xs transition-colors hover:bg-white/5"
+                      className="flex h-[38px] items-center rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] px-3 py-2 text-xs transition-colors hover:bg-[var(--discord-card-border)]/40"
                     >
                       <div className="flex min-w-0 items-center gap-2">
-                        <Icon className="h-4 w-4 shrink-0 text-neutral-400" />
-                        <span className="truncate font-mono text-neutral-300">
+                        <Icon className="h-4 w-4 shrink-0 text-[var(--discord-card-secondary)]" />
+                        <span className="truncate font-mono text-[var(--discord-card-text)]">
                           {s.name}
                         </span>
                       </div>
@@ -921,7 +978,7 @@ export default function Home() {
       </div>
 
       {/* ── Sub-navigation Tabs ── */}
-      <div className="discord-glass-panel mb-4 flex gap-1 rounded-lg border border-white/5 p-1">
+      <div className="discord-glass-panel mb-4 flex gap-1 rounded-lg border border-[var(--discord-card-border)] p-1">
         {(["activity", "projects", "guestbook"] as const).map((tab) => (
           <button
             key={tab}
@@ -929,7 +986,7 @@ export default function Home() {
             className={`flex-1 rounded-md py-1.5 text-xs font-semibold capitalize transition-all duration-150 ${
               activeTab === tab
                 ? "bg-[var(--accent)] text-[var(--accent-text)]"
-                : "text-neutral-400 hover:bg-white/5 hover:text-neutral-200"
+                : "text-[var(--discord-card-secondary)] hover:bg-[var(--discord-card-muted)] hover:text-[var(--discord-card-text)]"
             }`}
           >
             {tab === "activity" ? "Activity status" : tab}
@@ -938,16 +995,15 @@ export default function Home() {
       </div>
 
       {/* ── Tab Content Area ── */}
-      <div className="discord-glass-panel flex min-h-[250px] flex-col justify-between rounded-xl border border-white/5 p-4">
+      <div className="discord-glass-panel flex min-h-[250px] flex-col justify-between rounded-xl border border-[var(--discord-card-border)] p-4">
         {/* Activity Tab */}
         {activeTab === "activity" && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-white/5 pb-1">
-              <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400">
-                <Activity className="h-3.5 w-3.5 text-neutral-500" /> Current
+            <div className="flex items-center justify-between border-b border-[var(--discord-card-border)] pb-1">
+              <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--discord-card-secondary)]">
+                <Activity className="h-3.5 w-3.5 text-[var(--discord-card-secondary)]" /> Current
                 Activity
               </h3>
-              <VisitorStats />
             </div>
 
             {/* Custom Status & metadata row */}
@@ -975,9 +1031,9 @@ export default function Home() {
 
             {/* Live Discord Activity (Zed / VSC / Games) */}
             {statusInfo?.activity ? (
-              <div className="relative flex items-center gap-4 overflow-hidden rounded-lg border border-white/5 bg-[#111214]/40 p-4">
+              <div className="relative flex items-center gap-4 overflow-hidden rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] p-4 backdrop-blur-md">
                 {statusInfo.activity.image ? (
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-white/10">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[var(--discord-card-border)] bg-[#1e1f22] flex items-center justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={statusInfo.activity.image}
@@ -985,7 +1041,7 @@ export default function Home() {
                       className="h-full w-full object-cover"
                     />
                     {statusInfo.activity.smallImage && (
-                      <div className="absolute bottom-0 right-0 h-6 w-6 overflow-hidden rounded-full border-2 border-[#111214]">
+                      <div className="absolute bottom-0 right-0 h-6 w-6 overflow-hidden rounded-full border-2 border-[var(--bg-primary)] bg-[#1e1f22]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={statusInfo.activity.smallImage}
@@ -996,22 +1052,22 @@ export default function Home() {
                     )}
                   </div>
                 ) : (
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-[#111214]/60">
-                    <Code className="h-6 w-6 text-neutral-400" />
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)]">
+                    <Code className="h-6 w-6 text-[var(--discord-card-secondary)]" />
                   </div>
                 )}
 
                 <div className="min-w-0 flex-1">
-                  <h4 className="truncate text-sm font-bold text-[#f5f5f5]">
+                  <h4 className="truncate text-sm font-bold text-[var(--discord-card-text)]">
                     {statusInfo.activity.name}
                   </h4>
                   {statusInfo.activity.details && (
-                    <p className="mt-0.5 truncate text-xs text-neutral-400">
+                    <p className="mt-0.5 truncate text-xs text-[var(--discord-card-secondary)]">
                       {statusInfo.activity.details}
                     </p>
                   )}
                   {statusInfo.activity.state && (
-                    <p className="truncate text-xs text-neutral-400">
+                    <p className="truncate text-xs text-[var(--discord-card-secondary)]">
                       {statusInfo.activity.state}
                     </p>
                   )}
@@ -1026,12 +1082,20 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-lg border border-white/5 bg-[#111214]/20 p-4 py-6 text-center text-xs italic text-neutral-500">
+              <div className="rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] p-4 py-6 text-center text-xs italic text-[var(--discord-card-secondary)]">
                 No active games or coding status right now.
               </div>
             )}
 
-            <div className="rounded-lg border border-white/5 bg-[#111214]/40 p-4">
+            {/* Recently Active list */}
+            <ActivityHistory
+              onOpenDetails={(id, name) => {
+                setSelectedGameId(id);
+                setSelectedGameName(name);
+              }}
+            />
+
+            <div className="rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] p-4">
               <TimeWeather />
             </div>
           </div>
@@ -1422,6 +1486,30 @@ export default function Home() {
       <div className="mt-8">
         <PageFooter />
       </div>
+
+      {/* Game Details Modal Overlay */}
+      <AnimatePresence>
+        {selectedGameId && (
+          <GameDetailsModal
+            gameId={selectedGameId}
+            gameName={selectedGameName || undefined}
+            onClose={() => {
+              setSelectedGameId(null);
+              setSelectedGameName(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Guild Details Modal Overlay */}
+      <AnimatePresence>
+        {selectedGuildId && (
+          <GuildDetailsModal
+            guildId={selectedGuildId}
+            onClose={() => setSelectedGuildId(null)}
+          />
+        )}
+      </AnimatePresence>
     </main>
   );
 }

@@ -12,8 +12,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { id, url } = req.query;
+  const { id, url, quality } = req.query;
   const target = (url as string) || (id as string);
+  const qHint = quality === "low" ? "low" : "high";
 
   if (!target || target === "undefined" || target === "null" || target.trim() === "") {
     return res.status(400).json({ error: "Missing or invalid id or url query parameter" });
@@ -21,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Resolve stream URL using our yt-dlp extractor (handles cache lookup/refreshes)
-    let track = await resolveTrackStream(target);
+    let track = await resolveTrackStream(target, undefined, false, qHint);
     if (!track.streamUrl) {
       return res.status(404).json({ error: "Could not resolve stream URL for track" });
     }
@@ -41,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Handle expired/forbidden cached URLs
     if (response.status === 403 || response.status === 410) {
       console.warn(`[API Stream] Cached stream URL returned ${response.status}. Force refreshing...`);
-      track = await resolveTrackStream(target, undefined, true);
+      track = await resolveTrackStream(target, undefined, true, qHint);
       if (track.streamUrl) {
         response = await fetch(track.streamUrl, { headers });
       }
@@ -59,11 +60,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       "cache-control"
     ];
 
+    let hasContentType = false;
     for (const header of forwardHeaders) {
       const val = response.headers.get(header);
       if (val && header !== "cache-control") {
         res.setHeader(header, val);
+        if (header.toLowerCase() === "content-type") {
+          hasContentType = true;
+        }
       }
+    }
+
+    if (!hasContentType) {
+      res.setHeader("Content-Type", "audio/mpeg");
     }
 
     // Add aggressive caching header to allow browser to cache preloaded streams

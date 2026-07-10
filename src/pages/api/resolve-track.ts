@@ -6,7 +6,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { title, artist, album } = req.query;
+  const { title, artist, album, quality } = req.query;
+  const qHint = quality === "low" ? "low" : "high";
 
   const tStr = typeof title === "string" ? title.trim() : "";
   const aStr = typeof artist === "string" ? artist.trim() : "";
@@ -20,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const searchQuery = alStr && alStr !== "undefined" && alStr !== "null"
       ? `${tStr} ${aStr} ${alStr}`
       : `${tStr} ${aStr}`;
-    const result = await searchTrack(searchQuery);
+    const result = await searchTrack(searchQuery, undefined, qHint);
 
     if (!result) {
       return res.status(404).json({ error: "No track resolved from any source" });

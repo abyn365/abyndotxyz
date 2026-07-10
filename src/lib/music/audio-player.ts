@@ -87,10 +87,12 @@ export class MusicAudioPlayer {
     if (!this.activeAudio) {
       this.activeAudio = new Audio();
       this.activeAudio.crossOrigin = "anonymous";
+      this.activeAudio.preload = "auto";
       this.attachListeners(this.activeAudio, false);
       
       this.standbyAudio = new Audio();
       this.standbyAudio.crossOrigin = "anonymous";
+      this.standbyAudio.preload = "auto";
       this.attachListeners(this.standbyAudio, true);
     }
 

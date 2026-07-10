@@ -15,6 +15,12 @@ module.exports = {
       },
       {
         protocol: "https",
+        hostname: "discord.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "i.scdn.co",
         port: "",
         pathname: "/**",

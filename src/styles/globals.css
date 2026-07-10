@@ -47,6 +47,13 @@
   --music-accent-secondary: #8b5cf6;
   --music-glow: rgba(99, 102, 241, 0.45);
   --music-accent-rgb: 99, 102, 241;
+
+  /* Discord card styling variables - Light mode */
+  --discord-card-bg: rgba(245, 245, 245, 0.7);
+  --discord-card-text: #1a1a1a;
+  --discord-card-secondary: #525252;
+  --discord-card-border: rgba(0, 0, 0, 0.08);
+  --discord-card-muted: rgba(0, 0, 0, 0.04);
 }
 
 .dark {
@@ -79,6 +86,13 @@
   --status-idle: #fb923c;
   --status-dnd: #f87171;
   --status-offline: #71717a;
+
+  /* Discord card styling variables - Dark mode */
+  --discord-card-bg: rgba(17, 18, 20, 0.7);
+  --discord-card-text: #f5f5f5;
+  --discord-card-secondary: #a1a1aa;
+  --discord-card-border: rgba(255, 255, 255, 0.05);
+  --discord-card-muted: rgba(255, 255, 255, 0.04);
 }
 
 /* Smooth music accent transitions — applied via JS */
@@ -406,21 +420,37 @@ html.has-entered .first-load-overlay {
 
 /* Glassmorphism overlays */
 .discord-glass-panel {
-  background-color: rgba(17, 18, 22, 0.7);
+  background-color: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.dark .discord-glass-panel {
+  background-color: rgba(17, 18, 22, 0.7);
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .discord-glass-input {
-  background-color: rgba(30, 31, 36, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease-in-out;
 }
 
+.dark .discord-glass-input {
+  background-color: rgba(30, 31, 36, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .discord-glass-input:focus {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+  outline: none;
+}
+
+.dark .discord-glass-input:focus {
   background-color: rgba(30, 31, 36, 0.85);
   border-color: rgba(255, 255, 255, 0.2);
-  outline: none;
 }
 
 /* Override prose styles to render images/SVGs inline like GitHub GFM */
