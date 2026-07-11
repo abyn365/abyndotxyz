@@ -14,6 +14,8 @@ interface Photo {
   blurDataUrl?: string;
 }
 
+const loadedImages = new Set<string>();
+
 function GalleryImage({
   photo,
   isMasonry,
@@ -21,7 +23,12 @@ function GalleryImage({
   photo: Photo;
   isMasonry: boolean;
 }) {
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(() => {
+    if (typeof window !== "undefined") {
+      return loadedImages.has(photo.url);
+    }
+    return false;
+  });
 
   return (
     <div
@@ -51,7 +58,10 @@ function GalleryImage({
         src={photo.url}
         alt={photo.description || "Gallery Photo"}
         loading="lazy"
-        onLoad={() => setLoaded(true)}
+        onLoad={() => {
+          loadedImages.add(photo.url);
+          setLoaded(true);
+        }}
         className={`w-full transition-all duration-500 group-hover:scale-103 ${
           isMasonry ? "h-auto" : "h-full object-cover"
         } ${loaded ? "opacity-100" : "opacity-0"}`}
@@ -64,17 +74,17 @@ function GalleryImage({
 export default function PhotosPage({ photos: initialPhotos }: { photos?: Photo[] }) {
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos || []);
   const [loading, setLoading] = useState(!initialPhotos);
-  
+
   // Layout toggles
   const [isMasonry, setIsMasonry] = useState(true);
-  
+
   // Filtering and searching states
   const [selectedTag, setSelectedTag] = useState("All");
-  
+
   // Progressive loading states
   const [visibleCount, setVisibleCount] = useState(12);
   const [hasMore, setHasMore] = useState(true);
-  
+
   // Zoom Viewer states
   const [zoomIndex, setZoomIndex] = useState<number | null>(null);
 
@@ -130,7 +140,7 @@ export default function PhotosPage({ photos: initialPhotos }: { photos?: Photo[]
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
       const windowHeight = window.innerHeight;
       const docHeight = document.documentElement.scrollHeight;
-      
+
       // If within 300px from bottom, load more
       if (docHeight - (scrollTop + windowHeight) < 300 && hasMore) {
         setVisibleCount((prev) => Math.min(prev + 12, filteredPhotos.length));
@@ -179,7 +189,7 @@ export default function PhotosPage({ photos: initialPhotos }: { photos?: Photo[]
 
       <main className="relative min-h-screen pb-16">
         <div className="mx-auto max-w-5xl px-4 pt-12 sm:px-6 lg:px-8">
-          
+
           {/* Header & Controls */}
           <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div className="space-y-3">
@@ -256,10 +266,13 @@ export default function PhotosPage({ photos: initialPhotos }: { photos?: Photo[]
                 return (
                   <motion.div
                     key={photo.id}
-                    layoutId={photo.id}
+                    layout="position"
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: (index % 6) * 0.05 }}
+                    transition={{
+                      default: { duration: 0.3, delay: (index % 6) * 0.05 },
+                      layout: { duration: 0.3 }
+                    }}
                     onClick={() => setZoomIndex(filteredIndex)}
                     className={`group relative mb-4 cursor-zoom-in overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] transition-all hover:shadow-[var(--card-shadow)] ${
                       isMasonry ? "inline-block w-full break-inside-avoid" : "aspect-square"
@@ -276,7 +289,7 @@ export default function PhotosPage({ photos: initialPhotos }: { photos?: Photo[]
                   >
                     <div className="relative w-full h-full overflow-hidden">
                       <GalleryImage photo={photo} isMasonry={isMasonry} />
-                      
+
                       {/* Hover Overlay */}
                       <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/10 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus:opacity-100">
                         {photo.description && (
@@ -337,7 +350,7 @@ export default function PhotosPage({ photos: initialPhotos }: { photos?: Photo[]
                   year: "numeric",
                 })}
               </div>
-              
+
               <button
                 onClick={() => setZoomIndex(null)}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white transition-colors hover:bg-white/10"
