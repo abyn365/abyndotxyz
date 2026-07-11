@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Head from "next/head";
 import { motion, AnimatePresence } from "framer-motion";
 import { Grid, Layers, X, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
@@ -23,80 +23,34 @@ function GalleryImage({
   photo: Photo;
   isMasonry: boolean;
 }) {
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  // Synchronously check on client-side mount if this photo was already loaded
-  const wasCachedRef = useRef(typeof window !== "undefined" && loadedImages.has(photo.url));
-
-  const [loaded, setLoaded] = useState(() => {
-    if (typeof window !== "undefined") {
-      return loadedImages.has(photo.url);
-    }
-    return false;
-  });
-
-  // Track prop changes if the component is ever recycled with a new photo URL
-  const lastUrlRef = useRef(photo.url);
-  if (lastUrlRef.current !== photo.url) {
-    lastUrlRef.current = photo.url;
-    wasCachedRef.current = typeof window !== "undefined" && loadedImages.has(photo.url);
-    setLoaded(typeof window !== "undefined" && loadedImages.has(photo.url));
-  }
-
-  useEffect(() => {
-    // Check if the image completes loading in the browser cache (fallback)
-    if (imgRef.current?.complete && !loaded) {
-      loadedImages.add(photo.url);
-      setLoaded(true);
-    }
-  }, [photo.url, loaded]);
-
-  const showInstant = wasCachedRef.current;
-  const isImageLoaded = loaded || showInstant;
-
   return (
     <div
-      className="relative w-full overflow-hidden"
+      className="relative w-full overflow-hidden bg-neutral-200 dark:bg-neutral-800"
       style={isMasonry ? { aspectRatio: photo.aspectRatio } : { height: "100%" }}
     >
-      {/* Tiny Base64 Blur Placeholder */}
-      {photo.blurDataUrl ? (
+      {/* Tiny Base64 Blur Placeholder (rendered underneath) */}
+      {photo.blurDataUrl && (
         <img
           src={photo.blurDataUrl}
           alt=""
-          className={`absolute inset-0 h-full w-full object-cover pointer-events-none filter blur-md scale-110 ${
-            showInstant ? "" : "transition-opacity duration-700"
-          } ${isImageLoaded ? "opacity-0" : "opacity-100"}`}
-        />
-      ) : (
-        /* Skeleton Background Fallback */
-        <div
-          className={`absolute inset-0 bg-neutral-200 dark:bg-neutral-800 animate-pulse ${
-            showInstant ? "" : "transition-opacity duration-700"
-          } ${isImageLoaded ? "opacity-0" : "opacity-100"}`}
+          className="absolute inset-0 h-full w-full object-cover pointer-events-none filter blur-md scale-110"
         />
       )}
 
-      {/* Full-resolution Image */}
+      {/* Full-resolution Image (always visible, covers placeholder when loaded) */}
       <img
-        ref={imgRef}
         src={photo.url}
         alt={photo.description || "Gallery Photo"}
         loading="lazy"
-        onLoad={() => {
-          loadedImages.add(photo.url);
-          setLoaded(true);
-        }}
-        className={`w-full group-hover:scale-103 transition-transform duration-500 ${
-          showInstant ? "" : "transition-opacity duration-500"
-        } ${isMasonry ? "h-auto" : "h-full object-cover"} ${
-          isImageLoaded ? "opacity-100" : "opacity-0"
+        className={`relative z-10 w-full group-hover:scale-103 transition-transform duration-500 ${
+          isMasonry ? "h-auto" : "h-full object-cover"
         }`}
         style={isMasonry ? { aspectRatio: photo.aspectRatio } : undefined}
       />
     </div>
   );
 }
+
 
 
 
