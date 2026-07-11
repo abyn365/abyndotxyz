@@ -5,25 +5,39 @@ import path from "path";
 // Store it in the project root or standalone directory
 const DB_PATH = process.env.KV_DATABASE_PATH || path.join(process.cwd(), "kv.sqlite");
 
-const db = new Database(DB_PATH);
-db.exec("PRAGMA journal_mode = WAL;");
-db.exec("PRAGMA busy_timeout = 5000;");
+let dbInstance: Database | null = null;
+let initialized = false;
 
+function getDB(): Database {
+  if (!dbInstance) {
+    dbInstance = new Database(DB_PATH);
+    dbInstance.exec("PRAGMA journal_mode = WAL;");
+    dbInstance.exec("PRAGMA busy_timeout = 5000;");
+  }
 
-// Create table if it doesn't exist
-db.query(`
-  CREATE TABLE IF NOT EXISTS kv (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL,
-    expires_at INTEGER
-  )
-`).run();
+  if (!initialized) {
+    initialized = true;
+    try {
+      dbInstance.exec(`
+        CREATE TABLE IF NOT EXISTS kv (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL,
+          expires_at INTEGER
+        );
+      `);
+      // Clean up expired keys on startup
+      dbInstance.query("DELETE FROM kv WHERE expires_at IS NOT NULL AND expires_at < ?").run(Date.now());
+    } catch (err) {
+      console.error("[KV] Failed to initialize SQLite table:", err);
+    }
+  }
 
-// Clean up expired keys on startup
-db.query("DELETE FROM kv WHERE expires_at IS NOT NULL AND expires_at < ?").run(Date.now());
+  return dbInstance;
+}
 
 export const kv = {
   async get<T>(key: string): Promise<T | null> {
+    const db = getDB();
     const row = db.query("SELECT value, expires_at FROM kv WHERE key = ?").get(key) as {
       value: string;
       expires_at: number | null;
@@ -45,6 +59,7 @@ export const kv = {
   },
 
   async set(key: string, value: any, options?: { ex?: number }): Promise<void> {
+    const db = getDB();
     const serialized = JSON.stringify(value);
     const expiresAt = options?.ex ? Date.now() + options.ex * 1000 : null;
 
@@ -56,6 +71,7 @@ export const kv = {
   },
 
   async del(key: string | string[]): Promise<void> {
+    const db = getDB();
     const keys = Array.isArray(key) ? key : [key];
     const stmt = db.prepare("DELETE FROM kv WHERE key = ?");
     for (const k of keys) {
@@ -63,3 +79,4 @@ export const kv = {
     }
   },
 };
+

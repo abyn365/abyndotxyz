@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "bun --bun next dev",
-    "build": "bun --bun next build",
+    "build": "bun scripts/init-db.ts && bun --bun next build",
     "start": "bun --bun next start",
     "test": "bun test",
     "test:run": "bun test",
