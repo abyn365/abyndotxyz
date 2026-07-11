@@ -24,23 +24,34 @@ function GalleryImage({
   isMasonry: boolean;
 }) {
   const imgRef = useRef<HTMLImageElement>(null);
-  const [mounted, setMounted] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const wasCachedRef = useRef(false);
+
+  // Synchronously check on client-side mount if this photo was already loaded
+  const wasCachedRef = useRef(typeof window !== "undefined" && loadedImages.has(photo.url));
+
+  const [loaded, setLoaded] = useState(() => {
+    if (typeof window !== "undefined") {
+      return loadedImages.has(photo.url);
+    }
+    return false;
+  });
+
+  // Track prop changes if the component is ever recycled with a new photo URL
+  const lastUrlRef = useRef(photo.url);
+  if (lastUrlRef.current !== photo.url) {
+    lastUrlRef.current = photo.url;
+    wasCachedRef.current = typeof window !== "undefined" && loadedImages.has(photo.url);
+    setLoaded(typeof window !== "undefined" && loadedImages.has(photo.url));
+  }
 
   useEffect(() => {
-    setMounted(true);
-    if (loadedImages.has(photo.url) || imgRef.current?.complete) {
-      wasCachedRef.current = true;
+    // Check if the image completes loading in the browser cache (fallback)
+    if (imgRef.current?.complete && !loaded) {
       loadedImages.add(photo.url);
       setLoaded(true);
-    } else {
-      wasCachedRef.current = false;
-      setLoaded(false);
     }
-  }, [photo.url]);
+  }, [photo.url, loaded]);
 
-  const showInstant = mounted && wasCachedRef.current;
+  const showInstant = wasCachedRef.current;
   const isImageLoaded = loaded || showInstant;
 
   return (
@@ -86,6 +97,7 @@ function GalleryImage({
     </div>
   );
 }
+
 
 
 export default function PhotosPage({ photos: initialPhotos }: { photos?: Photo[] }) {

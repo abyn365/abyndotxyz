@@ -336,31 +336,46 @@ export default function AdminDashboard() {
   };
 
   const autoDetectAspectRatio = (url: string) => {
-    if (!url || !url.startsWith("http")) return;
+    if (!url) return;
+    
+    // Support relative paths by resolving them to the current origin
+    const resolvedUrl = url.startsWith("http") ? url : window.location.origin + url;
+    
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    // Do not set crossOrigin initially to ensure the image loads even if CORS is restricted,
+    // allowing us to always detect the aspect ratio.
     img.onload = () => {
       if (img.naturalWidth && img.naturalHeight) {
         const ratio = img.naturalWidth / img.naturalHeight;
         setPhotoAspectRatio(ratio.toFixed(3));
 
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = 8;
-          canvas.height = 8;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, 8, 8);
-            const base64 = canvas.toDataURL("image/jpeg", 0.6);
-            setPhotoBlurDataUrl(base64);
+        // Attempt to generate the blur placeholder as a best effort (requires CORS)
+        const corsImg = new Image();
+        corsImg.crossOrigin = "anonymous";
+        corsImg.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = 8;
+            canvas.height = 8;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(corsImg, 0, 0, 8, 8);
+              const base64 = canvas.toDataURL("image/jpeg", 0.6);
+              setPhotoBlurDataUrl(base64);
+            }
+          } catch (err) {
+            console.warn("CORS limitation prevented client-side placeholder generation:", err);
           }
-        } catch (err) {
-          console.warn("CORS limitation prevented client-side placeholder generation:", err);
-        }
+        };
+        corsImg.src = resolvedUrl;
       }
     };
-    img.src = url;
+    img.onerror = (err) => {
+      console.error("Failed to load image for aspect ratio detection:", err);
+    };
+    img.src = resolvedUrl;
   };
+
 
   const handleSavePhoto = async (e: React.FormEvent) => {
     e.preventDefault();
