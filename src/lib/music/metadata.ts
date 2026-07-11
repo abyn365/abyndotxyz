@@ -30,6 +30,7 @@ export function resolveMetadata(
     album?: string;
     albumArt?: string;
     durationMs?: number;
+    canvasUrl?: string;
   } | undefined
 ): TrackMetadata {
   if (!lyricsApiMeta) return base;
@@ -41,6 +42,7 @@ export function resolveMetadata(
     album: lyricsApiMeta.album ?? base.album,
     // Only override duration if we don't have one
     duration: base.duration ?? (lyricsApiMeta.durationMs ? lyricsApiMeta.durationMs / 1000 : undefined),
+    canvasUrl: base.canvasUrl ?? lyricsApiMeta.canvasUrl,
   };
 }
 

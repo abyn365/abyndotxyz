@@ -268,6 +268,40 @@ export default function MusicPlayerBar() {
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const playerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!playerRef.current) return;
+      const footer = document.querySelector("footer");
+      if (!footer) {
+        playerRef.current.style.bottom = "1rem";
+        return;
+      }
+
+      const footerRect = footer.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+
+      if (footerRect.top < viewportHeight) {
+        const visibleFooterHeight = viewportHeight - footerRect.top;
+        playerRef.current.style.bottom = `${visibleFooterHeight + 16}px`;
+      } else {
+        playerRef.current.style.bottom = "1rem";
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+
+    handleScroll();
+    const timer = setTimeout(handleScroll, 100);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+      clearTimeout(timer);
+    };
+  }, [currentTrack]);
 
   if (!currentTrack) return null;
 
@@ -281,6 +315,7 @@ export default function MusicPlayerBar() {
   return (
     <AnimatePresence>
       <motion.div
+        ref={playerRef}
         key="player-bar"
         initial={{ y: 50, opacity: 0, scale: 0.95 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
