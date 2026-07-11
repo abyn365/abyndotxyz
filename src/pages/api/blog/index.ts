@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
-    const { slug, title, description, content, coverImage, published } = req.body;
+    const { slug, title, description, content, coverImage, published, tags } = req.body;
 
     // Validation
     if (!slug || !title || !content) {
@@ -61,11 +61,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         content: content.trim(),
         coverImage: coverImage || "",
         published: !!published,
+        tags: Array.isArray(tags) ? tags : [],
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
 
       await savePost(newPost);
+      try {
+        await res.revalidate("/blog");
+      } catch (err) {
+        console.error("Failed to revalidate /blog:", err);
+      }
       return res.status(200).json({ success: true, post: newPost });
     } catch (error) {
       console.error("Failed to create blog post:", error);

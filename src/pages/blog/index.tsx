@@ -11,14 +11,17 @@ interface BlogPost {
   description: string;
   published: boolean;
   coverImage?: string;
+  tags?: string[];
   createdAt: number;
   updatedAt: number;
 }
 
-export default function BlogIndex() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function BlogIndex({ posts: initialPosts }: { posts?: BlogPost[] }) {
+  const [posts, setPosts] = useState<BlogPost[]>(initialPosts || []);
+  const [loading, setLoading] = useState(!initialPosts);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTag, setSelectedTag] = useState("All");
 
   useEffect(() => {
     // 1. Check admin status to know if we can see drafts
@@ -27,24 +30,48 @@ export default function BlogIndex() {
       .then((data) => {
         if (data.success && data.authenticated) {
           setIsAdmin(true);
+          // Admin can see drafts, fetch from API
+          fetch("/api/blog")
+            .then((res) => res.json())
+            .then((d) => {
+              if (d.success) setPosts(d.posts);
+            });
         }
       })
       .catch(() => {});
 
-    // 2. Fetch posts
-    fetch("/api/blog")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setPosts(data.posts);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load blog posts:", err);
-        setLoading(false);
-      });
-  }, []);
+    // 2. Fetch posts if static props are empty
+    if (!initialPosts || initialPosts.length === 0) {
+      fetch("/api/blog")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setPosts(data.posts);
+          }
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error("Failed to load blog posts:", err);
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+  }, [initialPosts]);
+
+  // Get unique list of tags across posts
+  const tagsList = ["All", ...Array.from(new Set(posts.flatMap((p) => p.tags || [])))];
+
+  // Filter posts
+  const filteredPosts = posts.filter((post) => {
+    const matchesTag = selectedTag === "All" || post.tags?.includes(selectedTag);
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch =
+      post.title.toLowerCase().includes(searchLower) ||
+      post.description.toLowerCase().includes(searchLower) ||
+      (post.tags && post.tags.some((t) => t.toLowerCase().includes(searchLower)));
+    return matchesTag && matchesSearch;
+  });
 
   // Helper to estimate reading time (approx 200 words per minute)
   const getReadingTime = (post: any) => {
@@ -72,6 +99,37 @@ export default function BlogIndex() {
             </p>
           </div>
 
+          {/* Search & Tags Filtering */}
+          <div className="mb-8 space-y-4">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search posts by title, snippet, or tag..."
+              className="w-full rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-4 py-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none sm:text-sm shadow-sm"
+            />
+            {tagsList.length > 1 && (
+              <div className="scrollbar-none flex flex-wrap gap-1.5 pt-1">
+                {tagsList.map((tag) => {
+                  const active = selectedTag === tag;
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => setSelectedTag(tag)}
+                      className={`rounded-full px-3.5 py-1 text-[11px] font-semibold transition-all ${
+                        active
+                          ? "bg-[var(--accent)] text-[var(--accent-text)]"
+                          : "border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--text-secondary)] hover:bg-[var(--card-bg-mix)] hover:text-[var(--text-primary)]"
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Posts List */}
           {loading ? (
             <div className="space-y-6">
@@ -86,13 +144,13 @@ export default function BlogIndex() {
                 </div>
               ))}
             </div>
-          ) : posts.length === 0 ? (
+          ) : filteredPosts.length === 0 ? (
             <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-12 text-center text-sm text-[var(--text-secondary)] italic">
-              No blog posts published yet. Check back later!
+              No matching blog posts found.
             </div>
           ) : (
             <div className="grid gap-6">
-              {posts.map((post, idx) => {
+              {filteredPosts.map((post, idx) => {
                 const date = new Date(post.createdAt).toLocaleDateString(undefined, {
                   month: "long",
                   day: "numeric",
@@ -150,6 +208,25 @@ export default function BlogIndex() {
                         <p className="text-xs sm:text-sm text-[var(--text-secondary)] line-clamp-2 leading-relaxed">
                           {post.description}
                         </p>
+
+                        {/* Tags display */}
+                        {post.tags && post.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1 relative z-20">
+                            {post.tags.map((tag) => (
+                              <button
+                                key={tag}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setSelectedTag(tag);
+                                }}
+                                className="rounded bg-[var(--bg-secondary)] px-2 py-0.5 text-[10px] text-[var(--text-secondary)] font-medium hover:text-[var(--accent)] transition-colors"
+                              >
+                                #{tag}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       <div className="mt-4 flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
@@ -170,3 +247,15 @@ export default function BlogIndex() {
     </>
   );
 }
+
+export const getStaticProps = async () => {
+  const { getPosts } = require("../../lib/blog");
+  const posts = await getPosts();
+  const published = posts.filter((p: any) => p.published);
+  return {
+    props: {
+      posts: published,
+    },
+    revalidate: 60,
+  };
+};

@@ -13,6 +13,7 @@ export interface BlogPost {
   content: string; // Markdown text
   coverImage?: string;
   published: boolean;
+  tags?: string[];
   createdAt: number;
   updatedAt: number;
 }
@@ -23,6 +24,7 @@ export interface BlogMetadata {
   description: string;
   coverImage?: string;
   published: boolean;
+  tags?: string[];
   createdAt: number;
   updatedAt: number;
 }
@@ -44,6 +46,7 @@ function getMetadata(post: BlogPost): BlogMetadata {
     description: post.description,
     coverImage: post.coverImage,
     published: post.published,
+    tags: post.tags || [],
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
   };

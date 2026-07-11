@@ -23,6 +23,7 @@ interface BlogPost {
   description: string;
   content: string;
   coverImage?: string;
+  tags?: string[];
   published: boolean;
   createdAt: number;
   updatedAt: number;
@@ -35,15 +36,27 @@ interface BlogComment {
   createdAt: number;
 }
 
-export default function BlogPostPage() {
+interface Props {
+  post?: BlogPost | null;
+  likes?: string[];
+  comments?: BlogComment[];
+  error?: string;
+}
+
+export default function BlogPostPage({
+  post: initialPost,
+  likes: initialLikes,
+  comments: initialComments,
+  error: initialError,
+}: Props) {
   const router = useRouter();
   const { slug } = router.query;
 
-  const [post, setPost] = useState<BlogPost | null>(null);
-  const [likes, setLikes] = useState<string[]>([]);
-  const [comments, setComments] = useState<BlogComment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [post, setPost] = useState<BlogPost | null>(initialPost || null);
+  const [likes, setLikes] = useState<string[]>(initialLikes || []);
+  const [comments, setComments] = useState<BlogComment[]>(initialComments || []);
+  const [loading, setLoading] = useState(!initialPost && !initialError);
+  const [error, setError] = useState(initialError || "");
 
   // Typography Scalar state (0 = sm, 1 = base, 2 = lg, 3 = xl)
   const [textSizeIndex, setTextSizeIndex] = useState<number>(1);
@@ -131,6 +144,8 @@ export default function BlogPostPage() {
       .catch(() => {});
   }, []);
 
+
+
   useEffect(() => {
     let checkInterval: NodeJS.Timeout;
 
@@ -175,6 +190,20 @@ export default function BlogPostPage() {
   useEffect(() => {
     if (!slug) return;
 
+    if (initialPost) {
+      fetch(`/api/blog/${slug}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setLikes(data.likes || []);
+            setComments(data.comments || []);
+          }
+        })
+        .catch(() => {});
+      setLoading(false);
+      return;
+    }
+
     fetch(`/api/blog/${slug}`)
       .then((res) => {
         if (!res.ok) throw new Error("Blog post not found");
@@ -194,7 +223,7 @@ export default function BlogPostPage() {
         setError(err.message || "Failed to load blog post");
         setLoading(false);
       });
-  }, [slug]);
+  }, [slug, initialPost]);
 
   const handleVisitorAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -410,11 +439,7 @@ export default function BlogPostPage() {
         <meta property="og:description" content={post.description} />
         <meta
           property="og:image"
-          content={
-            post.coverImage
-              ? (post.coverImage.startsWith("http") ? post.coverImage : `https://abyn.xyz${post.coverImage}`)
-              : `https://abyn.xyz/api/og?title=${encodeURIComponent(post.title)}&sub=${encodeURIComponent(post.description)}`
-          }
+          content={`https://abyn.xyz/api/og/${post.slug}`}
         />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -465,25 +490,27 @@ export default function BlogPostPage() {
 
             {/* Article Header */}
             <header className="mb-10 space-y-4">
-              <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--text-secondary)]">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" /> {postDate}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />{" "}
-                  {getReadingTime(post.content)}
-                </span>
-                {!post.published && (
-                  <span className="rounded border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500">
-                    Draft
+              <div className="flex flex-nowrap items-center justify-between gap-1.5 text-[10px] text-[var(--text-secondary)] sm:gap-3 sm:text-xs">
+                <div className="flex items-center gap-1.5 sm:gap-3">
+                  <span className="flex items-center gap-1 whitespace-nowrap">
+                    <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> {postDate}
                   </span>
-                )}
+                  <span className="flex items-center gap-1 whitespace-nowrap">
+                    <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" />{" "}
+                    {getReadingTime(post.content)}
+                  </span>
+                  {!post.published && (
+                    <span className="rounded border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-amber-500 whitespace-nowrap">
+                      Draft
+                    </span>
+                  )}
+                </div>
 
                 {/* Action Control Panel */}
-                <div className="ml-auto flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   {/* Dynamic Text Scalar Slider */}
-                  <div className="flex select-none items-center gap-2 rounded-lg border border-white/5 bg-black/15 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider">
-                    <span className="text-[10px] text-neutral-500">A</span>
+                  <div className="flex select-none items-center gap-1.5 rounded-lg border border-white/5 bg-black/15 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider sm:px-2.5 sm:py-1">
+                    <span className="text-[8px] text-neutral-500">A</span>
                     <input
                       type="range"
                       min="0"
@@ -493,10 +520,10 @@ export default function BlogPostPage() {
                       onChange={(e) =>
                         setTextSizeIndex(parseInt(e.target.value, 10))
                       }
-                      className="h-1 w-16 cursor-pointer appearance-none rounded-lg bg-neutral-700 accent-[var(--accent)] focus:outline-none"
+                      className="h-1 w-10 cursor-pointer appearance-none rounded-lg bg-neutral-700 accent-[var(--accent)] focus:outline-none sm:w-16"
                       title="Adjust read text sizing font scale"
                     />
-                    <span className="text-xs font-semibold text-[var(--text-primary)]">
+                    <span className="text-[10px] font-semibold text-[var(--text-primary)]">
                       A
                     </span>
                   </div>
@@ -504,15 +531,17 @@ export default function BlogPostPage() {
                   {/* Copy Module Element */}
                   <button
                     onClick={handleCopyPage}
-                    className="flex cursor-pointer items-center gap-1 rounded-lg border border-white/5 bg-black/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider transition-colors hover:text-[var(--text-primary)]"
+                    className="flex cursor-pointer items-center gap-1 rounded-lg border border-white/5 bg-black/10 px-2 py-1 text-[8px] font-bold uppercase tracking-wider transition-colors hover:text-[var(--text-primary)] sm:px-2.5 sm:py-1"
                   >
                     {copied ? (
                       <>
-                        <Check className="h-3 w-3 text-green-400" /> Copied
+                        <Check className="h-3 w-3 text-green-400" />
+                        <span className="hidden sm:inline">Copied</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="h-3 w-3" /> Copy page
+                        <Copy className="h-3 w-3" />
+                        <span className="hidden sm:inline">Copy page</span>
                       </>
                     )}
                   </button>
@@ -522,6 +551,18 @@ export default function BlogPostPage() {
               <h1 className="font-display text-3xl font-black leading-tight tracking-tight text-[var(--text-primary)] sm:text-4xl">
                 {post.title}
               </h1>
+              {post.tags && post.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1.5 pb-2">
+                  {post.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded bg-[var(--bg-secondary)] px-2 py-0.5 text-xs text-[var(--text-secondary)] font-medium"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
               <p className="border-l-2 border-[var(--card-border)] pl-4 text-sm italic leading-relaxed text-[var(--text-secondary)] sm:text-base">
                 {post.description}
               </p>
@@ -553,6 +594,29 @@ export default function BlogPostPage() {
                   {likes.length} {likes.length === 1 ? "Like" : "Likes"}
                 </span>
               </button>
+
+              {/* Social Share Buttons */}
+              <div className="flex gap-2">
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(`https://abyn.xyz/blog/${post.slug}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--card-bg-mix)] hover:text-[var(--text-primary)] transition-all flex items-center gap-1.5"
+                >
+                  Twitter
+                </a>
+                <a
+                  href={`https://t.me/share/url?url=${encodeURIComponent(`https://abyn.xyz/blog/${post.slug}`)}&text=${encodeURIComponent(post.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--card-bg-mix)] hover:text-[var(--text-primary)] transition-all flex items-center gap-1.5"
+                >
+                  Telegram
+                </a>
+              </div>
+            </div>
+
+
 
               {/* Collapsible Auth Dropdown for Likes/Comments */}
               <div className="relative shrink-0">
@@ -669,7 +733,6 @@ export default function BlogPostPage() {
                   </div>
                 )}
               </div>
-            </div>
 
             {/* Comments Section */}
             <section className="space-y-6">
@@ -864,7 +927,22 @@ function getHeaders(content: string): HeaderItem[] {
         let text = match[2].trim();
         text = text.replace(/\s+#+$/, "");
 
-        const id = text
+        // Replicate parseMarkdown's sanitization:
+        // 1. replace '&' with '&amp;' to match the HTML encoder
+        let processedText = text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+
+        // 2. strip markdown tags to match HTML generation
+        processedText = processedText.replace(/\[(.*?)\]\(.*?\)/g, "$1");
+        processedText = processedText.replace(/`(.*?)`/g, "$1");
+        processedText = processedText.replace(/\*\*(.*?)\*\*/g, "$1");
+        processedText = processedText.replace(/__(.*?)__/g, "$1");
+        processedText = processedText.replace(/\*(.*?)\*/g, "$1");
+        processedText = processedText.replace(/_(.*?)_/g, "$1");
+
+        const id = processedText
           .toLowerCase()
           .replace(/<[^>]*>/g, "")
           .replace(/[^a-z0-9\s-]/g, "")
@@ -872,9 +950,59 @@ function getHeaders(content: string): HeaderItem[] {
           .replace(/-+/g, "-")
           .trim();
 
-        headers.push({ id, text, level });
+        // Clean up markdown syntax from the human-readable display text
+        let displayText = text;
+        displayText = displayText.replace(/\[(.*?)\]\(.*?\)/g, "$1");
+        displayText = displayText.replace(/`(.*?)`/g, "$1");
+        displayText = displayText.replace(/\*\*(.*?)\*\*/g, "$1");
+        displayText = displayText.replace(/__(.*?)__/g, "$1");
+        displayText = displayText.replace(/\*(.*?)\*/g, "$1");
+        displayText = displayText.replace(/_(.*?)_/g, "$1");
+
+        headers.push({ id, text: displayText, level });
       }
     }
   }
   return headers;
 }
+
+export const getStaticPaths = async () => {
+  const { getPosts } = require("../../lib/blog");
+  const posts = await getPosts();
+  const paths = posts.map((post: any) => ({
+    params: { slug: post.slug },
+  }));
+  return {
+    paths,
+    fallback: "blocking",
+  };
+};
+
+export const getStaticProps = async ({ params }: any) => {
+  const { getPostBySlug, getLikes, getComments } = require("../../lib/blog");
+  try {
+    const post = await getPostBySlug(params.slug);
+    if (!post || !post.published) {
+      return {
+        notFound: true,
+      };
+    }
+    const likes = await getLikes(params.slug);
+    const comments = await getComments(params.slug);
+    return {
+      props: {
+        post,
+        likes,
+        comments: comments.sort((a: any, b: any) => a.createdAt - b.createdAt),
+      },
+      revalidate: 60,
+    };
+  } catch (err) {
+    return {
+      props: {
+        error: "Failed to load blog post",
+      },
+      revalidate: 60,
+    };
+  }
+};

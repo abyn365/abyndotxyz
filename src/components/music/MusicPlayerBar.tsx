@@ -350,8 +350,8 @@ export default function MusicPlayerBar() {
                   {currentTrack.artist}
                 </p>
                 {isPlaying && (
-                  <div className="w-5 h-2 flex items-center shrink-0 opacity-60">
-                    <MusicVisualizer isPlaying={isPlaying} trackId={trackKey} barCount={4} height={8} />
+                  <div className="w-8 h-3 flex items-center shrink-0 opacity-70 ml-1">
+                    <MusicVisualizer isPlaying={isPlaying} trackId={trackKey} type="wave" height={10} />
                   </div>
                 )}
               </div>

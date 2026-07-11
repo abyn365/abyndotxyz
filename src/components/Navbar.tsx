@@ -3,12 +3,14 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 import { useLanyard } from "../hooks/useLanyard";
+import { Rss } from "lucide-react";
 
 const NAV = [
   { label: "Home", href: "/", index: "H" },
   { label: "Music", href: "/music", index: "M" },
   { label: "Uses", href: "/uses", index: "U" },
   { label: "Blog", href: "/blog", index: "B" },
+  { label: "Photos", href: "/photos", index: "P" },
 ];
 
 const STATUS_DOT: Record<string, string> = {
@@ -31,6 +33,14 @@ export default function Navbar() {
   const discordStatus = presence?.discord_status ?? "offline";
 
   const dotColor = STATUS_DOT[discordStatus];
+
+  const [shortcutText, setShortcutText] = useState("Ctrl+K");
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isMac = navigator.userAgent.toLowerCase().includes("mac");
+      setShortcutText(isMac ? "⌘K" : "Ctrl+K");
+    }
+  }, []);
 
   return (
     <nav
@@ -86,6 +96,25 @@ export default function Navbar() {
               </Link>
             );
           })}
+
+          {/* Command Palette trigger badge */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("toggle-command-palette"))}
+            className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-[var(--card-border)] bg-black/10 text-[9px] font-mono font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent)] transition-all cursor-pointer mr-1.5"
+            title="Open Command Palette"
+          >
+            <span>{shortcutText}</span>
+          </button>
+
+          <a
+            href="/feed.xml"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            title="RSS Feed"
+          >
+            <Rss className="h-4 w-4" />
+          </a>
 
           <div className="ml-1.5">
             <ThemeToggle inline />

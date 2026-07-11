@@ -667,6 +667,10 @@ export default function Projects() {
   const [loadingRepos, setLoadingRepos] = useState(true);
   const [page, setPage] = useState(1);
 
+  const [prs, setPrs] = useState<any[]>([]);
+  const [releases, setReleases] = useState<any[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(true);
+
   useEffect(() => {
     fetch("/api/github-projects")
       .then((r) => r.json())
@@ -675,6 +679,20 @@ export default function Projects() {
       })
       .catch(console.error)
       .finally(() => setLoadingRepos(false));
+
+    fetch("/api/github-releases-prs")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setPrs(data.prs || []);
+          setReleases(data.releases || []);
+        }
+        setLoadingActivity(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load GitHub activity:", err);
+        setLoadingActivity(false);
+      });
   }, []);
 
   const items = useMemo(() => {
@@ -704,6 +722,101 @@ export default function Projects() {
           <span>Activity Timeline</span>
         </h3>
         <GitHubGraph />
+      </div>
+
+      {/* Open Source Contributions (PRs & Releases) */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Pull Requests */}
+        <div
+          className="rounded-2xl border p-5 sm:p-6 bg-[#FFFFFDFA] dark:bg-[var(--bg-secondary)]"
+          style={{ borderColor: "var(--card-border)" }}
+        >
+          <h3 className="mb-4 flex items-center gap-2 font-medium text-sm text-[var(--text-primary)] border-b border-[var(--card-border)] pb-2">
+            <span>Recent Pull Requests</span>
+            <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wider ml-auto">PRs</span>
+          </h3>
+          {loadingActivity ? (
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="h-10 rounded bg-white/5" />
+              ))}
+            </div>
+          ) : prs.length === 0 ? (
+            <p className="text-xs text-[var(--text-secondary)] italic py-4">No recent Pull Requests.</p>
+          ) : (
+            <div className="space-y-3.5 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
+              {prs.map((pr) => (
+                <div key={pr.id} className="flex flex-col gap-1 text-xs">
+                  <a
+                    href={pr.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-[var(--text-primary)] hover:text-violet-400 transition-colors line-clamp-1"
+                  >
+                    {pr.title}
+                  </a>
+                  <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)]">
+                    <span className="font-mono text-zinc-500">{pr.repo}</span>
+                    <span>•</span>
+                    <span className={`px-1.5 py-0.5 rounded uppercase tracking-wider text-[8px] font-bold ${
+                      pr.state === "open" ? "bg-emerald-500/10 text-emerald-500" : "bg-purple-500/10 text-purple-500"
+                    }`}>
+                      {pr.state}
+                    </span>
+                    <span className="ml-auto text-zinc-500">{new Date(pr.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Releases */}
+        <div
+          className="rounded-2xl border p-5 sm:p-6 bg-[#FFFFFDFA] dark:bg-[var(--bg-secondary)]"
+          style={{ borderColor: "var(--card-border)" }}
+        >
+          <h3 className="mb-4 flex items-center gap-2 font-medium text-sm text-[var(--text-primary)] border-b border-[var(--card-border)] pb-2">
+            <span>Recent Releases</span>
+            <span className="text-[10px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wider ml-auto">Releases</span>
+          </h3>
+          {loadingActivity ? (
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="h-10 rounded bg-white/5" />
+              ))}
+            </div>
+          ) : releases.length === 0 ? (
+            <p className="text-xs text-[var(--text-secondary)] italic py-4">No recent software releases.</p>
+          ) : (
+            <div className="space-y-3.5 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
+              {releases.map((rel) => (
+                <div key={rel.id} className="flex flex-col gap-1 text-xs">
+                  <div className="flex items-center justify-between">
+                    <a
+                      href={rel.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-[var(--text-primary)] hover:text-violet-400 transition-colors"
+                    >
+                      {rel.tagName} - {rel.name}
+                    </a>
+                  </div>
+                  {rel.body && (
+                    <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2 leading-relaxed">
+                      {rel.body}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)] pt-0.5">
+                    <span className="font-mono text-zinc-500">{rel.repo}</span>
+                    <span>•</span>
+                    <span className="ml-auto text-zinc-500">{new Date(rel.publishedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div>

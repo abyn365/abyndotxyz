@@ -25,6 +25,7 @@ import {
   Shield,
   X,
   FileText,
+  FolderOpen,
 } from "lucide-react";
 import { PageFooter } from "../components/PageFooter";
 import { parseMarkdown } from "../lib/markdown";
@@ -35,9 +36,20 @@ interface BlogPost {
   description: string;
   content: string;
   coverImage?: string;
+  tags?: string[];
   published: boolean;
   createdAt: number;
   updatedAt: number;
+}
+
+interface Photo {
+  id: string;
+  url: string;
+  description: string;
+  aspectRatio: number;
+  tags?: string[];
+  createdAt: number;
+  blurDataUrl?: string;
 }
 
 interface ServiceStatus {
@@ -96,8 +108,23 @@ export default function AdminDashboard() {
   const [editorError, setEditorError] = useState("");
   const [editorSaving, setEditorSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "posts" | "status" | "uploader" | "moderation"
+    "posts" | "status" | "uploader" | "moderation" | "photos"
   >("posts");
+  const [editorTags, setEditorTags] = useState("");
+
+  // Photos states
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [photosLoading, setPhotosLoading] = useState(true);
+  const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
+  const [isCreatingPhoto, setIsCreatingPhoto] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [photoDesc, setPhotoDesc] = useState("");
+  const [photoTags, setPhotoTags] = useState("");
+  const [photoAspectRatio, setPhotoAspectRatio] = useState("1.0");
+  const [photoBlurDataUrl, setPhotoBlurDataUrl] = useState("");
+  const [photoSaving, setPhotoSaving] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const [photoSuccess, setPhotoSuccess] = useState("");
 
   // Moderation state
   const [blockedUsernames, setBlockedUsernames] = useState<string[]>([]);
@@ -211,6 +238,7 @@ export default function AdminDashboard() {
     fetchPosts();
     fetchSystemStatus();
     fetchModerationSettings();
+    fetchPhotos();
   };
 
   const fetchModerationSettings = async () => {
@@ -257,6 +285,147 @@ export default function AdminDashboard() {
       setModerationError("Server connection error during moderation save.");
     } finally {
       setModerationSaving(false);
+    }
+  };
+
+  const fetchPhotos = async () => {
+    setPhotosLoading(true);
+    try {
+      const res = await fetch("/api/photos");
+      const data = await res.json();
+      if (data.success) {
+        setPhotos(data.photos || []);
+      }
+    } catch (e) {
+      console.error("Failed to load photos", e);
+    } finally {
+      setPhotosLoading(false);
+    }
+  };
+
+  const handleOpenEditPhoto = (photo: Photo) => {
+    setEditingPhoto(photo);
+    setIsCreatingPhoto(false);
+    setPhotoUrl(photo.url);
+    setPhotoDesc(photo.description);
+    setPhotoTags(photo.tags ? photo.tags.join(", ") : "");
+    setPhotoAspectRatio(photo.aspectRatio.toString());
+    setPhotoBlurDataUrl(photo.blurDataUrl || "");
+    setPhotoError("");
+    setPhotoSuccess("");
+  };
+
+  const handleOpenCreatePhoto = () => {
+    setEditingPhoto(null);
+    setIsCreatingPhoto(true);
+    setPhotoUrl("");
+    setPhotoDesc("");
+    setPhotoTags("");
+    setPhotoAspectRatio("1.0");
+    setPhotoBlurDataUrl("");
+    setPhotoError("");
+    setPhotoSuccess("");
+  };
+
+  const handleClosePhotoEditor = () => {
+    setEditingPhoto(null);
+    setIsCreatingPhoto(false);
+    setPhotoBlurDataUrl("");
+    setPhotoError("");
+    setPhotoSuccess("");
+  };
+
+  const autoDetectAspectRatio = (url: string) => {
+    if (!url || !url.startsWith("http")) return;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      if (img.naturalWidth && img.naturalHeight) {
+        const ratio = img.naturalWidth / img.naturalHeight;
+        setPhotoAspectRatio(ratio.toFixed(3));
+
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = 8;
+          canvas.height = 8;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, 8, 8);
+            const base64 = canvas.toDataURL("image/jpeg", 0.6);
+            setPhotoBlurDataUrl(base64);
+          }
+        } catch (err) {
+          console.warn("CORS limitation prevented client-side placeholder generation:", err);
+        }
+      }
+    };
+    img.src = url;
+  };
+
+  const handleSavePhoto = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!photoUrl.trim()) {
+      setPhotoError("Photo URL is required.");
+      return;
+    }
+
+    setPhotoSaving(true);
+    setPhotoError("");
+    setPhotoSuccess("");
+
+    const payload = {
+      id: isCreatingPhoto ? undefined : editingPhoto?.id,
+      url: photoUrl.trim(),
+      description: photoDesc.trim(),
+      aspectRatio: parseFloat(photoAspectRatio) || 1.0,
+      tags: photoTags.split(",").map(t => t.trim()).filter(Boolean),
+      createdAt: isCreatingPhoto ? Date.now() : editingPhoto?.createdAt,
+      blurDataUrl: photoBlurDataUrl || editingPhoto?.blurDataUrl,
+    };
+
+    try {
+      const res = await fetch("/api/photos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPhotoSuccess(isCreatingPhoto ? "Photo added successfully!" : "Photo updated successfully!");
+        fetchPhotos();
+        handleClosePhotoEditor();
+      } else {
+        setPhotoError(data.error || "Failed to save photo.");
+      }
+    } catch (err: any) {
+      setPhotoError(err.message || "Error saving photo.");
+    } finally {
+      setPhotoSaving(false);
+    }
+  };
+
+  const handleDeletePhoto = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this photo?")) return;
+    try {
+      const res = await fetch("/api/photos", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
+        },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchPhotos();
+      } else {
+        alert(data.error || "Failed to delete photo.");
+      }
+    } catch (err: any) {
+      alert("Error deleting photo.");
     }
   };
 
@@ -366,6 +535,7 @@ export default function AdminDashboard() {
     setEditorDesc(post.description);
     setEditorContent(post.content);
     setEditorCover(post.coverImage || "");
+    setEditorTags(post.tags ? post.tags.join(", ") : "");
     setEditorPublished(post.published);
     setEditorError("");
   };
@@ -378,6 +548,7 @@ export default function AdminDashboard() {
     setEditorDesc("");
     setEditorContent("");
     setEditorCover("");
+    setEditorTags("");
     setEditorPublished(false);
     setEditorError("");
   };
@@ -407,6 +578,7 @@ export default function AdminDashboard() {
       description: editorDesc.trim(),
       content: editorContent.trim(),
       coverImage: editorCover.trim(),
+      tags: editorTags.split(",").map((t) => t.trim()).filter(Boolean),
       published: editorPublished,
     };
 
@@ -735,6 +907,21 @@ export default function AdminDashboard() {
             >
               Moderation
             </button>
+            <button
+              onClick={() => {
+                setActiveTab("photos");
+                handleCloseEditor();
+                handleClosePhotoEditor();
+                fetchPhotos();
+              }}
+              className={`pb-2.5 text-xs font-bold uppercase tracking-wider ${
+                activeTab === "photos"
+                  ? "border-b-2 border-[var(--accent)] text-[var(--text-primary)]"
+                  : "text-[var(--text-secondary)]"
+              }`}
+            >
+              Photos Gallery
+            </button>
           </div>
 
           {/* TAB 1: POSTS EDITOR AND MANAGEMENT */}
@@ -888,6 +1075,19 @@ export default function AdminDashboard() {
                         onChange={(e) => setEditorCover(e.target.value)}
                         className="w-full rounded-xl border border-[var(--card-border)] bg-black/10 px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none sm:text-sm"
                         placeholder="https://..."
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                        Tags (comma-separated)
+                      </label>
+                      <input
+                        type="text"
+                        value={editorTags}
+                        onChange={(e) => setEditorTags(e.target.value)}
+                        className="w-full rounded-xl border border-[var(--card-border)] bg-black/10 px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none sm:text-sm"
+                        placeholder="e.g. tech, coding, news"
                       />
                     </div>
 
@@ -1522,6 +1722,202 @@ export default function AdminDashboard() {
                   </div>
                 </form>
               </motion.div>
+            </div>
+          )}
+
+          {/* TAB 5: PHOTOS GALLERY */}
+          {activeTab === "photos" && (
+            <div className="space-y-6">
+              {!isCreatingPhoto && !editingPhoto ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                      <FolderOpen className="h-4 w-4" /> Gallery Photo Items ({photos.length})
+                    </h2>
+                    <button
+                      onClick={handleOpenCreatePhoto}
+                      className="inline-flex items-center gap-1 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent-text)] transition-opacity hover:opacity-90"
+                    >
+                      <PlusCircle className="h-3.5 w-3.5" /> Add Photo
+                    </button>
+                  </div>
+
+                  {photosLoading ? (
+                    <div className="text-center py-12 text-sm text-[var(--text-secondary)]">
+                      Loading gallery photos...
+                    </div>
+                  ) : photos.length === 0 ? (
+                    <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-12 text-center text-sm text-[var(--text-secondary)] italic">
+                      No photos added to your gallery yet. Click "Add Photo" to get started!
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                      {photos.map((photo) => (
+                        <div
+                          key={photo.id}
+                          className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] p-3 shadow-sm transition-all hover:bg-[var(--card-bg-mix)]"
+                        >
+                          <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-[var(--card-border)] bg-black/5">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={photo.url}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                            {photo.aspectRatio && (
+                              <span className="absolute bottom-1 right-1 rounded bg-black/75 px-1 py-0.5 font-mono text-[9px] text-white">
+                                {photo.aspectRatio} Aspect
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="mt-3 flex-1 space-y-1.5">
+                            <p className="line-clamp-2 text-xs text-[var(--text-primary)] font-medium">
+                              {photo.description || <span className="italic text-[var(--text-secondary)]">No description</span>}
+                            </p>
+                            {photo.tags && photo.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {photo.tags.map((tag) => (
+                                  <span key={tag} className="rounded bg-[var(--bg-secondary)] px-1.5 py-0.5 text-[9px] text-[var(--text-secondary)]">
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-[var(--card-border)] pt-2.5">
+                            <button
+                              onClick={() => handleOpenEditPhoto(photo)}
+                              className="flex h-7 w-7 items-center justify-center rounded border border-[var(--card-border)] bg-black/5 p-1.5 text-[var(--text-secondary)] transition-all hover:bg-black/10 hover:text-[var(--text-primary)]"
+                              title="Edit photo info"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeletePhoto(photo.id)}
+                              className="flex h-7 w-7 items-center justify-center rounded border border-red-500/10 bg-red-500/5 p-1.5 text-red-400 transition-all hover:bg-red-500/10"
+                              title="Delete photo"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6 shadow-[var(--card-shadow)]"
+                >
+                  <form onSubmit={handleSavePhoto} className="space-y-4">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                      {isCreatingPhoto ? "Add New Photo" : "Edit Photo"}
+                    </h3>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                        Image Source URL
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={photoUrl}
+                          onChange={(e) => setPhotoUrl(e.target.value)}
+                          onBlur={() => autoDetectAspectRatio(photoUrl)}
+                          className="w-full flex-1 rounded-xl border border-[var(--card-border)] bg-black/10 px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none sm:text-sm"
+                          placeholder="https://... or upload in Cloud Uploader first"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => autoDetectAspectRatio(photoUrl)}
+                          className="rounded-xl border border-[var(--card-border)] bg-black/5 px-3 text-xs text-[var(--text-secondary)] hover:bg-black/10"
+                          title="Detect image dimensions"
+                        >
+                          Detect Ratio
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                          Aspect Ratio (Width / Height)
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={photoAspectRatio}
+                          onChange={(e) => setPhotoAspectRatio(e.target.value)}
+                          className="w-full rounded-xl border border-[var(--card-border)] bg-black/10 px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none sm:text-sm font-mono"
+                          placeholder="e.g. 1.5, 0.75, 1.0"
+                        />
+                        <span className="text-[9px] text-[var(--text-secondary)] block">
+                          Tip: Portrait has ratio &lt; 1, Landscape &gt; 1, Square = 1. Auto-calculates on URL blur.
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                          Tags (comma-separated)
+                        </label>
+                        <input
+                          type="text"
+                          value={photoTags}
+                          onChange={(e) => setPhotoTags(e.target.value)}
+                          className="w-full rounded-xl border border-[var(--card-border)] bg-black/10 px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none sm:text-sm"
+                          placeholder="e.g. landscape, travel, digital"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                        Description / Caption
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={photoDesc}
+                        onChange={(e) => setPhotoDesc(e.target.value)}
+                        className="w-full rounded-xl border border-[var(--card-border)] bg-black/10 px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none sm:text-sm"
+                        placeholder="Caption shown on hover or full screen overlay..."
+                      />
+                    </div>
+
+                    {photoError && (
+                      <p className="text-xs font-semibold text-red-400">
+                        {photoError}
+                      </p>
+                    )}
+                    {photoSuccess && (
+                      <p className="text-xs font-semibold text-green-400">
+                        {photoSuccess}
+                      </p>
+                    )}
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleClosePhotoEditor}
+                        className="rounded-xl border border-[var(--card-border)] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:bg-black/5"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={photoSaving}
+                        className="rounded-xl bg-[var(--accent)] px-5 py-2 text-xs font-bold uppercase tracking-wider text-[var(--accent-text)] transition-colors hover:opacity-90 disabled:opacity-50"
+                      >
+                        {photoSaving ? "Saving..." : "Save Photo"}
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              )}
             </div>
           )}
         </div>

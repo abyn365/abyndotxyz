@@ -16,9 +16,25 @@ function slugify(text: string): string {
 export function parseMarkdown(markdown: string): string {
   if (!markdown) return "";
 
+  // 0. Extract math formulas (inline and display blocks) to prevent markdown engine parsing them
+  const mathPlaceholders: string[] = [];
+  let mathPreserved = markdown;
+
+  // 1a. Block math: $$ ... $$ (supports multi-line)
+  mathPreserved = mathPreserved.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
+    mathPlaceholders.push(`<div class="math-block my-4 overflow-x-auto text-center font-serif text-sm sm:text-base font-medium">$$${formula}$$</div>`);
+    return `\uFFFCMATHPLACEHOLDER${mathPlaceholders.length - 1}\uFFFC`;
+  });
+
+  // 1b. Inline math: $ ... $
+  mathPreserved = mathPreserved.replace(/\$((?:\\\$|[^\$])+)\$/g, (match, formula) => {
+    mathPlaceholders.push(`<span class="math-inline font-serif text-xs sm:text-sm font-medium">$${formula}$</span>`);
+    return `\uFFFCMATHPLACEHOLDER${mathPlaceholders.length - 1}\uFFFC`;
+  });
+
   // 1. Extract safe HTML/SVG tags into placeholders
   const placeholders: string[] = [];
-  let htmlPreserved = markdown;
+  let htmlPreserved = mathPreserved;
 
   // Regexes to match safe HTML/SVG elements individually to avoid nested parsing issues
   const tagNames = [
@@ -53,6 +69,8 @@ export function parseMarkdown(markdown: string): string {
   let codeLang = "";
   let codeContent: string[] = [];
   let inTable = false;
+  let activeCalloutType: string | null = null;
+  let activeCalloutContent: string[] = [];
   
   const lines = html.split("\n");
   const processedLines: string[] = [];
@@ -60,6 +78,17 @@ export function parseMarkdown(markdown: string): string {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
+
+    // Check if we need to close the callout
+    const isBlockquoteLine = trimmed.startsWith("&gt;") || trimmed.startsWith(">");
+    if (!isBlockquoteLine && activeCalloutType) {
+      const contentJoined = activeCalloutContent.join("<br />");
+      processedLines.push(
+        `<div class="callout callout-${activeCalloutType.toLowerCase()} border-l-4 pl-4 py-2 my-4 bg-black/5 dark:bg-white/5 border-[var(--callout-border)] rounded-r-md"><div class="callout-header flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider mb-1 text-[var(--callout-text)]"><span>${activeCalloutType}</span></div><div class="callout-content text-sm text-[var(--text-secondary)]">${contentJoined}</div></div>`
+      );
+      activeCalloutType = null;
+      activeCalloutContent = [];
+    }
 
     // Handle Code Blocks
     if (trimmed.startsWith("```")) {
@@ -142,10 +171,30 @@ export function parseMarkdown(markdown: string): string {
       continue;
     }
 
-    // Handle Blockquotes
-    if (parsedLine.startsWith("&gt; ") || parsedLine.startsWith("> ")) {
-      const content = parsedLine.replace(/^(&gt;|>)\s+/, "");
-      processedLines.push(`<blockquote class="border-l-4 border-[var(--accent)] pl-4 italic my-3 text-[var(--text-secondary)]">${content}</blockquote>`);
+    // Handle Blockquotes & Callouts
+    if (isBlockquoteLine) {
+      const content = parsedLine.replace(/^(&gt;|>)\s*/, "");
+      const calloutMatch = content.trim().match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*)$/i);
+      
+      if (calloutMatch) {
+        // If we were already in a callout, close it first
+        if (activeCalloutType) {
+          const contentJoined = activeCalloutContent.join("<br />");
+          processedLines.push(
+            `<div class="callout callout-${activeCalloutType.toLowerCase()} border-l-4 pl-4 py-2 my-4 bg-black/5 dark:bg-white/5 border-[var(--callout-border)] rounded-r-md"><div class="callout-header flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider mb-1 text-[var(--callout-text)]"><span>${activeCalloutType}</span></div><div class="callout-content text-sm text-[var(--text-secondary)]">${contentJoined}</div></div>`
+          );
+        }
+        activeCalloutType = calloutMatch[1].toUpperCase();
+        if (calloutMatch[2]) {
+          activeCalloutContent = [calloutMatch[2]];
+        } else {
+          activeCalloutContent = [];
+        }
+      } else if (activeCalloutType) {
+        activeCalloutContent.push(content);
+      } else {
+        processedLines.push(`<blockquote class="border-l-4 border-[var(--accent)] pl-4 italic my-3 text-[var(--text-secondary)]">${content}</blockquote>`);
+      }
       continue;
     }
 
@@ -203,11 +252,24 @@ export function parseMarkdown(markdown: string): string {
     return `<p class="mb-4 leading-relaxed text-[var(--text-secondary)] text-sm sm:text-base">${trimmed}</p>`;
   });
 
+  // If a callout is still open, close it
+  if (activeCalloutType) {
+    const contentJoined = activeCalloutContent.join("<br />");
+    processedLines.push(
+      `<div class="callout callout-${activeCalloutType.toLowerCase()} border-l-4 pl-4 py-2 my-4 bg-black/5 dark:bg-white/5 border-[var(--callout-border)] rounded-r-md"><div class="callout-header flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider mb-1 text-[var(--callout-text)]"><span>${activeCalloutType}</span></div><div class="callout-content text-sm text-[var(--text-secondary)]">${contentJoined}</div></div>`
+    );
+  }
+
   let finalHtml = parsedBlocks.join("\n");
 
   // Restore safe HTML/SVG tags in reverse order to correctly handle nesting
   for (let j = placeholders.length - 1; j >= 0; j--) {
     finalHtml = finalHtml.replace(`\uFFFCHTMLPLACEHOLDER${j}\uFFFC`, placeholders[j]);
+  }
+
+  // Restore math placeholders
+  for (let j = mathPlaceholders.length - 1; j >= 0; j--) {
+    finalHtml = finalHtml.replace(`\uFFFCMATHPLACEHOLDER${j}\uFFFC`, mathPlaceholders[j]);
   }
 
   return finalHtml;

@@ -13,6 +13,7 @@ const CATEGORIES = [
       { key: "Alt + M", description: "Go to music page" },
       { key: "Alt + U", description: "Go to uses page" },
       { key: "Alt + B", description: "Go to blog page" },
+      { key: "Alt + P", description: "Go to photos page" },
       { key: "Alt + G", description: "Open GitHub profile" },
     ],
   },
@@ -85,6 +86,12 @@ export default function KeyboardShortcuts() {
             e.preventDefault();
             router.push("/music");
             break;
+
+          case "p":
+            e.preventDefault();
+            router.push("/photos");
+            break;
+
 
           case "u":
             e.preventDefault();

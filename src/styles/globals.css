@@ -460,5 +460,131 @@ html.has-entered .first-load-overlay {
   vertical-align: middle;
 }
 
+/* Callout Styles */
+.callout {
+  border-left-width: 4px;
+}
+.callout-note {
+  --callout-border: #3b82f6;
+  --callout-text: #2563eb;
+}
+.dark .callout-note {
+  --callout-text: #60a5fa;
+}
+.callout-tip {
+  --callout-border: #10b981;
+  --callout-text: #059669;
+}
+.dark .callout-tip {
+  --callout-text: #34d399;
+}
+.callout-important {
+  --callout-border: #8b5cf6;
+  --callout-text: #7c3aed;
+}
+.dark .callout-important {
+  --callout-text: #a78bfa;
+}
+.callout-warning {
+  --callout-border: #f59e0b;
+  --callout-text: #d97706;
+}
+.dark .callout-warning {
+  --callout-text: #fbbf24;
+}
+.callout-caution {
+  --callout-border: #ef4444;
+  --callout-text: #dc2626;
+}
+.dark .callout-caution {
+  --callout-text: #f87171;
+}
+
+/* Prism syntax highlighting theme overrides */
+code[class*="language-"],
+pre[class*="language-"] {
+  font-family: var(--font-mono);
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 1.5;
+  tab-size: 4;
+  hyphens: none;
+}
+
+.token.comment,
+.token.block-comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #8e908c;
+}
+
+.token.punctuation {
+  color: #90a4ae;
+}
+
+.token.tag,
+.token.attr-name,
+.token.namespace,
+.token.deleted {
+  color: #e53935;
+}
+
+.token.function-name {
+  color: #6182b8;
+}
+
+.token.boolean,
+.token.number,
+.token.function {
+  color: #f76d47;
+}
+
+.token.property,
+.token.class-name,
+.token.constant,
+.token.symbol {
+  color: #f76d47;
+}
+
+.token.selector,
+.token.important,
+.token.atrule,
+.token.keyword,
+.token.builtin {
+  color: #39adb5;
+}
+
+.token.string,
+.token.char,
+.token.attr-value,
+.token.regex,
+.token.variable {
+  color: #91b859;
+}
+
+.token.operator,
+.token.entity,
+.token.url {
+  color: #39adb5;
+}
+
+.token.inserted {
+  color: #91b859;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
 
 

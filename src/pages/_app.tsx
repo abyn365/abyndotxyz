@@ -1,31 +1,40 @@
 import type { AppProps } from "next/app";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Analytics } from "@vercel/analytics/react";
 import { NextSeo } from "next-seo";
 import Head from "next/head";
 import Script from "next/script";
 import { AnimatePresence, motion } from "framer-motion";
+import { Jost, Sen } from "next/font/google";
 
 import { ThemeProvider } from "../components/ThemeProvider";
 import Navbar from "../components/Navbar";
 import KeyboardShortcuts from "../components/KeyboardShortcuts";
-import Squares from "../components/Squares";
+import BackgroundWrapper from "../components/BackgroundWrapper";
+import BackgroundSelector from "../components/BackgroundSelector";
 import { MusicPlayerProvider } from "../components/music/MusicPlayerContext";
 import MusicPlayerBar from "../components/music/MusicPlayerBar";
 import MusicLyricsPanel from "../components/music/MusicLyricsPanel";
 import MusicQueuePanel from "../components/music/MusicQueuePanel";
 import FirstLoadOverlay from "../components/FirstLoadOverlay";
 import ClickSound from "../components/ClickSound";
+import CommandPalette from "../components/CommandPalette";
 
-import "@fontsource/jost/400.css";
-import "@fontsource/jost/500.css";
-import "@fontsource/jost/600.css";
-import "@fontsource/jost/700.css";
-import "@fontsource/sen/400.css";
-import "@fontsource/sen/700.css";
 import "../styles/globals.css";
 import "../components/ClickSpark/ClickSpark";
+
+const jost = Jost({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+});
+
+const sen = Sen({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-display",
+});
 
 declare global {
   interface Console {
@@ -39,6 +48,22 @@ declare global {
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
+  const [routeLoading, setRouteLoading] = useState(false);
+
+  useEffect(() => {
+    const handleStart = () => setRouteLoading(true);
+    const handleComplete = () => setRouteLoading(false);
+
+    router.events.on("routeChangeStart", handleStart);
+    router.events.on("routeChangeComplete", handleComplete);
+    router.events.on("routeChangeError", handleComplete);
+
+    return () => {
+      router.events.off("routeChangeStart", handleStart);
+      router.events.off("routeChangeComplete", handleComplete);
+      router.events.off("routeChangeError", handleComplete);
+    };
+  }, [router]);
 
   useEffect(() => {
     const el = document.createElement("click-spark");
@@ -144,9 +169,12 @@ function MyApp({ Component, pageProps }: AppProps) {
 
       <Analytics />
 
-      <div className="min-h-screen font-sans">
+      <div className={`${jost.variable} ${sen.variable} min-h-screen font-sans`}>
+        {routeLoading && (
+          <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-neutral-400 dark:bg-neutral-500 origin-left" style={{ width: "100%" }} />
+        )}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <Squares direction="diagonal" speed={0.05} squareSize={32} />
+          <BackgroundWrapper />
         </div>
 
         <div className="relative z-10">
@@ -172,7 +200,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       <MusicPlayerBar />
       <MusicLyricsPanel />
       <MusicQueuePanel />
+      <CommandPalette />
       <KeyboardShortcuts />
+      <BackgroundSelector />
       <ClickSound />
     </MusicPlayerProvider>
     </ThemeProvider>

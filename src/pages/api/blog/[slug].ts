@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
-    const { title, description, content, coverImage, published } = req.body;
+    const { title, description, content, coverImage, published, tags } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ success: false, error: "Title and content are required" });
@@ -72,10 +72,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         content: content.trim(),
         coverImage: coverImage || "",
         published: !!published,
+        tags: Array.isArray(tags) ? tags : [],
         updatedAt: Date.now(),
       };
 
       await savePost(updatedPost);
+      try {
+        await res.revalidate("/blog");
+        await res.revalidate(`/blog/${slug}`);
+      } catch (err) {
+        console.error(`Failed to revalidate blog:`, err);
+      }
       return res.status(200).json({ success: true, post: updatedPost });
     } catch (error) {
       console.error(`Failed to update post "${slug}":`, error);
@@ -103,6 +110,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       await deletePost(slug);
+      try {
+        await res.revalidate("/blog");
+        await res.revalidate(`/blog/${slug}`);
+      } catch (err) {
+        console.error(`Failed to revalidate blog:`, err);
+      }
       return res.status(200).json({ success: true, message: "Post deleted successfully" });
     } catch (error) {
       console.error(`Failed to delete post "${slug}":`, error);

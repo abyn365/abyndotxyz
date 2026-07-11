@@ -10,6 +10,7 @@ interface Props {
   height?: number;
   fixedColor?: string;
   isolated?: boolean;
+  type?: "bar" | "wave";
 }
 
 export default function MusicVisualizer({
@@ -20,6 +21,7 @@ export default function MusicVisualizer({
   height = 24,
   fixedColor,
   isolated = false,
+  type = "bar",
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -59,63 +61,91 @@ export default function MusicVisualizer({
 
       ctx.clearRect(0, 0, width, height);
 
-      if (isPlaying && analyser) {
-        analyser.getByteFrequencyData(dataArray);
-      } else {
-        dataArray.fill(0);
-      }
-
-      const barWidth = (width / barCount) - 1.5;
-      let x = 0;
-
       const color1 = fixedColor || accentColor?.primary || "#3b82f6";
       const color2 = fixedColor || accentColor?.secondary || "#818cf8";
-
       waveOffset += 0.05;
 
-      for (let i = 0; i < barCount; i++) {
-        const dataIdx = Math.floor((i / barCount) * dataArray.length);
-        const val = dataArray[dataIdx];
-
-        let barHeight = 0;
-        if (isPlaying) {
-          if (analyser) {
-            // Amplify for visual output on short heights
-            barHeight = (val / 255) * height * 0.9;
-            barHeight = Math.max(2, barHeight);
-          } else {
-            // Simulated bounce if playing but analyser not ready
-            barHeight = (Math.sin(waveOffset + i * 0.8) + 1) * (height / 2.5) + 2;
-          }
-        } else {
-          // Standing wave pattern when paused
-          barHeight = (Math.sin(waveOffset * 0.2 + i * 0.4) + 1.2) * 1.5;
-        }
-
-        const gradient = ctx.createLinearGradient(0, height, 0, height - barHeight);
+      if (type === "wave") {
+        ctx.beginPath();
+        ctx.lineWidth = 1.5;
+        const gradient = ctx.createLinearGradient(0, 0, width, 0);
         gradient.addColorStop(0, color1);
         gradient.addColorStop(1, color2);
+        ctx.strokeStyle = gradient;
 
-        ctx.fillStyle = gradient;
+        if (isPlaying && analyser) {
+          analyser.getByteTimeDomainData(dataArray);
+          const sliceWidth = width / dataArray.length;
+          let x = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * height) / 2;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+            x += sliceWidth;
+          }
+        } else {
+          const sliceWidth = width / 100;
+          let x = 0;
+          for (let i = 0; i <= 100; i++) {
+            const angle = (i / 100) * Math.PI * 4 + waveOffset * 1.5;
+            const y = Math.sin(angle) * (height / 4) + (height / 2);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+            x += sliceWidth;
+          }
+        }
+        ctx.stroke();
+      } else {
+        if (isPlaying && analyser) {
+          analyser.getByteFrequencyData(dataArray);
+        } else {
+          dataArray.fill(0);
+        }
 
-        const rx = x;
-        const ry = height - barHeight;
-        const rw = Math.max(1.5, barWidth);
-        const rh = barHeight;
-        const radius = Math.min(rw / 2, 1.5);
+        const barWidth = (width / barCount) - 1.5;
+        let x = 0;
 
-        ctx.beginPath();
-        ctx.moveTo(rx + radius, ry);
-        ctx.lineTo(rx + rw - radius, ry);
-        ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + radius);
-        ctx.lineTo(rx + rw, ry + rh);
-        ctx.lineTo(rx, ry + rh);
-        ctx.lineTo(rx, ry + radius);
-        ctx.quadraticCurveTo(rx, ry, rx + radius, ry);
-        ctx.closePath();
-        ctx.fill();
+        for (let i = 0; i < barCount; i++) {
+          const dataIdx = Math.floor((i / barCount) * dataArray.length);
+          const val = dataArray[dataIdx];
 
-        x += barWidth + 1.5;
+          let barHeight = 0;
+          if (isPlaying) {
+            if (analyser) {
+              barHeight = (val / 255) * height * 0.9;
+              barHeight = Math.max(2, barHeight);
+            } else {
+              barHeight = (Math.sin(waveOffset + i * 0.8) + 1) * (height / 2.5) + 2;
+            }
+          } else {
+            barHeight = (Math.sin(waveOffset * 0.2 + i * 0.4) + 1.2) * 1.5;
+          }
+
+          const rx = x;
+          const ry = height - barHeight;
+          const rw = Math.max(1.5, barWidth);
+          const rh = barHeight;
+          const radius = Math.min(rw / 2, 1.5);
+
+          const gradient = ctx.createLinearGradient(0, height, 0, height - barHeight);
+          gradient.addColorStop(0, color1);
+          gradient.addColorStop(1, color2);
+          ctx.fillStyle = gradient;
+
+          ctx.beginPath();
+          ctx.moveTo(rx + radius, ry);
+          ctx.lineTo(rx + rw - radius, ry);
+          ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + radius);
+          ctx.lineTo(rx + rw, ry + rh);
+          ctx.lineTo(rx, ry + rh);
+          ctx.lineTo(rx, ry + radius);
+          ctx.quadraticCurveTo(rx, ry, rx + radius, ry);
+          ctx.closePath();
+          ctx.fill();
+
+          x += barWidth + 1.5;
+        }
       }
 
       animationRef.current = requestAnimationFrame(draw);
