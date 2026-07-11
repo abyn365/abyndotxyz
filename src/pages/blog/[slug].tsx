@@ -433,7 +433,7 @@ export default function BlogPostPage({
   return (
     <>
       <Head>
-        <title>{post.title} · abyn</title>
+        <title>{`${post.title} · abyn`}</title>
         <meta name="description" content={post.description} />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.description} />
@@ -849,39 +849,44 @@ export default function BlogPostPage({
                   On this page
                 </h3>
                 <nav className="relative space-y-2 border-l border-[var(--card-border)] pl-4">
-                  {headers.map((header) => {
-                    const isActive = header.id === activeId;
-                    const indent =
-                      header.level === 3
-                        ? "pl-3 text-[11px]"
-                        : header.level === 4
-                        ? "pl-6 text-[10px]"
-                        : "text-xs";
-                    return (
-                      <a
-                        key={header.id}
-                        href={`#${header.id}`}
-                        className={`relative block leading-relaxed transition-colors ${indent} ${
-                          isActive
-                            ? "font-semibold text-[var(--accent)]"
-                            : "text-[var(--text-secondary)] hover:text-[var(--accent)]"
-                        }`}
-                      >
-                        {isActive && (
-                          <motion.div
-                            layoutId="active-toc-indicator"
-                            className="absolute bottom-0 left-[-17px] top-0 w-[2px] bg-[var(--accent)]"
-                            transition={{
-                              type: "spring",
-                              stiffness: 350,
-                              damping: 25,
-                            }}
-                          />
-                        )}
-                        {header.text}
-                      </a>
-                    );
-                  })}
+                  {(() => {
+                    const minLevel = Math.min(...headers.map(h => h.level));
+                    return headers.map((header) => {
+                      const isActive = header.id === activeId;
+                      const indent =
+                        header.level === minLevel
+                          ? "text-xs font-semibold"
+                          : header.level === minLevel + 1
+                          ? "pl-3 text-[11px]"
+                          : header.level === minLevel + 2
+                          ? "pl-6 text-[10px]"
+                          : "pl-8 text-[9px]";
+                      return (
+                        <a
+                          key={header.id}
+                          href={`#${header.id}`}
+                          className={`relative block leading-relaxed transition-colors ${indent} ${
+                            isActive
+                              ? "font-semibold text-[var(--accent)]"
+                              : "text-[var(--text-secondary)] hover:text-[var(--accent)]"
+                          }`}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="active-toc-indicator"
+                              className="absolute bottom-0 left-[-17px] top-0 w-[2px] bg-[var(--accent)]"
+                              transition={{
+                                type: "spring",
+                                stiffness: 350,
+                                damping: 25,
+                              }}
+                            />
+                          )}
+                          {header.text}
+                        </a>
+                      );
+                    });
+                  })()}
                 </nav>
               </aside>
             </div>
@@ -917,11 +922,12 @@ function getHeaders(content: string): HeaderItem[] {
     if (inCodeBlock) continue;
 
     if (
+      trimmed.startsWith("#") ||
       trimmed.startsWith("##") ||
       trimmed.startsWith("###") ||
       trimmed.startsWith("####")
     ) {
-      const match = trimmed.match(/^(#{2,4})\s+(.*)$/);
+      const match = trimmed.match(/^(#{1,4})\s+(.*)$/);
       if (match) {
         const level = match[1].length;
         let text = match[2].trim();
