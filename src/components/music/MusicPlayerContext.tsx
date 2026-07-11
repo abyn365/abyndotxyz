@@ -776,6 +776,34 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
           set({ lyricsState: "error" });
         });
 
+      // Fetch Spotify Canvas video from Paxsenix API asynchronously in the background
+      fetch(`/api/canvas?artist=${encodeURIComponent(track.artist)}&title=${encodeURIComponent(track.title)}`, {
+        signal: abort.signal,
+      })
+        .then((res) => {
+          if (res.ok) return res.json();
+          return null;
+        })
+        .then((data) => {
+          if (abort.signal.aborted) return;
+          if (data?.canvasUrl) {
+            const latestTrack = isSameTrack(stateRef.current.currentTrack, track)
+              ? stateRef.current.currentTrack!
+              : track;
+            set({
+              currentTrack: {
+                ...latestTrack,
+                canvasUrl: data.canvasUrl,
+              },
+            });
+          }
+        })
+        .catch((err) => {
+          if (!abort.signal.aborted) {
+            console.error("[Canvas Background Load Error]", err);
+          }
+        });
+
       try {
         const resolved = await resolveTrackOnServer(track, abort.signal);
         if (abort.signal.aborted) return;

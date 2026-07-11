@@ -20,7 +20,6 @@ export interface LyricsMetadata {
   albumArt?: string;
   durationMs?: number;
   source?: string;
-  canvasUrl?: string;
 }
 
 export interface LyricsResult {

@@ -274,7 +274,7 @@ export default function PhotosPage({ photos: initialPhotos }: { photos?: Photo[]
                       <GalleryImage photo={photo} isMasonry={isMasonry} />
 
                       {/* Hover Overlay */}
-                      <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/10 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus:opacity-100">
+                      <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/10 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus:opacity-100 z-20 pointer-events-none">
                         {photo.description && (
                           <p className="text-xs text-white leading-relaxed line-clamp-3 font-medium">
                             {photo.description}

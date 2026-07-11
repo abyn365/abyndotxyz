@@ -182,7 +182,15 @@ export default function MusicLyricsPanel() {
         >
           {/* Ambient cinematic backdrop (video canvas or album art) */}
           {currentTrack.canvasUrl ? (
-            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden flex items-center justify-center">
+              {/* Blurred static cover art background for widescreen viewports */}
+              {currentTrack.cover && (
+                <div
+                  className="absolute inset-0 h-full w-full bg-cover bg-center filter blur-[60px] opacity-25 scale-105"
+                  style={{ backgroundImage: `url(${currentTrack.cover})` }}
+                />
+              )}
+              {/* Centered native canvas video */}
               <video
                 key={currentTrack.canvasUrl}
                 src={currentTrack.canvasUrl}
@@ -190,14 +198,14 @@ export default function MusicLyricsPanel() {
                 loop
                 muted
                 playsInline
-                className={`h-full w-full object-cover scale-[1.02] transition-all duration-1000 ${
+                className={`relative z-10 h-full max-w-full aspect-[9/16] object-contain transition-all duration-1000 ${
                   hasLyricsOrLoading
-                    ? "opacity-35 dark:opacity-25 filter blur-[3px] saturate-[1.1]"
+                    ? "opacity-35 dark:opacity-25 filter blur-[2px] saturate-[1.1]"
                     : "opacity-[0.85] dark:opacity-[0.7] filter blur-none saturate-[1.3]"
                 }`}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)] opacity-85 transition-opacity duration-1000" />
-              <div className={`absolute inset-0 transition-colors duration-1000 ${
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)] opacity-85 z-20 transition-opacity duration-1000" />
+              <div className={`absolute inset-0 transition-colors duration-1000 z-20 ${
                 hasLyricsOrLoading
                   ? "bg-black/45 dark:bg-black/65"
                   : "bg-black/15 dark:bg-black/30"
@@ -292,7 +300,6 @@ export default function MusicLyricsPanel() {
               >
                 <MusicArtwork
                   src={currentTrack.cover}
-                  canvasUrl={currentTrack.canvasUrl}
                   alt={currentTrack.title}
                   className="h-full w-full object-cover"
                 />
