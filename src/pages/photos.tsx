@@ -23,12 +23,25 @@ function GalleryImage({
   photo: Photo;
   isMasonry: boolean;
 }) {
-  const [loaded, setLoaded] = useState(() => {
-    if (typeof window !== "undefined") {
-      return loadedImages.has(photo.url);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const wasCachedRef = useRef(false);
+
+  useEffect(() => {
+    setMounted(true);
+    if (loadedImages.has(photo.url) || imgRef.current?.complete) {
+      wasCachedRef.current = true;
+      loadedImages.add(photo.url);
+      setLoaded(true);
+    } else {
+      wasCachedRef.current = false;
+      setLoaded(false);
     }
-    return false;
-  });
+  }, [photo.url]);
+
+  const showInstant = mounted && wasCachedRef.current;
+  const isImageLoaded = loaded || showInstant;
 
   return (
     <div
@@ -40,21 +53,22 @@ function GalleryImage({
         <img
           src={photo.blurDataUrl}
           alt=""
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 pointer-events-none filter blur-md scale-110 ${
-            loaded ? "opacity-0" : "opacity-100"
-          }`}
+          className={`absolute inset-0 h-full w-full object-cover pointer-events-none filter blur-md scale-110 ${
+            showInstant ? "" : "transition-opacity duration-700"
+          } ${isImageLoaded ? "opacity-0" : "opacity-100"}`}
         />
       ) : (
         /* Skeleton Background Fallback */
         <div
-          className={`absolute inset-0 bg-neutral-200 dark:bg-neutral-800 animate-pulse transition-opacity duration-700 ${
-            loaded ? "opacity-0" : "opacity-100"
-          }`}
+          className={`absolute inset-0 bg-neutral-200 dark:bg-neutral-800 animate-pulse ${
+            showInstant ? "" : "transition-opacity duration-700"
+          } ${isImageLoaded ? "opacity-0" : "opacity-100"}`}
         />
       )}
 
       {/* Full-resolution Image */}
       <img
+        ref={imgRef}
         src={photo.url}
         alt={photo.description || "Gallery Photo"}
         loading="lazy"
@@ -62,14 +76,17 @@ function GalleryImage({
           loadedImages.add(photo.url);
           setLoaded(true);
         }}
-        className={`w-full transition-all duration-500 group-hover:scale-103 ${
-          isMasonry ? "h-auto" : "h-full object-cover"
-        } ${loaded ? "opacity-100" : "opacity-0"}`}
+        className={`w-full group-hover:scale-103 transition-transform duration-500 ${
+          showInstant ? "" : "transition-opacity duration-500"
+        } ${isMasonry ? "h-auto" : "h-full object-cover"} ${
+          isImageLoaded ? "opacity-100" : "opacity-0"
+        }`}
         style={isMasonry ? { aspectRatio: photo.aspectRatio } : undefined}
       />
     </div>
   );
 }
+
 
 export default function PhotosPage({ photos: initialPhotos }: { photos?: Photo[] }) {
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos || []);
