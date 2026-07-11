@@ -6,6 +6,9 @@ import path from "path";
 const DB_PATH = process.env.KV_DATABASE_PATH || path.join(process.cwd(), "kv.sqlite");
 
 const db = new Database(DB_PATH);
+db.exec("PRAGMA journal_mode = WAL;");
+db.exec("PRAGMA busy_timeout = 5000;");
+
 
 // Create table if it doesn't exist
 db.query(`
