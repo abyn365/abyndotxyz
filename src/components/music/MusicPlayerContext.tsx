@@ -753,7 +753,9 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
             lyricsState = "error";
           }
 
-          const latestTrack = stateRef.current.currentTrack || track;
+          const latestTrack = isSameTrack(stateRef.current.currentTrack, track)
+            ? stateRef.current.currentTrack!
+            : track;
           const enriched = resolveMetadata(latestTrack, lyrics.metadata);
           set({
             currentTrack: enriched,
@@ -784,7 +786,9 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
         const elapsedMs = Date.now() - playSongStartedAt.current;
         const seekTo = seekToMs !== undefined ? (seekToMs + elapsedMs) / 1000 : undefined;
 
-        const latestTrack = stateRef.current.currentTrack || track;
+        const latestTrack = isSameTrack(stateRef.current.currentTrack, track)
+          ? stateRef.current.currentTrack!
+          : track;
         const enrichedTrack = {
           ...latestTrack,
           provider,

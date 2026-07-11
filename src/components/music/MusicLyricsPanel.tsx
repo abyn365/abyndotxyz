@@ -292,6 +292,7 @@ export default function MusicLyricsPanel() {
               >
                 <MusicArtwork
                   src={currentTrack.cover}
+                  canvasUrl={currentTrack.canvasUrl}
                   alt={currentTrack.title}
                   className="h-full w-full object-cover"
                 />

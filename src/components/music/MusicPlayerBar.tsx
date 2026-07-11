@@ -161,7 +161,7 @@ function ProgressBar() {
 // ---------------------------------------------------------------------------
 function CompactProgressLine() {
   const { duration, accentColor } = useMusicPlayer();
-  const [progressPct, setProgressPct] = useState(0);
+  const fillRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let frameId: number;
@@ -171,7 +171,9 @@ function CompactProgressLine() {
       const p = await player;
       const currentTime = p.getTime();
       const pct = duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0;
-      setProgressPct(pct);
+      if (fillRef.current) {
+        fillRef.current.style.width = `${pct}%`;
+      }
       frameId = requestAnimationFrame(updateLoop);
     };
 
@@ -182,9 +184,10 @@ function CompactProgressLine() {
   return (
     <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/5 overflow-hidden rounded-b-xl pointer-events-none">
       <div
-        className="h-full transition-all duration-100 ease-linear"
+        ref={fillRef}
+        className="h-full"
         style={{
-          width: `${progressPct}%`,
+          width: "0%",
           background: `linear-gradient(90deg, ${accentColor.primary}, ${accentColor.secondary})`,
         }}
       />
@@ -332,7 +335,7 @@ export default function MusicPlayerBar() {
           WebkitBackdropFilter: "blur(20px)",
           borderColor: `color-mix(in srgb, ${accent} 25%, rgba(255, 255, 255, 0.08))`,
           boxShadow: `0 12px 32px rgba(0,0,0,0.45), 0 0 1px color-mix(in srgb, ${accent} 30%, transparent)`,
-          transition: "max-width 300ms cubic-bezier(0.25, 0.8, 0.25, 1), border-color 600ms ease, box-shadow 600ms ease",
+          transition: "max-width 300ms cubic-bezier(0.25, 0.8, 0.25, 1), border-color 600ms ease, box-shadow 600ms ease, bottom 250ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
         {/* Subtle accent glow overlay at the top edge */}
