@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { kv } from "../../lib/kv";
 import { getAccessToken } from "../../lib/spotify";
+import { getCanvasInHouse } from "../../lib/spotify-canvas";
 
 async function fetchCanvasUrl(artist: string, title: string): Promise<string> {
   const cacheKey = `canvas_by_search:${artist.toLowerCase()}:${title.toLowerCase()}`;
@@ -12,7 +13,7 @@ async function fetchCanvasUrl(artist: string, title: string): Promise<string> {
     const { access_token } = await getAccessToken();
 
     // 2. Search track on Spotify to get track ID
-    const query = `track:${title} artist:${artist}`;
+    const query = `${title} ${artist}`;
     const searchRes = await fetch(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`,
       {
@@ -30,11 +31,25 @@ async function fetchCanvasUrl(artist: string, title: string): Promise<string> {
     const searchData = await searchRes.json();
     const trackId = searchData?.tracks?.items?.[0]?.id;
     if (!trackId) {
-      await kv.set(cacheKey, "", { ex: 24 * 60 * 60 }); // Cache empty for 24h
+      await kv.set(cacheKey, "", { ex: 10 * 60 }); // Cache empty for 10 minutes only
       return "";
     }
 
-    // 3. Fetch canvas from Paxsenix using trackId
+    // 3. Try In-House Solution first (if SPOTIFY_SP_DC is configured)
+    const spDc = process.env.SPOTIFY_SP_DC;
+    if (spDc) {
+      console.log(`[Canvas API] Resolving canvas in-house for track: ${trackId}`);
+      const inHouseUrl = await getCanvasInHouse(trackId, spDc);
+      if (inHouseUrl) {
+        await kv.set(cacheKey, inHouseUrl, { ex: 7 * 24 * 60 * 60 }); // Cache 7 days
+        return inHouseUrl;
+      }
+      console.warn(`[Canvas API] In-house resolution returned empty. Falling back to Paxsenix...`);
+    } else {
+      console.info(`[Canvas API] SPOTIFY_SP_DC not configured. Falling back to Paxsenix...`);
+    }
+
+    // 4. Fetch canvas from Paxsenix using trackId (Fallback)
     const apiKey = process.env.PAXSENIX_API_KEY as string;
     const canvasRes = await fetch(`https://api.paxsenix.org/spotify/canvas?id=${trackId}`, {
       headers: {
@@ -53,7 +68,7 @@ async function fetchCanvasUrl(artist: string, title: string): Promise<string> {
       }
     }
 
-    await kv.set(cacheKey, "", { ex: 24 * 60 * 60 }); // Cache empty for 24h
+    await kv.set(cacheKey, "", { ex: 10 * 60 }); // Cache empty for 10 minutes only
     return "";
   } catch (err) {
     console.error("[Canvas API] Failed to fetch Spotify canvas:", err);

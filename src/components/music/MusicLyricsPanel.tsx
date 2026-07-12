@@ -182,15 +182,8 @@ export default function MusicLyricsPanel() {
         >
           {/* Ambient cinematic backdrop (video canvas or album art) */}
           {currentTrack.canvasUrl ? (
-            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden flex items-center justify-center">
-              {/* Blurred static cover art background for widescreen viewports */}
-              {currentTrack.cover && (
-                <div
-                  className="absolute inset-0 h-full w-full bg-cover bg-center filter blur-[60px] opacity-25 scale-105"
-                  style={{ backgroundImage: `url(${currentTrack.cover})` }}
-                />
-              )}
-              {/* Centered native canvas video */}
+            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+              {/* Full bleed canvas video with elegant responsive blur */}
               <video
                 key={currentTrack.canvasUrl}
                 src={currentTrack.canvasUrl}
@@ -198,14 +191,14 @@ export default function MusicLyricsPanel() {
                 loop
                 muted
                 playsInline
-                className={`relative z-10 h-full max-w-full aspect-[9/16] object-contain transition-all duration-1000 ${
+                className={`h-full w-full object-cover scale-[1.03] transition-all duration-1000 ${
                   hasLyricsOrLoading
-                    ? "opacity-35 dark:opacity-25 filter blur-[2px] saturate-[1.1]"
-                    : "opacity-[0.85] dark:opacity-[0.7] filter blur-none saturate-[1.3]"
+                    ? "opacity-35 dark:opacity-25 filter blur-[24px] md:blur-[36px] saturate-[1.1]"
+                    : "opacity-[0.8] dark:opacity-[0.65] filter blur-[8px] md:blur-[12px] saturate-[1.35]"
                 }`}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)] opacity-85 z-20 transition-opacity duration-1000" />
-              <div className={`absolute inset-0 transition-colors duration-1000 z-20 ${
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)] opacity-85 transition-opacity duration-1000" />
+              <div className={`absolute inset-0 transition-colors duration-1000 ${
                 hasLyricsOrLoading
                   ? "bg-black/45 dark:bg-black/65"
                   : "bg-black/15 dark:bg-black/30"

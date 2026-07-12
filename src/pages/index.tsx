@@ -252,6 +252,7 @@ export default function Home() {
   const [guestbookName, setGuestbookName] = useState("");
   const [guestbookMessage, setGuestbookMessage] = useState("");
   const [messages, setMessages] = useState<GuestbookMessage[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
   const [guestbookLoading, setGuestbookLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -320,8 +321,12 @@ export default function Home() {
       })
       .then((data) => {
         if (data.success) setMessages(data.messages);
+        setMessagesLoading(false);
       })
-      .catch((err) => console.error("Error loading guestbook:", err));
+      .catch((err) => {
+        console.error("Error loading guestbook:", err);
+        setMessagesLoading(false);
+      });
   }, []);
 
   // Sync visitor status with guestbook input name
@@ -874,15 +879,22 @@ export default function Home() {
                   ? "Copied username!"
                   : `@${profileData?.user?.username || "abynb"}`}
               </button>
-              {profileData?.user_profile?.pronouns && (
+              {!profileData ? (
+                <span className="inline-block h-3 w-10 animate-pulse rounded bg-white/5" />
+              ) : profileData?.user_profile?.pronouns ? (
                 <span className="text-[10px] text-neutral-500">
                   · {profileData.user_profile.pronouns}
                 </span>
-              )}
+              ) : null}
             </div>
 
             {/* Badges icons */}
-            {profileData?.badges && profileData.badges.length > 0 && (
+            {!profileData ? (
+              <div className="flex items-center gap-1">
+                <div className="h-5 w-5 animate-pulse rounded bg-white/5" />
+                <div className="h-5 w-5 animate-pulse rounded bg-white/5" />
+              </div>
+            ) : profileData?.badges && profileData.badges.length > 0 ? (
               <div className="flex items-center gap-1">
                 {profileData.badges.map((badge) => (
                   <div
@@ -899,7 +911,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* ABOUT ME SECTION */}
@@ -909,11 +921,16 @@ export default function Home() {
             </h3>
             <div className="rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] p-3 text-xs leading-5 text-[var(--discord-card-text)]">
               {/* Dynamic Discord Profile Endpoint Bio Component */}
-              {profileData?.user_profile?.bio && (
+              {!profileData ? (
+                <div className="mb-2.5 mt-0.5 space-y-2 border-b border-[var(--discord-card-border)] pb-2">
+                  <div className="h-3 w-full animate-pulse rounded bg-white/5" />
+                  <div className="h-3 w-5/6 animate-pulse rounded bg-white/5" />
+                </div>
+              ) : profileData?.user_profile?.bio ? (
                 <div className="mb-2.5 mt-0.5 flex flex-wrap items-center gap-1.5 border-b border-[var(--discord-card-border)] pb-2 text-xs">
                   {parseBio(profileData.user_profile.bio)}
                 </div>
-              )}
+              ) : null}
               <p className="mt-2">
                 Student developer from Indonesia. I build small, considered
                 things for the web — usually involving live data or music.
@@ -929,25 +946,39 @@ export default function Home() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {/* Column 1: Discord Connection Accounts */}
               <div className="space-y-1.5">
-                {profileData?.connected_accounts?.map((acc) => {
-                  const Icon = CONNECTION_ICONS[acc.type] || Globe;
-                  const url = CONNECTION_URLS[acc.type]?.(acc.name) || "#";
-                  return (
-                    <a
-                      key={acc.id}
-                      href={url}
-                      className="flex h-[38px] items-center justify-between rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] px-3 py-2 text-xs transition-colors hover:bg-[var(--discord-card-border)]/40"
+                {!profileData ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex h-[38px] items-center justify-between rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] px-3 py-2"
                     >
-                      <div className="flex min-w-0 items-center gap-2">
-                        <Icon className="h-4 w-4 shrink-0 text-[var(--discord-card-secondary)]" />
-                        <span className="truncate font-mono text-[var(--discord-card-text)]">
-                          {acc.name}
-                        </span>
+                      <div className="flex items-center gap-2 w-full animate-pulse">
+                        <div className="h-4 w-4 rounded bg-white/5" />
+                        <div className="h-3 w-2/3 rounded bg-white/5" />
                       </div>
-                      <CheckCircle2 className="h-3 w-3 shrink-0 text-green-500 opacity-80" />
-                    </a>
-                  );
-                })}
+                    </div>
+                  ))
+                ) : (
+                  profileData?.connected_accounts?.map((acc) => {
+                    const Icon = CONNECTION_ICONS[acc.type] || Globe;
+                    const url = CONNECTION_URLS[acc.type]?.(acc.name) || "#";
+                    return (
+                      <a
+                        key={acc.id}
+                        href={url}
+                        className="flex h-[38px] items-center justify-between rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] px-3 py-2 text-xs transition-colors hover:bg-[var(--discord-card-border)]/40"
+                      >
+                        <div className="flex min-w-0 items-center gap-2">
+                          <Icon className="h-4 w-4 shrink-0 text-[var(--discord-card-secondary)]" />
+                          <span className="truncate font-mono text-[var(--discord-card-text)]">
+                            {acc.name}
+                          </span>
+                        </div>
+                        <CheckCircle2 className="h-3 w-3 shrink-0 text-green-500 opacity-80" />
+                      </a>
+                    );
+                  })
+                )}
               </div>
 
               {/* Column 2: Non-duplicate Social Redirects */}
@@ -1302,9 +1333,21 @@ export default function Home() {
                   {messages.length} messages
                 </span>
               </div>
-
               <div className="scrollbar-thin flex-1 space-y-2.5 overflow-y-auto pr-1.5">
-                {messages.length === 0 ? (
+                {messagesLoading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="animate-pulse rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] p-3.5 space-y-2.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="h-3.5 w-24 rounded bg-white/5" />
+                        <div className="h-2.5 w-16 rounded bg-white/5" />
+                      </div>
+                      <div className="h-3.5 w-5/6 rounded bg-white/5" />
+                    </div>
+                  ))
+                ) : messages.length === 0 ? (
                   <p className="py-10 text-center text-xs italic text-neutral-500">
                     No messages yet. Be the first!
                   </p>

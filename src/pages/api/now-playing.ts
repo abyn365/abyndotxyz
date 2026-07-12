@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { getNowPlaying, getQueue, getAccessToken, SpotifyRefreshTokenExpiredError } from "../../lib/spotify";
 import { NowPlayingSong, UpcomingQueueItem } from "../../@types/now-playing-song.type";
 import { kv } from "../../lib/kv";
+import { getCanvasInHouse } from "../../lib/spotify-canvas";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<NowPlayingSong | { error: string }>) {
   if (req.method !== 'GET') {
@@ -47,22 +48,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         if (cachedCanvas !== null) {
           canvasUrl = cachedCanvas;
         } else {
-          const apiKey = process.env.PAXSENIX_API_KEY as string;
-          const canvasRes = await fetch(`https://api.paxsenix.org/spotify/canvas?id=${trackId}`, {
-            headers: {
-              "Authorization": `Bearer ${apiKey}`,
-              "Content-Type": "application/json"
-            },
-            cache: "no-store"
-          });
-          if (canvasRes.ok) {
-            const canvasData = await canvasRes.json();
-            if (canvasData?.ok && canvasData?.data?.canvasesList?.length > 0) {
-              canvasUrl = canvasData.data.canvasesList[0].canvasUrl || "";
+          // 1. Try In-house solution first
+          const spDc = process.env.SPOTIFY_SP_DC;
+          if (spDc) {
+            console.log(`[Now Playing API] Resolving canvas in-house for: ${trackId}`);
+            canvasUrl = await getCanvasInHouse(trackId, spDc);
+            if (canvasUrl) {
               await kv.set(cacheKey, canvasUrl, { ex: 7 * 24 * 60 * 60 }); // Cache 7 days
-            } else {
-              await kv.set(cacheKey, "", { ex: 24 * 60 * 60 }); // Cache empty for 24h
             }
+          }
+
+          // 2. Fallback to Paxsenix if in-house is not configured or fails
+          if (!canvasUrl) {
+            const apiKey = process.env.PAXSENIX_API_KEY as string;
+            const canvasRes = await fetch(`https://api.paxsenix.org/spotify/canvas?id=${trackId}`, {
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+              },
+              cache: "no-store"
+            });
+            if (canvasRes.ok) {
+              const canvasData = await canvasRes.json();
+              if (canvasData?.ok && canvasData?.data?.canvasesList?.length > 0) {
+                canvasUrl = canvasData.data.canvasesList[0].canvasUrl || "";
+                await kv.set(cacheKey, canvasUrl, { ex: 7 * 24 * 60 * 60 }); // Cache 7 days
+              }
+            }
+          }
+
+          // 3. Cache failure for 10 minutes only
+          if (!canvasUrl) {
+            await kv.set(cacheKey, "", { ex: 10 * 60 });
           }
         }
       } catch (err) {

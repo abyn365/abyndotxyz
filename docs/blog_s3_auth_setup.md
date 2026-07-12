@@ -73,3 +73,40 @@ bun run dev
 2. Open `http://localhost:3000/admin` to access the administrator panel. Log in using your configured credentials.
 3. Test creating a post, uploading an image (requires S3 configured), editing content, and toggling draft status.
 4. Open `http://localhost:3000/` and click the **Guestbook** tab to test visitor register/login, posting, and synchronized liking.
+
+---
+
+## 5. Spotify Integration & Canvas Config
+
+The site integrates with Spotify to show live listening status, queue, top tracks, and Spotify Canvas video loops on the lyrics overlay page.
+
+### Environment Variables
+
+Configure Spotify by adding the following credentials to your `.env` file:
+
+```env
+# Spotify Developer API (OAuth)
+SPOTIFY_CLIENT_ID="your-spotify-developer-client-id"
+SPOTIFY_CLIENT_SECRET="your-spotify-developer-client-secret"
+SPOTIFY_REFRESH_TOKEN="your-spotify-oauth-refresh-token"
+
+# Spotify Canvas In-House Resolver (Optional, but highly recommended)
+SPOTIFY_SP_DC="your-spotify-sp-dc-cookie-for-canvas"
+```
+
+### In-House Spotify Canvas Setup (`SPOTIFY_SP_DC`)
+
+To fetch Spotify Canvas video loops privately in-house rather than relying on unreliable public APIs:
+
+1. Open a web browser and go to [Spotify Web Player](https://open.spotify.com).
+2. Log in with your Spotify account.
+3. Open the browser **Developer Tools** (`F12` or `Ctrl+Shift+I` / `Cmd+Option+I`).
+4. Go to the **Application** tab (Chrome/Edge) or **Storage** tab (Firefox/Safari).
+5. Click **Cookies** in the sidebar and select `https://open.spotify.com`.
+6. Locate the cookie named `sp_dc` and copy its value.
+7. Paste it in your `.env` file as `SPOTIFY_SP_DC="your_copied_value"`.
+
+> [!NOTE]
+> **Paxsenix Fallback**
+> The `sp_dc` cookie acts as a persistent session indicator and typically lasts for 1 year. If `SPOTIFY_SP_DC` is not set or leaves empty, the application will automatically fall back to the public Paxsenix API.
+

@@ -395,9 +395,40 @@ export default function BlogPostPage({
 
   if (loading) {
     return (
-      <main className="min-h-screen">
-        <div className="mx-auto max-w-3xl px-4 pt-24 text-center text-sm text-[var(--text-secondary)]">
-          Loading article...
+      <main className="min-h-screen pb-16">
+        <div className="mx-auto max-w-3xl px-4 pt-24 space-y-8 animate-pulse">
+          {/* Back button skeleton */}
+          <div className="h-4 w-20 rounded bg-white/5" />
+
+          <div className="space-y-4">
+            {/* Title skeleton */}
+            <div className="h-10 w-5/6 rounded bg-white/5" />
+            
+            {/* Meta row skeleton */}
+            <div className="flex items-center gap-3">
+              <div className="h-4 w-24 rounded bg-white/5" />
+              <div className="h-4 w-20 rounded bg-white/5" />
+            </div>
+          </div>
+
+          {/* Cover image skeleton */}
+          <div className="h-[280px] w-full rounded-2xl bg-white/5" />
+
+          {/* Article content skeleton paragraphs */}
+          <div className="space-y-4 pt-4">
+            <div className="h-4 w-full rounded bg-white/5" />
+            <div className="h-4 w-[95%] rounded bg-white/5" />
+            <div className="h-4 w-[98%] rounded bg-white/5" />
+            <div className="h-4 w-[90%] rounded bg-white/5" />
+            <div className="h-4 w-[85%] rounded bg-white/5" />
+          </div>
+
+          <div className="space-y-4 pt-6">
+            <div className="h-4 w-full rounded bg-white/5" />
+            <div className="h-4 w-[96%] rounded bg-white/5" />
+            <div className="h-4 w-[93%] rounded bg-white/5" />
+            <div className="h-4 w-2/3 rounded bg-white/5" />
+          </div>
         </div>
       </main>
     );

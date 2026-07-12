@@ -291,6 +291,201 @@ curl 'https://your-domain.com/api/idonthavespotify?url=https%3A%2F%2Fopen.spotif
 The endpoint returns the raw response from the Paxsenix API.
 
 ```json
+Query parameters:
+
+| Parameter | Values                    | Default | Description                                                  |
+| --------- | ------------------------- | ------- | ------------------------------------------------------------ |
+| `period`  | `short`, `medium`, `long` | `short` | Maps to Spotify `short_term`, `medium_term`, or `long_term`. |
+
+Required environment/configuration:
+
+- Spotify credentials used by `lib/spotify` to refresh an access token.
+- Vercel KV for track caches and Spotify rate-limit retry metadata.
+
+Example response:
+
+```json
+{
+  "tracks": [
+    {
+      "title": "Song title",
+      "artist": "Artist One, Artist Two",
+      "cover": "https://i.scdn.co/image/...",
+      "songUrl": "https://open.spotify.com/track/...",
+      "albumYear": "2026",
+      "popularity": 70,
+      "genre": ["soundtrack"],
+      "isArtistGenre": true,
+      "duration": 180000
+    }
+  ]
+}
+```
+
+### Cache and rate-limit behavior
+
+- Cache keys are per Spotify time range.
+- Cache TTLs are approximately 6 hours for `short`, 2 days for `medium`, and 7 days for `long`.
+- Responses may include `x-cache` values such as `KV_HIT`, `KV_MISS`, `KV_RATE_LIMIT`, or `KV_STALE`.
+- When Spotify returns `429`, the route stores retry metadata in KV and may send a `retry-after` response header.
+- If fresh Spotify requests fail but cached data exists, stale cached data is returned.
+- Unsupported methods return `405`; complete failures without cache return `500`.
+
+## Location and weather APIs
+
+The location API stores the site owner's current city/country in Vercel KV, geocodes it with Open-Meteo, and lets `/api/weather` automatically use the saved coordinates and timezone. If KV is unavailable or no location has been stored yet, the app falls back to Yogyakarta, Indonesia.
+
+### Environment variables
+
+| Variable            | Required                  | Description                                                                               |
+| ------------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
+| `LOCATION_SECRET`   | Yes for updates           | Shared secret that must be sent in the `Authorization` header when updating location.     |
+| `LOCATION_UPDATE_SECRET` | Optional fallback      | Alternate shared secret name for location updates. Useful when rotating or replacing `LOCATION_SECRET`. |
+| Vercel KV variables | Yes outside fallback mode | `@vercel/kv` connection variables used to persist the current location and weather cache. |
+
+### `GET /api/location`
+
+Returns the currently stored location.
+
+```sh
+curl https://your-domain.com/api/location
+```
+
+Example response:
+
+```json
+{
+  "city": "Yogyakarta",
+  "country": "Indonesia",
+  "latitude": -7.8014,
+  "longitude": 110.3647,
+  "timezone": "Asia/Jakarta",
+  "timestamp": "2026-01-01T00:00:00.000Z"
+}
+```
+
+### `POST /api/location`
+
+Updates the stored location. Send a city and country; the API geocodes them before saving normalized coordinates/timezone data.
+
+```sh
+curl -X POST https://your-domain.com/api/location \
+  -H "Content-Type: application/json" \
+  -d '{"city":"Paris","country":"France","secret":"'"$LOCATION_SECRET"'"}'
+```
+
+The authorization check trims accidental whitespace and accepts the secret in the JSON body as `secret` or `locationSecret`, in the query string as `secret` or `locationSecret`, or in the `X-Location-Secret`, `X-API-Key`, or `Authorization` headers. `Authorization` may be either the raw secret or `Bearer <secret>`. In production, confirm the secret is configured for the Production environment and redeploy after changing it.
+
+Example response:
+
+```json
+{
+  "message": "Location updated",
+  "location": {
+    "city": "Paris",
+    "country": "France",
+    "latitude": 48.85341,
+    "longitude": 2.3488,
+    "timezone": "Europe/Paris",
+    "timestamp": "2026-06-18T17:40:00.000Z"
+  }
+}
+```
+
+### `GET /api/weather`
+
+`/api/weather` calls the shared location helper, then requests Open-Meteo weather using the stored `latitude`, `longitude`, and `timezone`. The weather response also includes:
+
+- `city`
+- `country`
+- `timezone`
+- `locationUpdatedAt`
+
+The frontend uses those fields to render text like:
+
+```txt
+Jun 19, 2026 · 00:23:18 GMT+7
+I'm probably asleep right now... 😴
+It's 23°C with clear sky in Yogyakarta.
+```
+
+Hovering the city name shows a tooltip with the country and last location update time.
+
+### Location/weather error responses
+
+| Status | Cause                                                                             |
+| ------ | --------------------------------------------------------------------------------- |
+| `400`  | Missing or invalid `city`/`country` in the update body.                           |
+| `401`  | Missing or invalid `Authorization` header.                                        |
+| `405`  | Unsupported HTTP method.                                                          |
+| `502`  | The location could not be geocoded or saved, or the weather API returned no data. |
+| `500`  | Weather fetch failed and no stale cache is available.                             |
+
+## `GET /api/resolve-track`
+
+Resolves the best playback audio source for a given music track by searching YouTube Music, YouTube, and SoundCloud in parallel and ranking candidate results using intelligent metadata similarity scoring.
+
+```sh
+curl 'https://your-domain.com/api/resolve-track?title=Tuition&artist=Don+Toliver&duration=180'
+```
+
+### Query Parameters
+
+| Parameter | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `title` | String | Yes | The title of the song. |
+| `artist` | String | Yes | The artist name(s). |
+| `album` | String | No | The album name. |
+| `duration`| Number | No | The expected duration of the track in seconds. |
+| `isrc` | String | No | The International Standard Recording Code (ISRC) for precise matching. |
+| `explicit`| String | No | `"true"` or `"1"` if the track is explicit. |
+| `year` | Number | No | The release year. |
+
+### Example Response
+
+```json
+{
+  "provider": "youtube-music",
+  "id": "E3-tmG0SU7k",
+  "url": "https://www.youtube.com/watch?v=E3-tmG0SU7k",
+  "title": "Tuition",
+  "artist": "Don Toliver",
+  "duration": 180,
+  "artworkUrl": "https://img.youtube.com/vi/E3-tmG0SU7k/hqdefault.jpg",
+  "score": 100
+}
+```
+
+### Notes
+
+- Method: `GET` only.
+- Executes searches against YouTube Music, standard YouTube, and SoundCloud concurrently.
+- Rejects cover versions, live versions, instrumentals, or sped up/slowed/reverb variations unless explicitly requested in the query title.
+- Caches resolved results on the server for 24 hours to reduce latency.
+
+## `GET /api/idonthavespotify`
+
+A fallback endpoint that uses the Paxsenix API to resolve alternative streaming links (such as YouTube Music, Apple Music, Deezer, etc.) for a given Spotify track URL.
+
+```sh
+curl 'https://your-domain.com/api/idonthavespotify?url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F263z39DmKOaUZfKXzin5bR'
+```
+
+### Query Parameters
+
+| Parameter | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `url`     | String | Yes    | The full Spotify track URL to resolve. |
+
+### Required environment/configuration:
+
+- `PAXSENIX_API_KEY`: The API key for `api.paxsenix.org`.
+
+### Example Response
+
+The endpoint returns the raw response from the Paxsenix API.
+
+```json
 {
   "creator": "@PaxSenix",
   "ok": true,
@@ -304,3 +499,77 @@ The endpoint returns the raw response from the Paxsenix API.
 - Relies on the external `api.paxsenix.org` service.
 - If the `url` parameter is missing or invalid, returns `400`.
 - Returns `500` if the upstream fetch fails.
+
+## `GET /api/lyrics`
+
+Returns structured synced lyrics for a track, using wilooper-lyrica API. Results are cached in SQLite KV for 7 days.
+
+```sh
+curl 'https://your-domain.com/api/lyrics?artist=Sabrina%20Carpenter&song=Espresso'
+```
+
+### Query Parameters
+
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `artist`  | String | Yes      | The name of the artist. |
+| `song`    | String | Yes      | The title of the song. |
+
+### Example Response
+
+```json
+{
+  "lines": [
+    {
+      "id": "line-1",
+      "startMs": 4500,
+      "endMs": 7200,
+      "text": "Now he's thinkin' 'bout me every night, oh"
+    }
+  ],
+  "hasTimestamps": true,
+  "plainLyrics": "...",
+  "metadata": {
+    "title": "Espresso",
+    "artist": "Sabrina Carpenter",
+    "album": "Espresso",
+    "albumArt": "https://...",
+    "durationMs": 171000
+  }
+}
+```
+
+### Notes
+
+- Method: `GET` only.
+- Returns plain lyrics in `plainLyrics` if synced timestamps are unavailable.
+
+## `GET /api/canvas`
+
+Resolves a Spotify Canvas video loop URL for a track, utilizing either an in-house Spotify partner API resolver (if configured with `SPOTIFY_SP_DC`) or falling back to the Paxsenix API.
+
+```sh
+curl 'https://your-domain.com/api/canvas?artist=Sabrina%20Carpenter&title=Espresso'
+```
+
+### Query Parameters
+
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `artist`  | String | Yes      | The name of the artist. |
+| `title`   | String | Yes      | The title of the track. |
+
+### Example Response
+
+```json
+{
+  "canvasUrl": "https://video-fa.scdn.co/files/..."
+}
+```
+
+### Notes
+
+- Method: `GET` only.
+- If the canvas is not found or fails, returns `{ "canvasUrl": "" }`.
+- Successfully resolved canvas URLs are cached in SQLite KV for 7 days.
+- Outages or empty responses are cached for only 10 minutes to allow quick retries once services recover.
