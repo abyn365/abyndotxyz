@@ -26,6 +26,8 @@ import {
   X,
   FileText,
   FolderOpen,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { PageFooter } from "../components/PageFooter";
 import { parseMarkdown } from "../lib/markdown";
@@ -108,7 +110,7 @@ export default function AdminDashboard() {
   const [editorError, setEditorError] = useState("");
   const [editorSaving, setEditorSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "posts" | "status" | "uploader" | "moderation" | "photos"
+    "posts" | "status" | "uploader" | "moderation" | "photos" | "badges"
   >("posts");
   const [editorTags, setEditorTags] = useState("");
 
@@ -125,6 +127,29 @@ export default function AdminDashboard() {
   const [photoSaving, setPhotoSaving] = useState(false);
   const [photoError, setPhotoError] = useState("");
   const [photoSuccess, setPhotoSuccess] = useState("");
+
+  // Badges states & interface
+  interface Badge {
+    id: string;
+    title: string;
+    imageUrl: string;
+    linkUrl?: string;
+    size: "88x31" | "80x15";
+    order: number;
+  }
+
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [badgesLoading, setBadgesLoading] = useState(true);
+  const [editingBadge, setEditingBadge] = useState<Badge | null>(null);
+  const [isCreatingBadge, setIsCreatingBadge] = useState(false);
+  const [badgeTitle, setBadgeTitle] = useState("");
+  const [badgeImageUrl, setBadgeImageUrl] = useState("");
+  const [badgeLinkUrl, setBadgeLinkUrl] = useState("");
+  const [badgeSize, setBadgeSize] = useState<"88x31" | "80x15">("88x31");
+  const [badgeSaving, setBadgeSaving] = useState(false);
+  const [badgeError, setBadgeError] = useState("");
+  const [badgeSuccess, setBadgeSuccess] = useState("");
+  const [badgeUploadLoading, setBadgeUploadLoading] = useState(false);
 
   // Moderation state
   const [blockedUsernames, setBlockedUsernames] = useState<string[]>([]);
@@ -234,11 +259,48 @@ export default function AdminDashboard() {
     };
   }, [authenticated]);
 
+  // Clipboard paste listener for Cloud Uploader
+  useEffect(() => {
+    if (activeTab !== "uploader") return;
+
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const filesToUpload: File[] = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === "file") {
+          const file = items[i].getAsFile();
+          if (file) {
+            const acceptedTypes = ["image/", "video/", "audio/", "application/pdf"];
+            const isAccepted = acceptedTypes.some(type => file.type.startsWith(type) || file.type === "image/svg+xml");
+            if (isAccepted) {
+              const ext = file.name.includes(".") ? "" : `.${file.type.split("/")[1] || "png"}`;
+              const fileName = file.name || `clipboard-${Date.now()}${ext}`;
+              const newFile = new File([file], fileName, { type: file.type });
+              filesToUpload.push(newFile);
+            }
+          }
+        }
+      }
+
+      if (filesToUpload.length > 0) {
+        setUploadFiles((prev) => [...prev, ...filesToUpload]);
+      }
+    };
+
+    window.addEventListener("paste", handleGlobalPaste);
+    return () => {
+      window.removeEventListener("paste", handleGlobalPaste);
+    };
+  }, [activeTab]);
+
   const loadDashboardData = () => {
     fetchPosts();
     fetchSystemStatus();
     fetchModerationSettings();
     fetchPhotos();
+    fetchBadges();
   };
 
   const fetchModerationSettings = async () => {
@@ -300,6 +362,189 @@ export default function AdminDashboard() {
       console.error("Failed to load photos", e);
     } finally {
       setPhotosLoading(false);
+    }
+  };
+
+  const fetchBadges = async () => {
+    setBadgesLoading(true);
+    try {
+      const res = await fetch("/api/badges");
+      const data = await res.json();
+      if (data.success) {
+        setBadges(data.badges || []);
+      }
+    } catch (e) {
+      console.error("Failed to load badges", e);
+    } finally {
+      setBadgesLoading(false);
+    }
+  };
+
+  const handleOpenEditBadge = (badge: Badge) => {
+    setEditingBadge(badge);
+    setIsCreatingBadge(false);
+    setBadgeTitle(badge.title);
+    setBadgeImageUrl(badge.imageUrl);
+    setBadgeLinkUrl(badge.linkUrl || "");
+    setBadgeSize(badge.size);
+    setBadgeError("");
+    setBadgeSuccess("");
+  };
+
+  const handleOpenCreateBadge = () => {
+    setEditingBadge(null);
+    setIsCreatingBadge(true);
+    setBadgeTitle("");
+    setBadgeImageUrl("");
+    setBadgeLinkUrl("");
+    setBadgeSize("88x31");
+    setBadgeError("");
+    setBadgeSuccess("");
+  };
+
+  const handleCloseBadgeEditor = () => {
+    setEditingBadge(null);
+    setIsCreatingBadge(false);
+    setBadgeTitle("");
+    setBadgeImageUrl("");
+    setBadgeLinkUrl("");
+    setBadgeSize("88x31");
+    setBadgeError("");
+    setBadgeSuccess("");
+  };
+
+  const handleSaveBadges = async (updatedBadgesList: Badge[]) => {
+    setBadgeSaving(true);
+    setBadgeError("");
+    setBadgeSuccess("");
+    try {
+      const res = await fetch("/api/admin/badges", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
+        },
+        body: JSON.stringify({ badges: updatedBadgesList }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBadgeSuccess("Web badges saved successfully!");
+        setBadges(updatedBadgesList);
+        handleCloseBadgeEditor();
+      } else {
+        setBadgeError(data.error || "Failed to save badges");
+      }
+    } catch (err) {
+      console.error("Save badges error:", err);
+      setBadgeError("Server connection error during save.");
+    } finally {
+      setBadgeSaving(false);
+    }
+  };
+
+  const handleAddOrEditBadgeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!badgeImageUrl.trim()) {
+      setBadgeError("Badge Image URL or file upload is required");
+      return;
+    }
+
+    let updatedList = [...badges];
+    if (editingBadge) {
+      updatedList = updatedList.map((b) =>
+        b.id === editingBadge.id
+          ? {
+              ...b,
+              title: badgeTitle,
+              imageUrl: badgeImageUrl,
+              linkUrl: badgeLinkUrl || undefined,
+              size: badgeSize,
+            }
+          : b
+      );
+    } else {
+      const newBadge: Badge = {
+        id: crypto.randomUUID(),
+        title: badgeTitle,
+        imageUrl: badgeImageUrl,
+        linkUrl: badgeLinkUrl || undefined,
+        size: badgeSize,
+        order: badges.length,
+      };
+      updatedList.push(newBadge);
+    }
+
+    // Sort to make sure order matches indices
+    updatedList = updatedList.map((b, idx) => ({ ...b, order: idx }));
+
+    await handleSaveBadges(updatedList);
+  };
+
+  const handleDeleteBadge = async (badgeId: string) => {
+    if (!confirm("Are you sure you want to delete this web badge?")) return;
+
+    let updatedList = badges.filter((b) => b.id !== badgeId);
+    // Re-index orders
+    updatedList = updatedList.map((b, idx) => ({ ...b, order: idx }));
+
+    await handleSaveBadges(updatedList);
+  };
+
+  const handleMoveBadge = async (index: number, direction: "up" | "down") => {
+    if (direction === "up" && index === 0) return;
+    if (direction === "down" && index === badges.length - 1) return;
+
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    const updatedList = [...badges];
+    
+    // Swap elements
+    const temp = updatedList[index];
+    updatedList[index] = updatedList[targetIndex];
+    updatedList[targetIndex] = temp;
+
+    // Re-assign order based on array index
+    const reorderedList = updatedList.map((b, idx) => ({ ...b, order: idx }));
+
+    await handleSaveBadges(reorderedList);
+  };
+
+  const handleBadgeImageUpload = async (file: File) => {
+    setBadgeUploadLoading(true);
+    setBadgeError("");
+    setBadgeSuccess("");
+    try {
+      const isS3Configured = status.s3?.status === "online";
+      
+      if (isS3Configured) {
+        // Upload to S3 using the existing /api/blog/upload endpoint
+        const payload = await readFileAsBase64(file);
+        const res = await fetch("/api/blog/upload", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          setBadgeImageUrl(data.url);
+          setBadgeSuccess("Image uploaded to S3 successfully!");
+        } else {
+          setBadgeError(data.error || "Failed to upload image to S3.");
+        }
+      } else {
+        // Fallback: Convert to base64 Data URL and use directly
+        const payload = await readFileAsBase64(file);
+        const dataUrl = `data:${payload.fileType};base64,${payload.fileContent}`;
+        setBadgeImageUrl(dataUrl);
+        setBadgeSuccess("Converted image to Data URL successfully!");
+      }
+    } catch (err: any) {
+      console.error("Badge upload error:", err);
+      setBadgeError(err.message || "Failed to process image upload.");
+    } finally {
+      setBadgeUploadLoading(false);
     }
   };
 
@@ -937,6 +1182,22 @@ export default function AdminDashboard() {
             >
               Photos Gallery
             </button>
+            <button
+              onClick={() => {
+                setActiveTab("badges");
+                handleCloseEditor();
+                handleClosePhotoEditor();
+                handleCloseBadgeEditor();
+                fetchBadges();
+              }}
+              className={`pb-2.5 text-xs font-bold uppercase tracking-wider ${
+                activeTab === "badges"
+                  ? "border-b-2 border-[var(--accent)] text-[var(--text-primary)]"
+                  : "text-[var(--text-secondary)]"
+              }`}
+            >
+              Web Badges
+            </button>
           </div>
 
           {/* TAB 1: POSTS EDITOR AND MANAGEMENT */}
@@ -1405,7 +1666,6 @@ export default function AdminDashboard() {
                     <input
                       type="file"
                       multiple
-                      required
                       accept="image/*,image/svg+xml,video/*,audio/*,application/pdf"
                       onChange={(e) =>
                         setUploadFiles(Array.from(e.target.files || []))
@@ -1962,6 +2222,293 @@ export default function AdminDashboard() {
                         className="rounded-xl bg-[var(--accent)] px-5 py-2 text-xs font-bold uppercase tracking-wider text-[var(--accent-text)] transition-colors hover:opacity-90 disabled:opacity-50"
                       >
                         {photoSaving ? "Saving..." : "Save Photo"}
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 6: WEB BADGES */}
+          {activeTab === "badges" && (
+            <div className="space-y-6">
+              {!isCreatingBadge && !editingBadge ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                      <Layers className="h-4 w-4" /> Web Badges ({badges.length})
+                    </h2>
+                    <button
+                      onClick={handleOpenCreateBadge}
+                      className="inline-flex items-center gap-1 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent-text)] transition-opacity hover:opacity-90"
+                    >
+                      <PlusCircle className="h-3.5 w-3.5" /> Add Badge
+                    </button>
+                  </div>
+
+                  {badgeError && (
+                    <p className="text-xs font-semibold text-red-400">
+                      {badgeError}
+                    </p>
+                  )}
+                  {badgeSuccess && (
+                    <p className="text-xs font-semibold text-green-400">
+                      {badgeSuccess}
+                    </p>
+                  )}
+
+                  {badgesLoading ? (
+                    <div className="space-y-3 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6">
+                      <div className="h-4 w-1/4 rounded bg-white/5 animate-pulse" />
+                      <div className="h-20 w-full rounded bg-white/5 animate-pulse" />
+                    </div>
+                  ) : badges.length === 0 ? (
+                    <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-12 text-center text-sm text-[var(--text-secondary)] italic">
+                      No web badges added yet. Click "Add Badge" to get started!
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] overflow-hidden">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-[var(--card-border)] bg-black/20 text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                            <th className="p-4 w-12 text-center">Order</th>
+                            <th className="p-4 w-28 text-center">Preview</th>
+                            <th className="p-4">Title / Alt</th>
+                            <th className="p-4">Target Link</th>
+                            <th className="p-4 w-24 text-center">Size</th>
+                            <th className="p-4 w-32 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[var(--card-border)]">
+                          {badges.map((badge, idx) => (
+                            <tr
+                              key={badge.id}
+                              className="text-xs hover:bg-[var(--card-bg-mix)] transition-colors"
+                            >
+                              <td className="p-4 text-center font-mono text-neutral-400">
+                                {idx + 1}
+                              </td>
+                              <td className="p-4 align-middle">
+                                <div className="flex items-center justify-center bg-black/20 rounded p-2 border border-white/5 w-24 h-12 mx-auto">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={badge.imageUrl}
+                                    alt={badge.title}
+                                    style={{
+                                      width: badge.size === "80x15" ? "80px" : "88px",
+                                      height: badge.size === "80x15" ? "15px" : "31px",
+                                      objectFit: "contain",
+                                      imageRendering: "pixelated",
+                                    }}
+                                    className="max-w-full max-h-full"
+                                  />
+                                </div>
+                              </td>
+                              <td className="p-4 font-semibold text-[var(--text-primary)] max-w-[150px] truncate">
+                                {badge.title || <span className="italic text-neutral-500 font-normal">None</span>}
+                              </td>
+                              <td className="p-4 font-mono text-neutral-400 max-w-[200px] truncate">
+                                {badge.linkUrl ? (
+                                  <a
+                                    href={badge.linkUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:text-[var(--accent)] underline"
+                                  >
+                                    {badge.linkUrl}
+                                  </a>
+                                ) : (
+                                  <span className="italic text-neutral-500 font-normal">None</span>
+                                )}
+                              </td>
+                              <td className="p-4 text-center font-mono">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  badge.size === "80x15" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" : "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                                }`}>
+                                  {badge.size}
+                                </span>
+                              </td>
+                              <td className="p-4 text-right">
+                                <div className="inline-flex items-center gap-1">
+                                  <button
+                                    onClick={() => handleMoveBadge(idx, "up")}
+                                    disabled={idx === 0}
+                                    className="p-1 rounded border border-[var(--card-border)] bg-black/5 text-[var(--text-secondary)] hover:bg-black/10 disabled:opacity-30 disabled:pointer-events-none"
+                                    title="Move Up"
+                                  >
+                                    <ChevronUp className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleMoveBadge(idx, "down")}
+                                    disabled={idx === badges.length - 1}
+                                    className="p-1 rounded border border-[var(--card-border)] bg-black/5 text-[var(--text-secondary)] hover:bg-black/10 disabled:opacity-30 disabled:pointer-events-none"
+                                    title="Move Down"
+                                  >
+                                    <ChevronDown className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleOpenEditBadge(badge)}
+                                    className="p-1 rounded border border-[var(--card-border)] bg-black/5 text-[var(--text-secondary)] hover:bg-black/10"
+                                    title="Edit Badge"
+                                  >
+                                    <Edit className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteBadge(badge.id)}
+                                    className="p-1 rounded border border-red-500/10 bg-red-500/5 text-red-400 hover:bg-red-500/10"
+                                    title="Delete Badge"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6 shadow-[var(--card-shadow)]"
+                >
+                  <form onSubmit={handleAddOrEditBadgeSubmit} className="space-y-4">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                      {isCreatingBadge ? "Add New Web Badge" : "Edit Web Badge"}
+                    </h3>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                          Badge Size
+                        </label>
+                        <select
+                          value={badgeSize}
+                          onChange={(e) => setBadgeSize(e.target.value as "88x31" | "80x15")}
+                          className="w-full rounded-xl border border-[var(--card-border)] bg-black/15 px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none sm:text-sm font-semibold"
+                        >
+                          <option value="88x31">Standard Button (88x31)</option>
+                          <option value="80x15">Anti-Pixel Badge (80x15)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                          Badge Title / Alt Text
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={badgeTitle}
+                          onChange={(e) => setBadgeTitle(e.target.value)}
+                          className="w-full rounded-xl border border-[var(--card-border)] bg-black/10 px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none sm:text-sm"
+                          placeholder="e.g. Made with Notepad"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                        Badge Image Source URL
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={badgeImageUrl}
+                          onChange={(e) => setBadgeImageUrl(e.target.value)}
+                          className="w-full flex-1 rounded-xl border border-[var(--card-border)] bg-black/10 px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none sm:text-sm font-mono text-[11px]"
+                          placeholder="https://... or upload a local file"
+                        />
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleBadgeImageUpload(file);
+                            }}
+                            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                            disabled={badgeUploadLoading}
+                          />
+                          <button
+                            type="button"
+                            disabled={badgeUploadLoading}
+                            className="h-full rounded-xl border border-[var(--card-border)] bg-black/5 px-4 text-xs font-bold text-[var(--text-secondary)] hover:bg-black/10 disabled:opacity-50 flex items-center gap-1"
+                          >
+                            <Upload className="h-3.5 w-3.5" />
+                            {badgeUploadLoading ? "Uploading..." : "Upload File"}
+                          </button>
+                        </div>
+                      </div>
+                      <span className="text-[9px] text-[var(--text-secondary)] block">
+                        Direct links and files are supported. Files will store on S3 if active, otherwise convert to base64 Data URLs.
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                        Target Link URL (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={badgeLinkUrl}
+                        onChange={(e) => setBadgeLinkUrl(e.target.value)}
+                        className="w-full rounded-xl border border-[var(--card-border)] bg-black/10 px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none sm:text-sm"
+                        placeholder="e.g. https://notepad-plus-plus.org"
+                      />
+                    </div>
+
+                    {badgeError && (
+                      <p className="text-xs font-semibold text-red-400">
+                        {badgeError}
+                      </p>
+                    )}
+                    {badgeSuccess && (
+                      <p className="text-xs font-semibold text-green-400">
+                        {badgeSuccess}
+                      </p>
+                    )}
+
+                    {badgeImageUrl && (
+                      <div className="mt-4 p-4 border border-[var(--card-border)] bg-black/20 rounded-xl flex flex-col items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                          Badge Live Preview
+                        </span>
+                        <div className="flex items-center justify-center p-4 bg-black/45 rounded-lg border border-white/5">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={badgeImageUrl}
+                            alt="Preview"
+                            style={{
+                              width: badgeSize === "80x15" ? "80px" : "88px",
+                              height: badgeSize === "80x15" ? "15px" : "31px",
+                              objectFit: "contain",
+                              imageRendering: "pixelated",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleCloseBadgeEditor}
+                        className="rounded-xl border border-[var(--card-border)] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:bg-black/5"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={badgeSaving || badgeUploadLoading}
+                        className="rounded-xl bg-[var(--accent)] px-5 py-2 text-xs font-bold uppercase tracking-wider text-[var(--accent-text)] transition-colors hover:opacity-90 disabled:opacity-50"
+                      >
+                        {badgeSaving ? "Saving..." : "Save Badge"}
                       </button>
                     </div>
                   </form>

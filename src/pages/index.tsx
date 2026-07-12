@@ -222,6 +222,19 @@ function parseBio(text: string) {
 export default function Home() {
   const { presence } = useLanyard(DISCORD_ID);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [badges, setBadges] = useState<any[]>([]);
+
+  // Fetch web badges on mount
+  useEffect(() => {
+    fetch("/api/badges")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setBadges(data.badges || []);
+        }
+      })
+      .catch((err) => console.error("Error loading web badges:", err));
+  }, []);
   const [activeTab, setActiveTab] = useState<
     "activity" | "projects" | "guestbook"
   >("activity");
@@ -1525,6 +1538,49 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* Web Badges Zone */}
+      {badges.length > 0 && (
+        <div className="mt-12 flex flex-wrap justify-center items-center gap-3 px-4 max-w-4xl mx-auto">
+          {badges.map((badge) => {
+            const imgElement = (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={badge.imageUrl}
+                alt={badge.title || "Web Badge"}
+                title={badge.title}
+                style={{
+                  width: badge.size === "80x15" ? "80px" : "88px",
+                  height: badge.size === "80x15" ? "15px" : "31px",
+                  objectFit: "contain",
+                  imageRendering: "pixelated",
+                }}
+                className="transition-transform hover:scale-105 duration-100 cursor-pointer"
+              />
+            );
+
+            if (badge.linkUrl) {
+              return (
+                <a
+                  key={badge.id}
+                  href={badge.linkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block"
+                >
+                  {imgElement}
+                </a>
+              );
+            }
+
+            return (
+              <div key={badge.id} className="inline-block">
+                {imgElement}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="mt-8">
         <PageFooter />
