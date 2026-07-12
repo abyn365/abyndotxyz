@@ -5,11 +5,7 @@ const WEB_PLAYER_CLIENT_ID = "d8a5ed958d274c2e8ee717e6a4b0971d";
 const PATHFINDER_URL = "https://api-partner.spotify.com/pathfinder/v2/query";
 const CANVAS_QUERY_HASH = "575138ab27cd5c1b3e54da54d0a7cc8d85485402de26340c2145f0f6bb5e7a9f";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
-interface WebPlayerTokenResponse {
-  accessToken: string;
-  accessTokenExpirationTimestampMs: number;
-}
+const SECRETS_URL = "https://raw.githubusercontent.com/xyloflake/spot-secrets-go/refs/heads/main/secrets/secretDict.json";
 
 interface ClientTokenResponse {
   granted_token?: {
@@ -17,19 +13,105 @@ interface ClientTokenResponse {
   };
 }
 
+// Pure TS TOTP implementation
+function generateTOTP(secretHex: string, timeSeconds: number): string {
+  const secret = Buffer.from(secretHex, "hex");
+  const counter = Math.floor(timeSeconds / 30);
+  const counterBuffer = Buffer.alloc(8);
+  counterBuffer.writeUInt32BE(0, 0);
+  counterBuffer.writeUInt32BE(counter, 4);
+
+  const hmac = crypto.createHmac("sha1", secret).update(counterBuffer).digest();
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  const binary =
+    ((hmac[offset] & 0x7f) << 24) |
+    ((hmac[offset + 1] & 0xff) << 16) |
+    ((hmac[offset + 2] & 0xff) << 8) |
+    (hmac[offset + 3] & 0xff);
+
+  return (binary % 1000000).toString().padStart(6, "0");
+}
+
+async function getSecretsDict(): Promise<Record<string, number[]>> {
+  const cacheKey = "spotify_secrets_dict";
+  const cached = await kv.get<Record<string, number[]>>(cacheKey);
+  if (cached) return cached;
+
+  console.log("[Canvas In-House] Fetching fresh TOTP secrets from GitHub...");
+  const res = await fetch(SECRETS_URL, {
+    headers: { "User-Agent": USER_AGENT },
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch TOTP secrets dict: ${res.status}`);
+  }
+  const data = await res.json() as Record<string, number[]>;
+  await kv.set(cacheKey, data, { ex: 24 * 60 * 60 }); // Cache 24 hours
+  return data;
+}
+
+async function getServerTimeSeconds(spDc: string): Promise<number> {
+  try {
+    const res = await fetch("https://open.spotify.com/api/server-time", {
+      headers: {
+        "User-Agent": USER_AGENT,
+        "Cookie": `sp_dc=${spDc}`,
+      },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const time = Number(data.serverTime);
+      if (!isNaN(time)) return time;
+    }
+  } catch (err) {
+    console.warn("[Canvas In-House] Failed to fetch server time, using local clock:", err);
+  }
+  return Math.floor(Date.now() / 1000);
+}
+
 /**
- * Fetches a Web Player Access Token from Spotify using the sp_dc cookie.
+ * Fetches a Web Player Access Token from Spotify using the sp_dc cookie and TOTP authentication.
  */
 async function fetchWebPlayerAccessToken(spDc: string): Promise<string> {
   const cacheKey = "spotify_web_player_token";
   const cached = await kv.get<string>(cacheKey);
   if (cached) return cached;
 
-  console.log("[Canvas In-House] Fetching fresh Web Player access token using sp_dc...");
-  const res = await fetch("https://open.spotify.com/get_access_token?reason=transport&productType=web_player", {
+  console.log("[Canvas In-House] Fetching fresh Web Player access token via TOTP /api/token...");
+  
+  // 1. Get secrets dictionary and determine latest TOTP key
+  const secrets = await getSecretsDict();
+  const versions = Object.keys(secrets).map(Number);
+  const newestVersion = Math.max(...versions).toString();
+  const newestData = secrets[newestVersion];
+  if (!newestData) {
+    throw new Error("Could not find valid TOTP data in secrets dictionary");
+  }
+
+  // 2. Decrypt the secret to hex
+  const mapped = newestData.map((val, idx) => val ^ ((idx % 33) + 9));
+  const secretHex = Buffer.from(mapped.join(""), "utf8").toString("hex");
+
+  // 3. Generate TOTPs for verification
+  const localTimeSeconds = Math.floor(Date.now() / 1000);
+  const serverTimeSeconds = await getServerTimeSeconds(spDc);
+
+  const totp = generateTOTP(secretHex, localTimeSeconds);
+  const totpServer = generateTOTP(secretHex, Math.floor((serverTimeSeconds * 1000) / 30));
+
+  // 4. Request the token
+  const url = new URL("https://open.spotify.com/api/token");
+  url.searchParams.append("reason", "init");
+  url.searchParams.append("productType", "mobile-web-player");
+  url.searchParams.append("totp", totp);
+  url.searchParams.append("totpVer", newestVersion);
+  url.searchParams.append("totpServer", totpServer);
+
+  const res = await fetch(url.toString(), {
     headers: {
       "User-Agent": USER_AGENT,
       "Cookie": `sp_dc=${spDc}`,
+      "Origin": "https://open.spotify.com/",
+      "Referer": "https://open.spotify.com/",
     },
   });
 
@@ -37,17 +119,15 @@ async function fetchWebPlayerAccessToken(spDc: string): Promise<string> {
     throw new Error(`Failed to get Web Player access token: ${res.status} ${await res.text()}`);
   }
 
-  const data = (await res.json()) as WebPlayerTokenResponse;
-  if (!data.accessToken) {
-    throw new Error("No accessToken found in get_access_token response");
+  const data = await res.json();
+  const token = data?.accessToken;
+  if (!token) {
+    throw new Error("No accessToken found in /api/token response");
   }
 
-  // Calculate TTL in seconds (expire 5 minutes early to be safe)
-  const expiresAt = data.accessTokenExpirationTimestampMs;
-  const ttl = Math.max(60, Math.floor((expiresAt - Date.now()) / 1000) - 300);
-
-  await kv.set(cacheKey, data.accessToken, { ex: ttl });
-  return data.accessToken;
+  // Cache access token for 45 minutes
+  await kv.set(cacheKey, token, { ex: 45 * 60 });
+  return token;
 }
 
 /**
