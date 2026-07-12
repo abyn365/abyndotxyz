@@ -20,6 +20,7 @@ import MusicQueuePanel from "../components/music/MusicQueuePanel";
 import FirstLoadOverlay from "../components/FirstLoadOverlay";
 import ClickSound from "../components/ClickSound";
 import CommandPalette from "../components/CommandPalette";
+import PerformanceNotice from "../components/PerformanceNotice";
 
 import "../styles/globals.css";
 import "../components/ClickSpark/ClickSpark";
@@ -204,6 +205,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <KeyboardShortcuts />
       <BackgroundSelector />
       <ClickSound />
+      <PerformanceNotice />
     </MusicPlayerProvider>
     </ThemeProvider>
   );

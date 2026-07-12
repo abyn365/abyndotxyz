@@ -15,3 +15,4 @@ export { ClickSpark } from "./ClickSpark/ClickSpark";
 export { default as DiscordStatus } from "./Misc/DiscordStatus.misc";
 export { default as TopTracks } from "./Misc/TopTracks.misc";
 export { default as VisitorStats } from "./Misc/VisitorStats.misc";
+export { default as PerformanceNotice } from "./PerformanceNotice";

@@ -38,7 +38,18 @@ export function usePerformanceSaver(): PerformanceSaverState {
         if (conn.saveData) {
           isDataSaver = true;
         }
-        if (["2g", "3g"].includes(conn.effectiveType)) {
+        
+        const type = conn.effectiveType || "";
+        const rtt = conn.rtt;
+        const downlink = conn.downlink;
+
+        // "slow-2g", "2g", "3g", "slow-3g", "slow-4g"
+        const isSlowType = ["2g", "3g", "slow-2g", "slow-3g", "slow-4g"].includes(type);
+        
+        // Downlink <= 1.5 Mbps or latency RTT >= 500ms constitutes a slow connection (slow 4g and below)
+        const isLowBandwidth = (rtt !== undefined && rtt >= 500) || (downlink !== undefined && downlink <= 1.5);
+
+        if (isSlowType || isLowBandwidth) {
           isSlowConnection = true;
         }
       }
