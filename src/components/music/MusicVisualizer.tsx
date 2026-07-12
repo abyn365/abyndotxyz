@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { MusicAudioPlayer } from "../../lib/music/audio-player";
 import { useMusicPlayer } from "./MusicPlayerContext";
+import { usePerformanceSaver } from "../../hooks/usePerformanceSaver";
 
 interface Props {
   isPlaying: boolean;
@@ -26,8 +27,11 @@ export default function MusicVisualizer({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
   const { accentColor } = useMusicPlayer();
+  const { shouldDisableBackdrops } = usePerformanceSaver();
 
   useEffect(() => {
+    if (shouldDisableBackdrops) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -171,6 +175,8 @@ export default function MusicVisualizer({
       }
     };
   }, [isPlaying, trackId, barCount, height, fixedColor, accentColor]);
+
+  if (shouldDisableBackdrops) return null;
 
   return (
     <canvas

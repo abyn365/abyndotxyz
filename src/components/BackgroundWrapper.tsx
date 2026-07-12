@@ -1,56 +1,123 @@
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
+import { X } from "lucide-react";
 import Squares from "./Squares";
 import ArtDots from "./ArtDots";
+import { usePerformanceSaver, triggerPerformanceStateChange } from "../hooks/usePerformanceSaver";
 
 export default function BackgroundWrapper() {
   const [backdrop, setBackdrop] = useState("cyber-grid");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [isDataSaverActive, setIsDataSaverActive] = useState(false);
-  const [overrideDataSaver, setOverrideDataSaver] = useState(false);
-  const [dataSaverReason, setDataSaverReason] = useState("");
+  const {
+    isSlowConnection,
+    isSlowDevice,
+    isLowBattery,
+    isDataSaver,
+    isOverridden,
+    isNoticeClosed,
+    shouldDisableBackdrops,
+  } = usePerformanceSaver();
 
+  // Battery diagnostic listener
   useEffect(() => {
-    const checkDiagnostics = async () => {
-      const conn = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-      if (conn) {
-        if (conn.saveData) {
-          setIsDataSaverActive(true);
-          setDataSaverReason("Data Saver Active");
-          return;
-        }
-        if (["2g", "3g"].includes(conn.effectiveType)) {
-          setIsDataSaverActive(true);
-          setDataSaverReason("Slow Connection");
-          return;
-        }
-      }
+    let cleanupBattery: (() => void) | undefined;
 
-      if ("getBattery" in navigator) {
-        try {
-          const battery = await (navigator as any).getBattery();
-          const checkBattery = () => {
-            if (battery.level < 0.20 && !battery.charging) {
-              setIsDataSaverActive(true);
-              setDataSaverReason("Low Battery Mode");
-            } else {
-              setIsDataSaverActive(false);
-            }
-          };
+    const setupBattery = async () => {
+      if (typeof window === "undefined" || !("getBattery" in navigator)) return;
+      try {
+        const battery = await (navigator as any).getBattery();
+        const checkBattery = () => {
+          const isLow = battery.level < 0.20 && !battery.charging;
+          const wasLow = sessionStorage.getItem("site-low-battery") === "true";
+          if (isLow !== wasLow) {
+            sessionStorage.setItem("site-low-battery", isLow ? "true" : "false");
+            triggerPerformanceStateChange();
+          }
+        };
 
-          checkBattery();
-          battery.addEventListener("levelchange", checkBattery);
-          battery.addEventListener("chargingchange", checkBattery);
-          return () => {
-            battery.removeEventListener("levelchange", checkBattery);
-            battery.removeEventListener("chargingchange", checkBattery);
-          };
-        } catch {}
+        checkBattery();
+        battery.addEventListener("levelchange", checkBattery);
+        battery.addEventListener("chargingchange", checkBattery);
+
+        cleanupBattery = () => {
+          battery.removeEventListener("levelchange", checkBattery);
+          battery.removeEventListener("chargingchange", checkBattery);
+        };
+      } catch (err) {
+        // Ignore battery API failures
       }
     };
 
-    checkDiagnostics();
+    setupBattery();
+    return () => {
+      if (cleanupBattery) cleanupBattery();
+    };
+  }, []);
+
+  // FPS check to detect slow device (runs after site entry)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // If slow device evaluation has already run for this session, skip
+    if (sessionStorage.getItem("site-slow-device") !== null) {
+      return;
+    }
+
+    let frameCount = 0;
+    let lastTime = performance.now();
+    const deltas: number[] = [];
+    let animationId: number;
+    let timeoutId: any;
+
+    const runFpsCheck = () => {
+      const measure = (time: number) => {
+        frameCount++;
+        const delta = time - lastTime;
+        lastTime = time;
+
+        // Skip the first few frames to allow transitions/rendering to settle
+        if (frameCount > 15) {
+          deltas.push(delta);
+        }
+
+        if (deltas.length < 100) {
+          animationId = requestAnimationFrame(measure);
+        } else {
+          const avgDelta = deltas.reduce((sum, d) => sum + d, 0) / deltas.length;
+          const fps = 1000 / avgDelta;
+          const isSlow = fps <= 30;
+          sessionStorage.setItem("site-slow-device", isSlow ? "true" : "false");
+          triggerPerformanceStateChange();
+        }
+      };
+
+      // Delay by 2.5 seconds to let initial animations finish
+      timeoutId = setTimeout(() => {
+        animationId = requestAnimationFrame(measure);
+      }, 2500);
+    };
+
+    const hasEntered = sessionStorage.getItem("has_entered") === "true";
+    if (hasEntered) {
+      runFpsCheck();
+    } else {
+      const handleSiteEntered = () => {
+        runFpsCheck();
+        window.removeEventListener("site-entered", handleSiteEntered);
+      };
+      window.addEventListener("site-entered", handleSiteEntered);
+      return () => {
+        window.removeEventListener("site-entered", handleSiteEntered);
+        clearTimeout(timeoutId);
+        if (animationId) cancelAnimationFrame(animationId);
+      };
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (animationId) cancelAnimationFrame(animationId);
+    };
   }, []);
 
   useEffect(() => {
@@ -68,7 +135,7 @@ export default function BackgroundWrapper() {
 
   // Canvas drawing effect for Space Dust
   useEffect(() => {
-    if (backdrop !== "space-dust" || (isDataSaverActive && !overrideDataSaver)) return;
+    if (backdrop !== "space-dust" || shouldDisableBackdrops) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -168,68 +235,98 @@ export default function BackgroundWrapper() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("resize", handleResize);
     };
-  }, [backdrop, isDataSaverActive, overrideDataSaver]);
+  }, [backdrop, shouldDisableBackdrops]);
 
-  if (isDataSaverActive && !overrideDataSaver) {
-    return (
-      <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 backdrop-blur-md text-[10px] font-mono font-bold text-amber-500 animate-fade-in print:hidden select-none">
-        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-        <span>{dataSaverReason} (Backdrops Paused)</span>
-        <button
-          onClick={() => {
-            setOverrideDataSaver(true);
-          }}
-          className="ml-1 px-1.5 py-0.5 rounded bg-amber-500 text-neutral-950 font-bold hover:bg-amber-400 transition-colors uppercase tracking-wider text-[8px]"
-        >
-          Enable
-        </button>
-      </div>
-    );
+  const handleEnable = () => {
+    localStorage.setItem("override-performance-saver", "true");
+    triggerPerformanceStateChange();
+  };
+
+  const handleDismiss = () => {
+    sessionStorage.setItem("performance-notice-closed", "true");
+    triggerPerformanceStateChange();
+  };
+
+  let noticeMessage = "";
+  if (isSlowDevice) {
+    noticeMessage = "Slow Device (Backdrops & Canvas Paused)";
+  } else if (isLowBattery) {
+    noticeMessage = "Low Battery (Backdrops Paused)";
+  } else if (isSlowConnection || isDataSaver) {
+    noticeMessage = "Slow Connection (Canvas Paused)";
   }
+
+  const showNotice = noticeMessage && !isOverridden && !isNoticeClosed;
 
   return (
     <>
-      {backdrop === "cyber-grid" && (
-        <Squares direction="diagonal" speed={0.05} squareSize={32} />
+      {!shouldDisableBackdrops && (
+        <>
+          {backdrop === "cyber-grid" && (
+            <Squares direction="diagonal" speed={0.05} squareSize={32} />
+          )}
+
+          {backdrop === "flowing-dots" && <ArtDots />}
+
+          {backdrop === "space-dust" && (
+            <canvas
+              ref={canvasRef}
+              className="fixed inset-0 h-full w-full pointer-events-none block z-0"
+            />
+          )}
+
+          {backdrop === "deep-aura" && (
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-60">
+              <motion.div
+                className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full blur-[130px]"
+                style={{ backgroundColor: "rgba(139, 92, 246, 0.08)" }}
+                animate={{
+                  x: [0, 40, -20, 0],
+                  y: [0, -30, 20, 0],
+                }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              <motion.div
+                className="absolute -bottom-20 -right-20 h-[500px] w-[500px] rounded-full blur-[120px]"
+                style={{ backgroundColor: "rgba(6, 182, 212, 0.06)" }}
+                animate={{
+                  x: [0, -30, 30, 0],
+                  y: [0, 40, -20, 0],
+                }}
+                transition={{
+                  duration: 18,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </div>
+          )}
+        </>
       )}
 
-      {backdrop === "flowing-dots" && <ArtDots />}
-
-      {backdrop === "space-dust" && (
-        <canvas
-          ref={canvasRef}
-          className="fixed inset-0 h-full w-full pointer-events-none block z-0"
-        />
-      )}
-
-      {backdrop === "deep-aura" && (
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-60">
-          <motion.div
-            className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full blur-[130px]"
-            style={{ backgroundColor: "rgba(139, 92, 246, 0.08)" }}
-            animate={{
-              x: [0, 40, -20, 0],
-              y: [0, -30, 20, 0],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          <motion.div
-            className="absolute -bottom-20 -right-20 h-[500px] w-[500px] rounded-full blur-[120px]"
-            style={{ backgroundColor: "rgba(6, 182, 212, 0.06)" }}
-            animate={{
-              x: [0, -30, 30, 0],
-              y: [0, 40, -20, 0],
-            }}
-            transition={{
-              duration: 18,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
+      {showNotice && (
+        <div className="pointer-events-auto fixed bottom-4 left-4 z-40 flex items-center gap-2.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 backdrop-blur-md text-[10px] font-mono font-bold text-amber-500 animate-fade-in print:hidden select-none">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+          <span>{noticeMessage}</span>
+          <div className="flex items-center gap-1.5 ml-2 border-l border-amber-500/20 pl-2">
+            <button
+              onClick={handleEnable}
+              className="px-1.5 py-0.5 rounded bg-amber-500 text-neutral-950 font-bold hover:bg-amber-400 active:scale-95 transition-all uppercase tracking-wider text-[8px]"
+            >
+              Enable
+            </button>
+            <button
+              onClick={handleDismiss}
+              title="Dismiss warning (keep paused)"
+              className="p-0.5 rounded hover:bg-amber-500/20 active:scale-95 text-amber-500/80 hover:text-amber-500 transition-all flex items-center justify-center"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
         </div>
       )}
     </>

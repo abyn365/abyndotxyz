@@ -115,11 +115,16 @@ export function useMusicPlayer() {
 }
 
 const getQualityParam = () => {
-  if (typeof navigator !== "undefined" && (navigator as any).connection) {
-    const conn = (navigator as any).connection;
-    const type = conn.effectiveType || "";
-    if (["2g", "3g", "slow-2g", "slow-3g", "slow-4g"].includes(type) || conn.saveData) {
-      return "low";
+  if (typeof window !== "undefined") {
+    const isOverridden = localStorage.getItem("override-performance-saver") === "true";
+    if (isOverridden) return "high";
+
+    const conn = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    if (conn) {
+      const type = conn.effectiveType || "";
+      if (["2g", "3g", "slow-2g", "slow-3g", "slow-4g"].includes(type) || conn.saveData) {
+        return "low";
+      }
     }
   }
   return "high";
@@ -457,7 +462,20 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       set({ spotifyData: data });
 
       // Preload next items in the Spotify queue sequentially to avoid VPS CPU spikes
-      if (data.upcomingQueue && Array.isArray(data.upcomingQueue)) {
+      // Skip preloading if on a slow connection / data saver and not overridden
+      const isSlowConnection = typeof window !== "undefined" && (() => {
+        const isOverridden = localStorage.getItem("override-performance-saver") === "true";
+        if (isOverridden) return false;
+        const conn = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+        if (conn) {
+          if (conn.saveData || ["2g", "3g"].includes(conn.effectiveType)) {
+            return true;
+          }
+        }
+        return false;
+      })();
+
+      if (data.upcomingQueue && Array.isArray(data.upcomingQueue) && !isSlowConnection) {
         const nextThree = data.upcomingQueue.slice(0, 3);
         (async () => {
           for (const t of nextThree) {

@@ -1,5 +1,6 @@
 import { Music2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { usePerformanceSaver } from "../../hooks/usePerformanceSaver";
 
 type Props = {
   src?: string;
@@ -19,6 +20,7 @@ export default function MusicArtwork({
   iconClassName,
 }: Props) {
   const [errored, setErrored] = useState(false);
+  const { shouldDisableCanvas } = usePerformanceSaver();
 
   // Reset errored state when track cover or canvas URL changes
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function MusicArtwork({
     );
   }
 
-  if (canvasUrl && !errored) {
+  if (canvasUrl && !shouldDisableCanvas && !errored) {
     return (
       <video
         key={canvasUrl}

@@ -28,8 +28,10 @@ import { useMusicPlayer } from "./MusicPlayerContext";
 import { formatDuration } from "../../lib/music/metadata";
 import MusicArtwork from "./MusicArtwork";
 import MusicVisualizer from "./MusicVisualizer";
+import { usePerformanceSaver } from "../../hooks/usePerformanceSaver";
 
 export default function MusicLyricsPanel() {
+  const { shouldDisableCanvas } = usePerformanceSaver();
   const {
     isLyricsOpen,
     isMinimized,
@@ -181,7 +183,7 @@ export default function MusicLyricsPanel() {
           }}
         >
           {/* Ambient cinematic backdrop (video canvas or album art) */}
-          {currentTrack.canvasUrl ? (
+          {currentTrack.canvasUrl && !shouldDisableCanvas ? (
             <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
               {/* Full bleed canvas video with elegant responsive blur */}
               <video

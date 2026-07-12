@@ -39,6 +39,7 @@ export default function FirstLoadOverlay() {
 
   const handleEnter = () => {
     sessionStorage.setItem("has_entered", "true");
+    window.dispatchEvent(new CustomEvent("site-entered"));
 
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
