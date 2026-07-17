@@ -180,19 +180,19 @@ export default function CommandPalette() {
   ];
 
   const musicCommands: CommandItem[] = [
-    { id: "music-go", category: "Music", label: "Open Replay Dashboard", sublabel: "View detailed Last.fm listening analytics · Alt + M", icon: Music, action: () => router.push("/music") },
+    { id: "music-go", category: "Music" as const, label: "Open Replay Dashboard", sublabel: "View detailed Last.fm listening analytics · Alt + M", icon: Music, action: () => router.push("/music") },
     ...(currentTrack ? [
       {
         id: "music-toggle",
-        category: "Music",
+        category: "Music" as const,
         label: isPlaying ? "Pause Track" : "Play Track",
         sublabel: `Currently playing: ${currentTrack.title} — ${currentTrack.artist}`,
         icon: isPlaying ? Pause : Play,
         action: () => (isPlaying ? pause() : resume())
       },
-      { id: "music-next", category: "Music", label: "Next Track", sublabel: "Skip forward in playlist queue", icon: SkipForward, action: () => next() },
-      { id: "music-prev", category: "Music", label: "Previous Track", sublabel: "Return to last played track", icon: SkipBack, action: () => prev() },
-      { id: "music-lyrics", category: "Music", label: "Toggle Lyrics Panel", sublabel: "Show/hide synchronized lyrics drawer", icon: Mic2, action: () => toggleLyrics() },
+      { id: "music-next", category: "Music" as const, label: "Next Track", sublabel: "Skip forward in playlist queue", icon: SkipForward, action: () => next() },
+      { id: "music-prev", category: "Music" as const, label: "Previous Track", sublabel: "Return to last played track", icon: SkipBack, action: () => prev() },
+      { id: "music-lyrics", category: "Music" as const, label: "Toggle Lyrics Panel", sublabel: "Show/hide synchronized lyrics drawer", icon: Mic2, action: () => toggleLyrics() },
     ] : [])
   ];
 
