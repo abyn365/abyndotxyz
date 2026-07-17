@@ -592,9 +592,9 @@ pre[class*="language-"] {
    never hidden behind the fixed player bar.
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-body.has-player main {
-  padding-bottom: 7rem; /* 112px — comfortably clears ~64px player */
-  transition: padding-bottom 300ms ease;
+body.has-player footer {
+  margin-top: 7rem; /* 112px — pushes content above the footer to clear the player */
+  transition: margin-top 300ms ease;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
