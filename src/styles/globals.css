@@ -624,6 +624,16 @@ body.has-player footer {
     bio-cursor-fade  3s ease forwards;
 }
 
+.bio-cursor-infinite {
+  display: inline-block;
+  width: 1.5px;
+  height: 0.85em;
+  background: currentColor;
+  margin-left: 1px;
+  vertical-align: middle;
+  animation: bio-cursor-blink 0.75s step-end infinite;
+}
+
 
 
 

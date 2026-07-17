@@ -13,6 +13,7 @@ import Navbar from "../components/Navbar";
 import KeyboardShortcuts from "../components/KeyboardShortcuts";
 import BackgroundWrapper from "../components/BackgroundWrapper";
 import BackgroundSelector from "../components/BackgroundSelector";
+import WeatherOverlay from "../components/WeatherOverlay";
 import { MusicPlayerProvider } from "../components/music/MusicPlayerContext";
 import MusicPlayerBar from "../components/music/MusicPlayerBar";
 import MusicLyricsPanel from "../components/music/MusicLyricsPanel";
@@ -216,6 +217,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <CommandPalette />
       <KeyboardShortcuts />
       <BackgroundSelector />
+      <WeatherOverlay />
       <ClickSound />
       <PerformanceNotice />
     </MusicPlayerProvider>

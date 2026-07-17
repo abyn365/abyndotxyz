@@ -33,6 +33,8 @@ export interface LyricsResult {
 export async function fetchLyrics(
   artist: string,
   song: string,
+  album?: string,
+  duration?: number,
   signal?: AbortSignal
 ): Promise<LyricsResult> {
   const key = lyricsCacheKey(artist, song);
@@ -43,6 +45,8 @@ export async function fetchLyrics(
     artist,
     song,
   });
+  if (album) params.append("album", album);
+  if (duration) params.append("duration", duration.toString());
 
   const emptyResult: LyricsResult = {
     lines: [],
@@ -52,7 +56,7 @@ export async function fetchLyrics(
   };
 
   try {
-    const res = await fetch(`/api/lyrics?${params}`, {
+    const res = await fetch(`/api/lyrics?${params.toString()}`, {
       signal,
       headers: { Accept: "application/json" },
     });

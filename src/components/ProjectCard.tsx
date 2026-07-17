@@ -34,11 +34,29 @@ export default function ProjectCard({
         target="_blank"
         rel="noopener noreferrer"
         className={[
-          "block py-6 border-b transition-colors duration-300 hover:bg-[var(--bg-secondary)]/30",
+          "block p-5 rounded-2xl border transition-all duration-300 bg-[var(--card-bg)] backdrop-blur-md hover:bg-white/[0.02] dark:hover:bg-white/[0.01]",
           isFeatured ? "sm:grid sm:grid-cols-[1.2fr_0.8fr] sm:gap-6 items-center" : "",
         ].join(" ")}
         style={{
           borderColor: "var(--card-border)",
+          transformStyle: "preserve-3d",
+          willChange: "transform",
+        }}
+        onMouseMove={(e) => {
+          const card = e.currentTarget;
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const rotateX = ((y / rect.height) - 0.5) * -4; // subtle 3d tilt
+          const rotateY = ((x / rect.width) - 0.5) * 4;
+          card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg)";
+          e.currentTarget.style.transition = "transform 400ms cubic-bezier(0.25, 0.8, 0.25, 1)";
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transition = "transform 80ms ease-out";
         }}
       >
         {/* Content Side */}

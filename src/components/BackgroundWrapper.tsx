@@ -7,6 +7,8 @@ import { usePerformanceSaver, triggerPerformanceStateChange } from "../hooks/use
 export default function BackgroundWrapper() {
   const [backdrop, setBackdrop] = useState("cyber-grid");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const wavesCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const nebulaCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const { shouldDisableBackdrops } = usePerformanceSaver();
 
@@ -228,6 +230,193 @@ export default function BackgroundWrapper() {
     };
   }, [backdrop, shouldDisableBackdrops]);
 
+  // Canvas drawing effect for Nexus Waves
+  useEffect(() => {
+    if (backdrop !== "nexus-waves" || shouldDisableBackdrops) return;
+
+    const canvas = wavesCanvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationId: number;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener("resize", handleResize);
+
+    const mouseRef = { x: -1000, y: -1000 };
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseRef.x = e.clientX;
+      mouseRef.y = e.clientY;
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+
+    const particleCount = Math.min(80, Math.floor(width / 15));
+    const particles: Array<{
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      radius: number;
+    }> = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        radius: Math.random() * 1.5 + 0.8,
+      });
+    }
+
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      const rootStyle = getComputedStyle(document.documentElement);
+      const musicAccentStr = rootStyle.getPropertyValue("--music-accent").trim() || "#6366f1";
+
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx = -p.vx;
+        if (p.y < 0 || p.y > height) p.vy = -p.vy;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.fill();
+      });
+
+      for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 100) {
+            const alpha = (1 - dist / 100) * 0.07;
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(147, 197, 253, ${alpha})`;
+            ctx.lineWidth = 0.5;
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+
+        if (mouseRef.x > 0 && mouseRef.y > 0) {
+          const dx = p1.x - mouseRef.x;
+          const dy = p1.y - mouseRef.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 140) {
+            const alpha = (1 - dist / 140) * 0.15;
+            ctx.beginPath();
+            ctx.strokeStyle = `${musicAccentStr}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
+            ctx.lineWidth = 0.7;
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(mouseRef.x, mouseRef.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      animationId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [backdrop, shouldDisableBackdrops]);
+
+
+
+  // Canvas drawing effect for Cosmic Nebula
+  useEffect(() => {
+    if (backdrop !== "cosmic-nebula" || shouldDisableBackdrops) return;
+
+    const canvas = nebulaCanvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationId: number;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener("resize", handleResize);
+
+    const particles: Array<{
+      x: number;
+      y: number;
+      size: number;
+      speedY: number;
+      alpha: number;
+      twinkleSpeed: number;
+    }> = [];
+
+    const particleCount = 45;
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: Math.random() * 1.1 + 0.3,
+        speedY: -0.05 - Math.random() * 0.05,
+        alpha: Math.random(),
+        twinkleSpeed: 0.005 + Math.random() * 0.015,
+      });
+    }
+
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      particles.forEach((p) => {
+        p.y += p.speedY;
+        if (p.y < 0) p.y = height;
+
+        p.alpha += p.twinkleSpeed;
+        if (p.alpha > 0.8 || p.alpha < 0.1) {
+          p.twinkleSpeed = -p.twinkleSpeed;
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, p.alpha * 0.35)})`;
+        ctx.fill();
+      });
+
+      animationId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [backdrop, shouldDisableBackdrops]);
+
   return (
     <>
       {!shouldDisableBackdrops && (
@@ -245,36 +434,55 @@ export default function BackgroundWrapper() {
             />
           )}
 
-          {backdrop === "deep-aura" && (
-            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-60">
+          {backdrop === "nexus-waves" && (
+            <canvas
+              ref={wavesCanvasRef}
+              className="fixed inset-0 h-full w-full pointer-events-none block z-0"
+            />
+          )}
+
+
+
+          {backdrop === "cosmic-nebula" && (
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
               <motion.div
-                className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full blur-[130px]"
-                style={{ backgroundColor: "rgba(139, 92, 246, 0.08)" }}
+                className="absolute -top-20 left-1/4 h-[550px] w-[550px] rounded-full blur-[140px] opacity-25"
+                style={{ backgroundColor: "rgba(99, 102, 241, 0.16)" }}
                 animate={{
-                  x: [0, 40, -20, 0],
-                  y: [0, -30, 20, 0],
+                  x: [0, 60, -40, 0],
+                  y: [0, 80, -30, 0],
+                  scale: [1, 1.15, 0.9, 1],
                 }}
-                transition={{
-                  duration: 20,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+                transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
               />
               <motion.div
-                className="absolute -bottom-20 -right-20 h-[500px] w-[500px] rounded-full blur-[120px]"
-                style={{ backgroundColor: "rgba(6, 182, 212, 0.06)" }}
+                className="absolute top-1/3 -right-20 h-[600px] w-[600px] rounded-full blur-[150px] opacity-20"
+                style={{ backgroundColor: "rgba(168, 85, 247, 0.14)" }}
                 animate={{
-                  x: [0, -30, 30, 0],
-                  y: [0, 40, -20, 0],
+                  x: [0, -70, 50, 0],
+                  y: [0, -50, 80, 0],
+                  scale: [1, 0.85, 1.1, 1],
                 }}
-                transition={{
-                  duration: 18,
-                  repeat: Infinity,
-                  ease: "easeInOut",
+                transition={{ duration: 42, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                className="absolute -bottom-20 left-10 h-[500px] w-[500px] rounded-full blur-[130px] opacity-25"
+                style={{ backgroundColor: "rgba(6, 182, 212, 0.14)" }}
+                animate={{
+                  x: [0, 50, -30, 0],
+                  y: [0, -60, 40, 0],
+                  scale: [1, 1.1, 0.85, 1],
                 }}
+                transition={{ duration: 38, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <canvas
+                ref={nebulaCanvasRef}
+                className="absolute inset-0 h-full w-full pointer-events-none block"
               />
             </div>
           )}
+
+
         </>
       )}
     </>

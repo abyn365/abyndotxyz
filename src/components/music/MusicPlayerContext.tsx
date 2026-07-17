@@ -245,7 +245,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
           }
         } catch {}
 
-        fetchLyrics(nextTrack.artist, nextTrack.title).catch(() => {});
+        fetchLyrics(nextTrack.artist, nextTrack.title, nextTrack.album, nextTrack.duration).catch(() => {});
         extractAccentColors(nextTrack.cover).catch(() => {});
       }
     }
@@ -759,7 +759,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       };
 
       // Start resolve and lyrics fetching concurrently, but do not block playback on lyrics!
-      fetchLyrics(track.artist, track.title, abort.signal)
+      fetchLyrics(track.artist, track.title, track.album, track.duration, abort.signal)
         .then((lyrics) => {
           if (abort.signal.aborted) return;
           let lyricsState: MusicPlayerState["lyricsState"] = "empty";

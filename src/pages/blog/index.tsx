@@ -163,7 +163,31 @@ export default function BlogIndex({ posts: initialPosts }: { posts?: BlogPost[] 
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: idx * 0.08 }}
-                    className="group relative rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-5 transition-all hover:bg-[var(--card-bg-mix)] hover:shadow-[var(--card-shadow)] flex flex-col md:flex-row gap-5 overflow-hidden"
+                    className="group relative rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-5 transition-all flex flex-col md:flex-row gap-5 overflow-hidden"
+                    style={{
+                      transformStyle: "preserve-3d",
+                      willChange: "transform",
+                      boxShadow: "var(--card-shadow)",
+                    }}
+                    onMouseMove={(e) => {
+                      const card = e.currentTarget;
+                      const rect = card.getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const y = e.clientY - rect.top;
+                      const rotateX = ((y / rect.height) - 0.5) * -4;
+                      const rotateY = ((x / rect.width) - 0.5) * 4;
+                      card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                      card.style.boxShadow = "var(--card-shadow), 0 12px 32px var(--accent-glow)";
+                    }}
+                    onMouseLeave={(e) => {
+                      const card = e.currentTarget;
+                      card.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg)";
+                      card.style.transition = "transform 400ms cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 400ms ease";
+                      card.style.boxShadow = "var(--card-shadow)";
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transition = "transform 80ms ease-out, box-shadow 80ms ease-out";
+                    }}
                   >
                     {/* Cover image if available */}
                     {post.coverImage && (

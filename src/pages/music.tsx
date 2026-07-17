@@ -295,9 +295,30 @@ function StatCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay, ease: "easeOut" }}
-      className="flex flex-col justify-between p-4 rounded-xl border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] backdrop-blur-md transition-all hover:bg-[rgba(255,255,255,0.02)] active:scale-[0.995]"
+      className="flex flex-col justify-between p-4 rounded-xl border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] backdrop-blur-md transition-all"
       style={{
         boxShadow: "var(--card-shadow)",
+        transformStyle: "preserve-3d",
+        willChange: "transform",
+      }}
+      onMouseMove={(e) => {
+        const card = e.currentTarget;
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const rotateX = ((y / rect.height) - 0.5) * -5;
+        const rotateY = ((x / rect.width) - 0.5) * 5;
+        card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        card.style.boxShadow = "var(--card-shadow), 0 8px 24px var(--accent-glow)";
+      }}
+      onMouseLeave={(e) => {
+        const card = e.currentTarget;
+        card.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg)";
+        card.style.transition = "transform 400ms cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 400ms ease";
+        card.style.boxShadow = "var(--card-shadow)";
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transition = "transform 80ms ease-out, box-shadow 80ms ease-out";
       }}
     >
       <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)]">

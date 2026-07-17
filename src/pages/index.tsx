@@ -34,6 +34,7 @@ import { PageFooter } from "../components/PageFooter";
 import ActivityHistory from "../components/Misc/ActivityHistory";
 import GameDetailsModal from "../components/Misc/GameDetailsModal";
 import GuildDetailsModal from "../components/Misc/GuildDetailsModal";
+import Typewriter, { RotatingTypewriter } from "../components/Typewriter";
 
 // Guestbook Message Type
 interface GuestbookMessage {
@@ -66,6 +67,10 @@ interface ProfileData {
     avatar: string;
     banner: string | null;
     banner_color: string | null;
+    avatar_decoration_data?: any;
+    collectibles?: any;
+    primary_guild?: any;
+    clan?: any;
   };
   user_profile: {
     bio: string;
@@ -192,32 +197,63 @@ function parseBio(text: string) {
       );
     }
 
-    // Isolate absolute URLs within structural text content segments
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const subTokens = token.split(urlRegex);
+    // Split custom emojis: <a:name:id> or <:name:id>
+    const emojiRegex = /(<a?:[a-zA-Z0-9_]+:\d+>)/g;
+    const emojiParts = token.split(emojiRegex);
 
-    return subTokens.map((subToken, subIdx) => {
-      if (subToken.match(urlRegex)) {
+    return emojiParts.map((part, partIdx) => {
+      const emojiMatch = part.match(/<(a?):([a-zA-Z0-9_]+):(\d+)>/);
+      if (emojiMatch) {
+        const isAnimated = emojiMatch[1] === "a";
+        const name = emojiMatch[2];
+        const id = emojiMatch[3];
+        const emojiUrl = `https://cdn.discordapp.com/emojis/${id}.webp${isAnimated ? "?animated=true" : ""}`;
         return (
-          <a
-            key={`${idx}-${subIdx}`}
-            href={subToken}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mx-0.5 inline-flex items-center break-all font-mono text-[11px] text-blue-400 hover:underline"
-          >
-            {subToken}
-          </a>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={`${idx}-${partIdx}`}
+            src={emojiUrl}
+            alt={`:${name}:`}
+            title={`:${name}:`}
+            className="mx-0.5 inline-block h-[1.35em] w-[1.35em] align-middle object-contain"
+            draggable={false}
+          />
         );
       }
-      return (
-        <span key={`${idx}-${subIdx}`} className="text-neutral-300">
-          {subToken}
-        </span>
-      );
+
+      // Isolate absolute URLs within structural text content segments
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const subTokens = part.split(urlRegex);
+
+      return subTokens.map((subToken, subIdx) => {
+        if (subToken.match(urlRegex)) {
+          return (
+            <a
+              key={`${idx}-${partIdx}-${subIdx}`}
+              href={subToken}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-0.5 inline-flex items-center break-all font-mono text-[11px] text-blue-400 hover:underline"
+            >
+              {subToken}
+            </a>
+          );
+        }
+        return (
+          <span key={`${idx}-${partIdx}-${subIdx}`} className="text-neutral-300">
+            {subToken}
+          </span>
+        );
+      });
     });
   });
 }
+
+// Rotating Subtitle Roles Configuration - Edit this array to customize roles
+const ROTATING_ROLES = ["Fullstack Dev", "Web & UI Designer", "Music Enthusiast"];
+
+// Bio Description Text Configuration - Set to empty string or null to omit
+const BIO_TEXT = "";
 
 export default function Home() {
   const { presence } = useLanyard(DISCORD_ID);
@@ -723,10 +759,27 @@ export default function Home() {
     : `https://dcdn.dstn.to/avatars/${DISCORD_ID}`;
 
   // Avatar Decoration
-  const decoData = (presence as any)?.discord_user?.avatar_decoration_data;
+  const decoData =
+    profileData?.user?.avatar_decoration_data ||
+    (presence as any)?.discord_user?.avatar_decoration_data;
   const decoUrl = decoData?.asset
     ? `https://cdn.discordapp.com/avatar-decoration-presets/${decoData.asset}.png`
     : null;
+
+  // Nameplate Collectible
+  const nameplateData =
+    profileData?.user?.collectibles?.nameplate ||
+    (presence as any)?.discord_user?.collectibles?.nameplate;
+  const nameplateUrl = nameplateData?.asset
+    ? `https://cdn.discordapp.com/assets/collectibles/${nameplateData.asset}asset.webm`
+    : null;
+
+  // Primary Guild / Clan Tag
+  const primaryGuild =
+    profileData?.user?.primary_guild ||
+    profileData?.user?.clan ||
+    (presence as any)?.discord_user?.primary_guild ||
+    (presence as any)?.discord_user?.clan;
 
   // Banner Style
   const bannerHash = profileData?.user?.banner;
@@ -806,7 +859,7 @@ export default function Home() {
               {customStatus.emoji &&
                 (customStatus.emoji.id ? (
                   <img
-                    src={`https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.png`}
+                    src={`https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.webp${customStatus.emoji.animated ? "?animated=true" : ""}`}
                     alt={customStatus.emoji.name || "status-emoji"}
                     className="h-3.5 w-3.5 shrink-0 object-contain"
                     draggable={false}
@@ -835,7 +888,7 @@ export default function Home() {
                   draggable={false}
                 />
               </div>
-              
+
               {/* Avatar Decoration Overlay */}
               {decoUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -856,36 +909,60 @@ export default function Home() {
           {/* User Display Name, Guild Tag, and Device line with Nameplate collectible background */}
           <div className="relative mb-2 flex min-h-[44px] w-full items-center justify-between overflow-hidden rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)]/60 px-3 py-2.5">
             {/* Thinner Nameplate video banner (Fills only this display name box) */}
-            <div className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden">
-              <video
-                src="https://cdn.discordapp.com/assets/collectibles/nameplates/gothica/nevermore/asset.webm"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className={`h-full w-full object-cover opacity-45 ${theme === "light" ? "mix-blend-multiply" : "mix-blend-screen"}`}
-              />
-            </div>
-
-            <div className="relative z-10 flex items-center gap-2">
-              <h1 className="font-display text-lg font-bold leading-none tracking-tight text-[var(--discord-card-text)]">
-                {profileData?.user?.global_name || profileData?.user?.username || "abyn"}
-              </h1>
-
-              {/* Guild Tag NBHD */}
-              <button
-                onClick={() => setSelectedGuildId("811266344397701162")}
-                className="inline-flex items-center gap-1 rounded border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] px-1 py-0.5 text-[9px] font-bold leading-none text-[var(--discord-card-text)] cursor-pointer hover:bg-[var(--discord-card-border)] transition-colors select-none"
-                title="Click to view server details"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://cdn.discordapp.com/clan-badges/811266344397701162/c8d016eed5c8752316ca38fdd54380c6.png"
-                  alt=""
-                  className="h-3 w-3 object-contain"
+            {nameplateUrl && (
+              <div className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden">
+                <video
+                  src={nameplateUrl}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className={`h-full w-full object-cover opacity-45 ${theme === "light" ? "mix-blend-multiply" : "mix-blend-screen"}`}
                 />
-                <span>NBHD</span>
-              </button>
+              </div>
+            )}
+
+            <div className="relative z-10 flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-lg font-bold leading-none tracking-tight text-[var(--discord-card-text)]">
+                  {profileData?.user?.global_name || profileData?.user?.username || "abyn"}
+                </h1>
+
+                {/* Guild Tag NBHD */}
+                {primaryGuild?.tag && (
+                  <button
+                    onClick={() => {
+                      if (primaryGuild.identity_guild_id) {
+                        setSelectedGuildId(primaryGuild.identity_guild_id);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 rounded border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] px-1 py-0.5 text-[9px] font-bold leading-none text-[var(--discord-card-text)] cursor-pointer hover:bg-[var(--discord-card-border)] transition-colors select-none"
+                    title="Click to view server details"
+                  >
+                    {primaryGuild.badge && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={`https://cdn.discordapp.com/clan-badges/${primaryGuild.identity_guild_id}/${primaryGuild.badge}.png`}
+                        alt=""
+                        className="h-3 w-3 object-contain"
+                      />
+                    )}
+                    <span>{primaryGuild.tag}</span>
+                  </button>
+                )}
+              </div>
+              <div className="text-[10px] font-mono text-[var(--discord-card-secondary)] h-4 flex items-center tracking-wider uppercase font-semibold">
+                {profileData ? (
+                  <RotatingTypewriter
+                    texts={ROTATING_ROLES}
+                    speed={60}
+                    eraseSpeed={45}
+                    delayBetween={2000}
+                  />
+                ) : (
+                  <span className="h-2.5 w-24 animate-pulse rounded bg-white/5" />
+                )}
+              </div>
             </div>
 
             {/* Device Status icon and gold Owner Crown */}
@@ -954,20 +1031,20 @@ export default function Home() {
             <div className="rounded-lg border border-[var(--discord-card-border)] bg-[var(--discord-card-muted)] p-3 text-xs leading-5 text-[var(--discord-card-text)]">
               {/* Dynamic Discord Profile Endpoint Bio Component */}
               {!profileData ? (
-                <div className="mb-2.5 mt-0.5 space-y-2 border-b border-[var(--discord-card-border)] pb-2">
+                <div className={`mt-0.5 space-y-2 ${BIO_TEXT ? "border-b border-[var(--discord-card-border)] pb-2 mb-2.5" : ""}`}>
                   <div className="h-3 w-full animate-pulse rounded bg-white/5" />
                   <div className="h-3 w-5/6 animate-pulse rounded bg-white/5" />
                 </div>
               ) : profileData?.user_profile?.bio ? (
-                <div className="mb-2.5 mt-0.5 flex flex-wrap items-center gap-1.5 border-b border-[var(--discord-card-border)] pb-2 text-xs">
+                <div className={`mt-0.5 flex flex-wrap items-center gap-1.5 text-xs ${BIO_TEXT ? "border-b border-[var(--discord-card-border)] pb-2 mb-2.5" : ""}`}>
                   {parseBio(profileData.user_profile.bio)}
                 </div>
               ) : null}
-              <p className="mt-2">
-                Student developer from Indonesia. I build small, considered
-                things for the web — usually involving live data or music.
-                <span className="bio-cursor" aria-hidden="true" />
-              </p>
+              {BIO_TEXT && (
+                <p className="mt-2 text-xs leading-5">
+                  {BIO_TEXT}
+                </p>
+              )}
             </div>
           </div>
 

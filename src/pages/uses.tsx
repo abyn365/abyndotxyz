@@ -48,20 +48,32 @@ function ToolCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8, scale: 0.97 }}
       transition={{ duration: 0.28, delay, ease: [0.25, 0.8, 0.25, 1] }}
-      whileHover={{ y: -3, transition: { duration: 0.2 } }}
-      className="group relative flex flex-col gap-3 rounded-xl border p-4 transition-shadow duration-300"
+      className="group relative flex flex-col gap-3 rounded-xl border p-4 transition-all duration-300"
       style={{
         background: "var(--card-bg)",
         borderColor: "var(--card-border)",
         boxShadow: "var(--card-shadow)",
+        transformStyle: "preserve-3d",
+        willChange: "transform",
       }}
-      // On hover, show accent glow via inline style override
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow =
-          "var(--card-shadow), 0 0 0 1px var(--accent-bar), 0 8px 32px var(--accent-glow)";
+      onMouseMove={(e) => {
+        const card = e.currentTarget;
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const rotateX = ((y / rect.height) - 0.5) * -5;
+        const rotateY = ((x / rect.width) - 0.5) * 5;
+        card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        card.style.boxShadow = "var(--card-shadow), 0 12px 32px var(--accent-glow)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = "var(--card-shadow)";
+        const card = e.currentTarget;
+        card.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg)";
+        card.style.transition = "transform 400ms cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 400ms ease";
+        card.style.boxShadow = "var(--card-shadow)";
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transition = "transform 80ms ease-out, box-shadow 80ms ease-out";
       }}
     >
       {/* Top row: icon + note badge */}
