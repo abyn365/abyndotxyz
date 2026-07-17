@@ -421,6 +421,15 @@ Creating new route endpoints in `src/pages/api/` or `src/pages/` while `bun run 
 
 ---
 
+## Fixed Overlay Clearance
+
+When implementing fixed overlay components (like a bottom music player bar or notification banner) that may overlap page content or badges:
+- Avoid using complex scroll listeners, DOM queries (`querySelector`), or dynamic bounding box calculations to shift layout elements.
+- Instead, toggle a descriptive state class (e.g., `has-player`) on the `<body>` or outer layout wrapper using a simple React side-effect (`useEffect`).
+- Use standard CSS rules targeting the footer linked to that body class (e.g., `body.has-player footer { margin-top: 7rem; }`) to push content above the footer while keeping the footer itself at the absolute bottom of the page. This creates a clean empty gap where the fixed player can float without obstructing UI elements.
+
+---
+
 # Coding Style
 
 - Prefer TypeScript strict mode.
