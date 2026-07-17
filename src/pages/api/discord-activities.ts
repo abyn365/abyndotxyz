@@ -61,11 +61,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // We require name to be present
         if (!name.trim()) continue;
 
-        // Try to match existing activity by applicationId or name
+        // Try to match existing activity by applicationId or name (case-insensitive, trimmed)
+        const normalizedName = name.trim().toLowerCase();
         const matchIndex = history.findIndex(
           (item) =>
             (act.application_id && item.applicationId === act.application_id) ||
-            (!act.application_id && item.name.toLowerCase() === name.toLowerCase())
+            (!act.application_id && item.name.trim().toLowerCase() === normalizedName)
         );
 
         const newEntry: ActivityHistoryEntry = {

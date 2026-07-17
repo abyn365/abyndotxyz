@@ -1,50 +1,188 @@
-# abyndotxyz
+# abyn.xyz
 
-> Source code for my personal website and portfolio.
-> Built with Next.js and deployed on Vercel, powered by a custom API inspired by [personal-bio](https://github.com/lrmn7/personal-bio).
+> Personal portfolio site — built with Next.js, TypeScript, Bun, and Tailwind CSS.
+> Live at **[abyn.xyz](https://abyn.xyz)**
 
-<p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com/?font=Fira+Code&pause=1000&color=00F773&center=true&vCenter=true&width=435&lines=Personal+Website;Developer+Portfolio;Open+Source" alt="Typing SVG" />
-</p>
+---
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white" alt="Next.js">
-  <img src="https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white" alt="Vercel">
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/Open_Source-❤️-success" alt="Open Source">
-</p>
+## Overview
 
-<p align="center">
-  <a href="https://github.com/abyn365/abyndotxyz/stargazers">
-    <img src="https://img.shields.io/github/stars/abyn365/abyndotxyz?style=social" alt="GitHub Stars">
-  </a>
-  <a href="https://github.com/abyn365/abyndotxyz/network/members">
-    <img src="https://img.shields.io/github/forks/abyn365/abyndotxyz?style=social" alt="GitHub Forks">
-  </a>
-</p>
+abyn.xyz is a personal portfolio and digital space for Abyan — a student developer from Indonesia. It features live Discord presence, music playback synced to Spotify via Last.fm, a blog, photo gallery, guestbook, and more.
 
-<p align="center">
-  <img src="https://img.shields.io/github/license/abyn365/abyndotxyz" alt="License">
-  <img src="https://img.shields.io/github/last-commit/abyn365/abyndotxyz" alt="Last Commit">
-  <img src="https://img.shields.io/github/repo-size/abyn365/abyndotxyz" alt="Repo Size">
-  <img src="https://img.shields.io/github/languages/top/abyn365/abyndotxyz" alt="Top Language">
-</p>
+**Tech stack highlights:**
+- **Next.js** (Pages Router) · **TypeScript** · **Tailwind CSS** · **Framer Motion**
+- **Bun** — runtime for the VPS server, powers the local SQLite KV store via `bun:sqlite`
+- **SQLite KV** — stores badges, activity history, and cached API responses persistently
+- **Lanyard** — real-time Discord presence via WebSocket
+- **Last.fm + Spotify** — music tracking and now-playing sync
 
-## Preview
+---
 
-| Dark Theme                | Light Theme                |
-| ------------------------- | -------------------------- |
-| ![](public/Darktheme.png) | ![](public/Lighttheme.png) |
+## Local Development
 
-## Documentation
+### Prerequisites
 
-- [API docs](docs/api.md) for the site's public Next.js API routes.
-- [Blog, S3, & Auth Setup Guide](docs/blog_s3_auth_setup.md) for configuring credentials, S3 buckets, and OS keychain access.
-- [Blog Features & Syntax Guide](docs/blog_features.md) for markdown writing instructions and supported structures.
-- [Discord Webhook Integration Guide](docs/webhook.md) for configuring Discord channel notifications and brute force security alerts.
-- [Windows Setup & Testing Guide](docs/windows_testing.md) for local testing instructions.
-- [Production VPS Deployment Guide](deploy/README.md) for Ubuntu/Debian server setup.
+- [Bun](https://bun.sh) ≥ 1.1
+- Node.js ≥ 18 (for Next.js dev tooling)
+
+### Setup
+
+```bash
+# Clone the repo
+git clone https://github.com/abyn365/abyndotxyz.git
+cd abyndotxyz
+
+# Install dependencies
+bun install
+
+# Copy environment variables
+cp .env.example .env  # or deploy/.env.example .env
+# Fill in your secrets (see Environment Variables below)
+
+# Start the dev server
+bun run dev
+```
+
+The app runs at `http://localhost:3000`.
+
+---
+
+## Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `PORT` | No | HTTP port (default `3000`) |
+| `HOST` | No | Bind host (default `127.0.0.1`) |
+| `KV_DATABASE_PATH` | No | Path to `kv.sqlite` (default: project root) |
+| `YT_DLP_PATH` | No | Path to `yt-dlp` binary (default: `/var/www/abyndotxyz/bin/yt-dlp`) |
+| `YT_DLP_EXTRA_ARGS` | No | Extra args forwarded to yt-dlp |
+| `GITHUB_TOKEN` | Yes | GitHub API token for project fetching |
+| `LOCATION_SECRET` | Yes (for POST) | Shared secret to authorize location updates |
+| `LASTFM_USERNAME` | Yes | Last.fm username |
+| `LASTFM_API_KEY` | Yes | Last.fm API key |
+| `LASTFM_API_SHARED_SECRET` | Yes | Last.fm shared secret |
+| `SPOTIFY_CLIENT_ID` | Yes | Spotify application client ID |
+| `SPOTIFY_CLIENT_SECRET` | Yes | Spotify application client secret |
+| `SPOTIFY_REFRESH_TOKEN` | Yes | Spotify OAuth refresh token |
+| `SPOTIFY_SP_DC` | No | Spotify internal cookie for Canvas resolution |
+| `PAXSENIX_API_KEY` | No | Paxsenix API key (audio streaming fallback) |
+| `UMAMI_BASE_URL` | No | Umami analytics base URL |
+| `UMAMI_WEBSITE_ID` | No | Umami website ID |
+| `UMAMI_AUTH_TOKEN` | No | Umami bearer token |
+| `NEXT_PUBLIC_UMAMI_SCRIPT_URL` | No | Umami script URL (client-side) |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | No | Umami website ID (client-side) |
+| `NEXT_PUBLIC_GOOGLE_ANALYTICS` | No | Google Analytics Measurement ID |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | No | Cloudflare Turnstile site key |
+| `ADMIN_USERNAME` | Yes | Admin panel username |
+| `ADMIN_PASSWORD_HASH` | Yes | bcrypt hash of admin password |
+| `ADMIN_SESSION_SECRET` | Yes | Secret for signing admin sessions |
+| `VISITOR_JWT_SECRET` | Yes | Secret for signing visitor JWT tokens |
+| `S3_ENDPOINT` | No | S3-compatible object storage endpoint |
+| `S3_ACCESS_KEY_ID` | No | S3 access key |
+| `S3_SECRET_ACCESS_KEY` | No | S3 secret key |
+| `S3_BUCKET_NAME` | No | S3 bucket for photo storage |
+| `S3_PUBLIC_BASE_URL` | No | Public base URL for S3 assets |
+
+---
+
+## VPS Deployment
+
+The site is designed to run on a Linux VPS using **Bun** to serve the Next.js standalone output. Builds happen in GitHub Actions and are pushed as a release zip — the VPS only extracts and restarts.
+
+### First-time setup
+
+Run the consolidated setup script on a fresh Ubuntu/Debian VPS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/abyn365/abyndotxyz/main/deploy/setup.sh | bash
+```
+
+This script:
+1. Installs system dependencies (`curl`, `unzip`, `python3`, `ffmpeg`)
+2. Installs Bun and symlinks it globally
+3. Creates `/var/www/abyndotxyz/bin/` and downloads the latest `yt-dlp`
+4. Downloads deploy scripts from this repo
+5. Installs and enables the systemd service
+6. Initializes `.env` from the template
+
+After setup, fill in `/var/www/abyndotxyz/.env` with your secrets, then run:
+
+```bash
+/var/www/abyndotxyz/update.sh
+```
+
+### Deploying updates
+
+When a GitHub Actions build finishes and creates a release zip, deploy it with:
+
+```bash
+# Use default (latest GitHub release)
+/var/www/abyndotxyz/update.sh
+
+# Or point at a specific URL
+/var/www/abyndotxyz/update.sh --url "https://github.com/.../releases/download/.../abyndotxyz-build.zip"
+
+# Or use a locally downloaded zip
+/var/www/abyndotxyz/update.sh --file /tmp/build.zip
+```
+
+The script preserves `.env`, `kv.sqlite`, and `bin/` across every deploy, and prints a confirmation:
+```
+✓  .env            preserved
+✓  kv.sqlite       preserved
+✓  bin/yt-dlp      preserved
+```
+
+### Process management
+
+**Systemd (recommended):**
+```bash
+sudo systemctl status abyndotxyz
+sudo journalctl -u abyndotxyz -f -n 100
+```
+
+**PM2 (alternative):**
+```bash
+bun install -g pm2
+pm2 start /var/www/abyndotxyz/ecosystem.config.js
+pm2 save && pm2 startup
+```
+
+---
+
+## Architecture
+
+```
+Spotify API  ──→  sync.ts  ──→  MusicPlayerContext  ──→  Audio Player  ──→  UI
+Last.fm API  ──→  lastfm.ts
+Lanyard WS   ──→  useLanyard()  ──→  index.tsx
+Open-Meteo   ──→  /api/weather
+
+KV (bun:sqlite)  ──→  badges, activity history, weather cache, lyrics, canvas URLs
+yt-dlp / Paxsenix  ──→  audio stream resolution
+```
+
+**Key files:**
+| File | Purpose |
+|---|---|
+| `src/lib/kv.ts` | SQLite-backed key-value store (replaces Redis) |
+| `src/lib/music/sync.ts` | Spotify polling and playback synchronization |
+| `src/lib/music/audio-player.ts` | HTML5 Audio + Web Audio API engine |
+| `src/lib/music/extractor.ts` | Stream resolution (Paxsenix → yt-dlp fallback) |
+| `src/components/music/MusicPlayerContext.tsx` | Global music state |
+| `src/pages/api/discord-activities.ts` | Persists Discord activity history to KV |
+| `src/pages/api/admin/badges.ts` | Admin CRUD for web badges (stored in KV) |
+| `deploy/setup.sh` | One-shot VPS setup (install Bun, yt-dlp, systemd) |
+| `deploy/update.sh` | Graceful production deploy (atomic swap + restart) |
+
+---
+
+## API Reference
+
+See [`docs/api.md`](./docs/api.md) for the full API endpoint documentation.
+
+---
 
 ## License
 
-MIT
+MIT — see [LICENSE](./LICENSE)

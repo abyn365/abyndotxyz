@@ -10,7 +10,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ success: false, error: "Unauthorized" });
   }
 
-  // 2. Handle POST request to update badges list
+  // 2. Handle GET request to read current badges list
+  if (req.method === "GET") {
+    try {
+      const badges = (await kv.get<Badge[]>("web_badges")) || [];
+      const sortedBadges = [...badges].sort((a, b) => (a.order || 0) - (b.order || 0));
+      return res.status(200).json({ success: true, badges: sortedBadges });
+    } catch (e: any) {
+      console.error("Failed to fetch web badges (admin):", e);
+      return res.status(500).json({ success: false, error: "Failed to fetch web badges" });
+    }
+  }
+
+  // 3. Handle POST request to update badges list
   if (req.method === "POST") {
     // Verify CSRF
     const isCsrfValid = await verifyCsrfRequest(req);

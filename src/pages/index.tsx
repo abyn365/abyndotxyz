@@ -772,7 +772,26 @@ export default function Home() {
       />
 
       {/* ── Discord Profile Card ── */}
-      <div className="discord-glass-panel mb-6 flex flex-col overflow-hidden rounded-xl border border-[var(--discord-card-border)] shadow-2xl">
+      <motion.div
+        className="discord-glass-panel mb-6 flex flex-col overflow-hidden rounded-xl border border-[var(--discord-card-border)] shadow-2xl cursor-default"
+        style={{ transformStyle: "preserve-3d", willChange: "transform" }}
+        onMouseMove={(e) => {
+          const card = e.currentTarget;
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const rotateX = ((y / rect.height) - 0.5) * -6;
+          const rotateY = ((x / rect.width) - 0.5) * 6;
+          card.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg)";
+          e.currentTarget.style.transition = "transform 500ms cubic-bezier(0.25, 0.8, 0.25, 1)";
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transition = "transform 120ms ease-out";
+        }}
+      >
         {/* Banner Section */}
         <div
           className="relative h-32 w-full shrink-0 bg-cover bg-center"
@@ -947,6 +966,7 @@ export default function Home() {
               <p className="mt-2">
                 Student developer from Indonesia. I build small, considered
                 things for the web — usually involving live data or music.
+                <span className="bio-cursor" aria-hidden="true" />
               </p>
             </div>
           </div>
@@ -1019,9 +1039,15 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Sub-navigation Tabs ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.35, ease: [0.25, 0.8, 0.25, 1] }}
+      >
       <div className="discord-glass-panel mb-4 flex gap-1 rounded-lg border border-[var(--discord-card-border)] p-1">
         {(["activity", "projects", "guestbook"] as const).map((tab) => (
           <button
@@ -1039,7 +1065,9 @@ export default function Home() {
       </div>
 
       {/* ── Tab Content Area ── */}
-      <div className="discord-glass-panel flex min-h-[250px] flex-col justify-between rounded-xl border border-[var(--discord-card-border)] p-4">
+      <div
+        className="discord-glass-panel flex min-h-[250px] flex-col justify-between rounded-xl border border-[var(--discord-card-border)] p-4"
+      >
         {/* Activity Tab */}
         {activeTab === "activity" && (
           <div className="space-y-4">
@@ -1538,6 +1566,7 @@ export default function Home() {
           </div>
         )}
       </div>
+      </motion.div>
 
       {/* Web Badges Zone */}
       {badges.length > 0 && (

@@ -17,6 +17,7 @@ import { MusicPlayerProvider } from "../components/music/MusicPlayerContext";
 import MusicPlayerBar from "../components/music/MusicPlayerBar";
 import MusicLyricsPanel from "../components/music/MusicLyricsPanel";
 import MusicQueuePanel from "../components/music/MusicQueuePanel";
+import { useMusicPlayer } from "../components/music/MusicPlayerContext";
 import FirstLoadOverlay from "../components/FirstLoadOverlay";
 import ClickSound from "../components/ClickSound";
 import CommandPalette from "../components/CommandPalette";
@@ -45,6 +46,16 @@ declare global {
   interface Window {
     __consoleMessageShown?: boolean;
   }
+}
+
+// Side-effect component: toggles `has-player` on <body> so CSS can add
+// bottom padding clearance for the fixed music player bar.
+function PlayerBodyClass() {
+  const { currentTrack } = useMusicPlayer();
+  useEffect(() => {
+    document.body.classList.toggle("has-player", !!currentTrack);
+  }, [currentTrack]);
+  return null;
 }
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -198,6 +209,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <FirstLoadOverlay />
 
       {/* Global music player — persists across all pages */}
+      <PlayerBodyClass />
       <MusicPlayerBar />
       <MusicLyricsPanel />
       <MusicQueuePanel />

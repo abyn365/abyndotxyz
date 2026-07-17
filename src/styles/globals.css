@@ -585,6 +585,46 @@ pre[class*="language-"] {
   scrollbar-width: none;
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MUSIC PLAYER — Bottom clearance
+   When a track is loaded, body gains .has-player.
+   Every <main> gets extra padding so content is
+   never hidden behind the fixed player bar.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+body.has-player main {
+  padding-bottom: 7rem; /* 112px — comfortably clears ~64px player */
+  transition: padding-bottom 300ms ease;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BIO CURSOR — Typing cursor blink
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+@keyframes bio-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes bio-cursor-fade {
+  0%   { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.bio-cursor {
+  display: inline-block;
+  width: 1.5px;
+  height: 0.85em;
+  background: currentColor;
+  margin-left: 1px;
+  vertical-align: middle;
+  animation:
+    bio-cursor-blink 0.75s step-end 4,
+    bio-cursor-fade  3s ease forwards;
+}
+
+
 
 
 

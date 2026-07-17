@@ -3,6 +3,7 @@ export type UsesItem = {
   description: string;
   url?: string;
   note?: string; // e.g. "primary", "daily"
+  slug?: string; // Simple Icons CDN slug override (if name doesn't match)
 };
 
 export type UsesCategory = {
@@ -20,6 +21,7 @@ export const uses: UsesCategory[] = [
         name: "Next.js",
         description: "Full-stack React framework. Pages router with API routes.",
         url: "https://nextjs.org",
+        slug: "nextdotjs",
       },
       {
         name: "TypeScript",
@@ -27,14 +29,22 @@ export const uses: UsesCategory[] = [
         url: "https://typescriptlang.org",
       },
       {
+        name: "Bun",
+        description: "JavaScript runtime powering the VPS server and SQLite KV store via bun:sqlite.",
+        url: "https://bun.sh",
+        note: "primary",
+      },
+      {
         name: "Tailwind CSS",
         description: "Utility-first CSS. Design directly in markup.",
         url: "https://tailwindcss.com",
+        slug: "tailwindcss",
       },
       {
         name: "Framer Motion",
         description: "Animation library for React. Used for all transitions on this site.",
         url: "https://framer.com/motion",
+        slug: "framer",
       },
       {
         name: "SWR",
@@ -57,6 +67,7 @@ export const uses: UsesCategory[] = [
         name: "VS Code",
         description: "Microsoft's versatile editor. Fallback for extensions.",
         url: "https://code.visualstudio.com",
+        slug: "visualstudiocode",
       },
     ],
   },
@@ -70,9 +81,10 @@ export const uses: UsesCategory[] = [
         url: "https://vercel.com",
       },
       {
-        name: "Vercel KV",
-        description: "Redis-backed key-value store. Used to cache Last.fm, Spotify, and weather responses.",
-        url: "https://vercel.com/storage/kv",
+        name: "Bun SQLite KV",
+        description: "Local SQLite-backed key-value store via bun:sqlite. Persists badges, activity history, and cache across restarts.",
+        url: "https://bun.sh/docs/api/sqlite",
+        slug: "sqlite",
       },
       {
         name: "Cloudflare",
@@ -90,6 +102,7 @@ export const uses: UsesCategory[] = [
         description: "Tracks every song I listen to. Powers the /music page.",
         url: "https://last.fm",
         note: "daily",
+        slug: "lastdotfm",
       },
       {
         name: "Lanyard",
@@ -112,12 +125,14 @@ export const uses: UsesCategory[] = [
         description: "Display font for headings. Clean, geometric sans-serif.",
         url: "https://fonts.google.com/specimen/Sen",
         note: "display",
+        slug: "googlefonts",
       },
       {
         name: "Jost",
         description: "Body font for UI text. Geometric and readable.",
         url: "https://fonts.google.com/specimen/Jost",
         note: "body",
+        slug: "googlefonts",
       },
       {
         name: "Lucide",
