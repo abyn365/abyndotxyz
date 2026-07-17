@@ -41,3 +41,5 @@ yarn-error.log*
 
 #kv
 kv.sqlite
+kv.sqlite-wal
+kv.sqlite-shm
