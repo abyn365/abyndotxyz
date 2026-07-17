@@ -7,11 +7,11 @@
 
 ## Overview
 
-abyn.xyz is a personal portfolio and digital space for Abyan — a student developer from Indonesia. It features live Discord presence, music playback synced to Spotify via Last.fm, a blog, photo gallery, guestbook, and more.
+abyn.xyz is my personal portfolio and digital space. It features live Discord presence, music playback synced to Spotify via Last.fm, a blog, photo gallery, guestbook, and more.
 
 **Tech stack highlights:**
 - **Next.js** (Pages Router) · **TypeScript** · **Tailwind CSS** · **Framer Motion**
-- **Bun** — runtime for the VPS server, powers the local SQLite KV store via `bun:sqlite`
+- **Bun** — for runtime, powers the local SQLite KV store via `bun:sqlite` and other tools supported natively
 - **SQLite KV** — stores badges, activity history, and cached API responses persistently
 - **Lanyard** — real-time Discord presence via WebSocket
 - **Last.fm + Spotify** — music tracking and now-playing sync
