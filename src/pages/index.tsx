@@ -850,7 +850,7 @@ export default function Home() {
 
             <div className="relative z-10 flex items-center gap-2">
               <h1 className="font-display text-lg font-bold leading-none tracking-tight text-[var(--discord-card-text)]">
-                abyn
+                {profileData?.user?.global_name || profileData?.user?.username || "abyn"}
               </h1>
 
               {/* Guild Tag NBHD */}
