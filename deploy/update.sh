@@ -136,7 +136,7 @@ step "Step 3/4 — Swapping into production"
 echo ""
 echo -e "  ${DIM}Checking preserved files...${RESET}"
 PRESERVED=()
-for pf in ".env" "kv.sqlite" "bin"; do
+for pf in ".env" "kv.sqlite" "kv.sqlite-wal" "kv.sqlite-shm" "bin"; do
   if [ -e "${DEPLOY_DIR}/${pf}" ]; then
     PRESERVED+=("$pf")
   fi
@@ -147,7 +147,7 @@ run_with_spinner "Creating backup of current deployment" \
   bash -c "rm -rf '${BACKUP_DIR}' && mkdir -p '${BACKUP_DIR}'"
 
 shopt -s extglob dotglob
-for item in !(.env|kv.sqlite|bin|stage_new|backup_old); do
+for item in !(.env|kv.sqlite*|bin|stage_new|backup_old); do
   [ -e "$item" ] && mv "$item" "$BACKUP_DIR/"
 done
 
